@@ -1,0 +1,5 @@
+function changeBackgroundColor() {
+    const colors = ['#FF9A9E', '#A18CD1', '#FAD0C4', '#FFECD2'];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    document.querySelector('.magic-box').style.backgroundColor = randomColor;
+}
