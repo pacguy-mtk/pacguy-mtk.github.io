@@ -1,5 +1,50 @@
-function changeBackgroundColor() {
-    const colors = ['#FF9A9E', '#A18CD1', '#FAD0C4', '#FFECD2'];
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    document.querySelector('.magic-box').style.backgroundColor = randomColor;
-}
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        /* 用你的设计天赋让这里惊艳！ */
+        .project-card {
+            background: white; 
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: 0.3s;
+        }
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 小明 | 设计师 × 开发者</h1>
+    <p>我用代码实现设计创意，用设计思维编写代码。</p>
+    
+    <div class="project-gallery">
+        <!-- 项目1：跳转门户 -->
+        <div class="project-card">
+            <h3>🔗 智能资源跳转门户</h3>
+            <p>一个美观的Google Drive中转页，包含倒计时、动画和响应式设计。</p>
+            <a href="https://你的用户名.github.io/drive-portal" target="_blank">查看项目</a>
+            <a href="https://github.com/你的用户名/drive-portal" target="_blank">查看代码</a>
+        </div>
+        
+        <!-- 项目2：设计计算器（下一个可以做！） -->
+        <div class="project-card">
+            <h3>🧮 设计报价计算器</h3>
+            <p>用JavaScript实现的交互式报价工具，帮助客户快速估算项目成本。</p>
+            <a href="https://你的用户名.github.io/design-calculator" target="_blank">查看项目</a>
+            <a href="https://github.com/你的用户名/design-calculator" target="_blank">查看代码</a>
+        </div>
+        
+        <!-- 项目3：灵感生成器 -->
+        <div class="project-card">
+            <h3>✨ AI设计灵感生成器</h3>
+            <p>结合API和AI，随机生成设计挑战与配色方案。</p>
+            <a href="https://你的用户名.github.io/inspiration-generator" target="_blank">查看项目</a>
+            <a href="https://github.com/你的用户名/inspiration-generator" target="_blank">查看代码</a>
+        </div>
+    </div>
+</body>
+</html>
