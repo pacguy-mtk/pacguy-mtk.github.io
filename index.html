@@ -173,6 +173,16 @@
             font-weight: bold;
         }
 
+        .coming-badge {
+            background: #ffa502; /* 醒目的橙色/黄色 */
+            color: #333; /* 深色文字，在浅黄背景上更清晰 */
+            font-size: 0.75rem; /* 比LIVE标签稍小一点 */
+            padding: 3px 10px; /* 内边距也相应调小 */
+            border-radius: 10px;
+            font-weight: bold;
+            border: 1px solid rgba(0, 0, 0, 0.1); /* 可选：加一条细细的深色边框增加质感 */
+        }
+
         .project-description {
             color: var(--text-secondary);
             margin-bottom: 1.5rem;
@@ -315,7 +325,6 @@
                     </div>
                     <div class="project-title">
                         <a href=https://pacguy-mtk.github.io/magic-redirect/" target="_blank">Drive Portal</a>
-                        <i class="fas fa-rocket" style="margin-left: 8px; margin-right: 8px; color: #ff6b8b;"></i>
                         <span class="new-badge">LIVE</span>
                     </div>
                     <p class="project-description">
@@ -369,7 +378,7 @@
                     </div>
                     <div class="project-title">
                         <a href="#">Design Calculator</a>
-                        <span class="new-badge">COMING SOON</span>
+                        <span class="coming-badge">COMING SOON</span>
                     </div>
                     <p class="project-description">
                         A practical tool for calculating design project quotes, built with clean UI and real-time updates.
