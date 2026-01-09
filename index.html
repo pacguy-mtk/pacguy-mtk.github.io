@@ -490,21 +490,7 @@
         // 控制台欢迎信息
         console.log('🚀 Digital Hub Loaded!');
         console.log('🔗 Connect all your projects here.');
-
-        const backToTopButton = document.getElementById('backToTop');
-        window.addEventListener('scroll', function() {
-                if (window.pageYOffset > 300) {
-                    backToTopButton.classList.add('show');
-                } else {
-                    backToTopButton.classList.remove('show');
-                }
-        });
-        backToTopButton.addEventListener('click', function() {
-                window.scrollTo({
-                       top: 0,
-                       behavior: 'smooth' // 关键：让滚动有平滑动画
-                });
-        }     
+        });     
     </script>
     <button id="backToTop" title="回到顶部">↑</button>
 </body>
