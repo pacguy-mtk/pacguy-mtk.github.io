@@ -291,6 +291,33 @@
             .project-links {
                 flex-direction: column;
             }
+            #backToTop {
+                position: fixed; /* 固定在屏幕上 */
+                bottom: 30px; /* 距离底部30像素 */
+                right: 30px; /* 距离右侧30像素 */
+                width: 50px;
+                height: 50px;
+                border-radius: 50%; /* 变成圆形 */
+                background-color: var(--accent, #7a6ff0); /* 使用你主题的主色 */
+                color: white;
+                border: none;
+                font-size: 24px;
+                cursor: pointer;
+                opacity: 0; /* 默认完全透明（隐藏） */
+                visibility: hidden; /* 默认不可见 */
+                transition: opacity 0.3s, visibility 0.3s; /* 淡入淡出动画 */
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                z-index: 1000; /* 确保在最上层 */
+            }
+            #backToTop.show {
+               opacity: 1; /* 显示 */
+               visibility: visible; /* 可见 */
+            }
+            #backToTop:hover {
+               background-color: #6959e0; /* 悬停时颜色变深 */
+               transform: scale(1.05); /* 轻微放大 */
+            }
+            
         }
     </style>
 </head>
