@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZiJun — Designer & Developer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a1a;
+            color: #eef2ff;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 2rem 0 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1rem;
+            box-shadow: 0 10px 25px -5px rgba(124,58,237,0.4);
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #c084fc, #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .tagline {
+            font-size: 1rem;
+            color: #9ca3af;
+            margin-top: 0.3rem;
+        }
+
+        .ai-card {
+            background: linear-gradient(135deg, #1a1a2e, #0f0f1f);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            text-align: center;
+            margin: 2rem 0 1.5rem;
+            border: 1px solid #2d2a5e;
+        }
+
+        .ai-card h3 {
+            font-size: 1.6rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .ai-card p {
+            color: #b9c2d4;
+            margin-bottom: 1.2rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .ai-btn {
+            background: #8b5cf6;
+            padding: 0.8rem 2rem;
+            border-radius: 60px;
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .ai-btn:hover {
+            background: #a855f7;
+            transform: scale(1.02);
+        }
+
+        .portal-section {
+            margin: 1.5rem 0 2rem;
+        }
+
+        .portal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .portal-btn {
+            background: #111122;
+            padding: 0.6rem 1.2rem;
+            border-radius: 40px;
+            text-decoration: none;
+            color: #c4b5fd;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            border: 1px solid #2d2a5e;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .portal-btn:hover {
+            background: #2d2a5e;
+            color: white;
+            border-color: #8b5cf6;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem;
+            letter-spacing: -0.3px;
+        }
+
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .project-card {
+            background: #111122;
+            border-radius: 1rem;
+            padding: 1.2rem;
+            border: 1px solid #252542;
+            transition: all 0.2s;
+        }
+
+        .project-card:hover {
+            border-color: #8b5cf6;
+            transform: translateY(-2px);
+        }
+
+        .project-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.4rem;
+        }
+
+        .badge {
+            font-size: 0.65rem;
+            background: #8b5cf6;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .project-desc {
+            color: #b9c2d4;
+            font-size: 0.8rem;
+            margin: 0.4rem 0 0.8rem;
+            line-height: 1.4;
+        }
+
+        .project-links a {
+            color: #a78bfa;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .project-links a:hover {
+            color: white;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 1.5rem 0 1rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            margin-top: 1rem;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .footer a {
+            color: #9ca3af;
+            text-decoration: none;
+            margin: 0 0.6rem;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 1.6rem; }
+            .container { padding: 1rem; }
+            .portal-btn { padding: 0.5rem 1rem; font-size: 0.75rem; }
+            .ai-card h3 { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="hero">
+        <div class="avatar">
+            <i class="fas fa-code"></i>
+        </div>
+        <h1>ZiJun</h1>
+        <div class="tagline">Designer × Developer × AI Toolmaker</div>
+    </div>
+
+    <!-- 1️⃣ AI Assistant -->
+    <div class="ai-card">
+        <h3><i class="fas fa-comment-dots"></i> Ask My AI Assistant</h3>
+        <p>Need a quote? Want to know about my work? Just ask — it calculates, finds links, and answers fast.</p>
+        <a href="https://chatgpt.com/g/g-69b67a347e488191a4681abb18776a44-zijun-hub-assistant" class="ai-btn" target="_blank">
+            <i class="fab fa-chatgpt"></i> Chat Now
+        </a>
+    </div>
+
+    <!-- 2️⃣ Portal Buttons (NOW with Portfolio) -->
+    <div class="portal-section">
+        <div class="portal-buttons">
+            <a href="https://pacguy-mtk.github.io/calculator/" class="portal-btn" target="_blank"><i class="fas fa-calculator"></i> Calculator</a>
+            <a href="https://pacguy-mtk.github.io/magic-redirect/" class="portal-btn" target="_blank"><i class="fas fa-palette"></i> Parallax</a>
+            <a href="https://drive.google.com/drive/folders/1TuHiogcZ9p08ol-aS3qd7Wcj0U0NhDtS" class="portal-btn" target="_blank"><i class="fab fa-google-drive"></i> Drive Portal</a>
+            <a href="#" class="portal-btn"><i class="fas fa-robot"></i> AI Tools</a>
+            <a href="#" class="portal-btn"><i class="fas fa-briefcase"></i> Portfolio</a>
+        </div>
+    </div>
+
+    <!-- 3️⃣ Live Projects -->
+    <div class="section-title">⚡ Live Projects</div>
+    <div class="project-grid">
+        <div class="project-card">
+            <div class="project-title">
+                Design Calculator <span class="badge">LIVE</span>
+            </div>
+            <div class="project-desc">Quote printing jobs instantly. Built for real office use — saves time, reduces errors.</div>
+            <div class="project-links">
+                <a href="https://pacguy-mtk.github.io/calculator/" target="_blank">🔗 Try it →</a>
+            </div>
+        </div>
+
+        <div class="project-card">
+            <div class="project-title">
+                Parallax Portfolio <span class="badge">WIP</span>
+            </div>
+            <div class="project-desc">Immersive scrolling site with layered visuals. Shows design + dev together.</div>
+            <div class="project-links">
+                <a href="https://pacguy-mtk.github.io/magic-redirect/" target="_blank">🔗 View →</a>
+            </div>
+        </div>
+
+        <div class="project-card">
+            <div class="project-title">
+                Drive Portal <span class="badge">LIVE</span>
+            </div>
+            <div class="project-desc">Clean gateway to Google Drive resources — built for quick access.</div>
+            <div class="project-links">
+                <a href="https://drive.google.com/drive/folders/1TuHiogcZ9p08ol-aS3qd7Wcj0U0NhDtS" target="_blank">🔗 Open →</a>
+            </div>
+        </div>
+
+        <div class="project-card">
+            <div class="project-title">
+                AI Assistants <span class="badge">6× GPTs</span>
+            </div>
+            <div class="project-desc">Quote bots, gold math, work order tools — built to make work lazier (smarter).</div>
+            <div class="project-links">
+                <a href="#">📦 Portfolio AI →</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <a href="mailto:your.email@example.com"><i class="fas fa-envelope"></i> Email</a>
+        <a href="https://github.com/zijun198" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+        <a href="#"><i class="fas fa-file-alt"></i> Resume</a>
+        <p style="margin-top: 0.8rem;">📍 Malaysia • Built with <i class="fas fa-heart" style="color:#f43f5e;"></i> and AI</p>
+    </div>
+</div>
+</body>
+</html>
