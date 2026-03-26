@@ -299,5 +299,155 @@
         <p>This hub is always evolving. Last updated: <span id="currentDate"></span></p>
     </div>
 </div>
+    <style>
+
+/* Floating Button */
+
+#hub-ai-button{
+position:fixed;
+bottom:30px;
+right:30px;
+width:72px;   /* bigger button */
+height:72px;
+border-radius:50%;
+background:white;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+box-shadow:0 8px 25px rgba(0,0,0,0.4);
+z-index:2000;
+}
+
+/* ChatGPT Logo */
+
+#hub-ai-button img{
+width:42px;   /* bigger logo */
+height:42px;
+}
+
+/* Pulse animation */
+
+#hub-ai-button::before{
+content:"";
+position:absolute;
+width:72px;
+height:72px;
+border-radius:50%;
+background:#7a6ff0;
+opacity:.4;
+animation:hubPulse 2s infinite;
+z-index:-1;
+}
+
+@keyframes hubPulse{
+0%{transform:scale(1);opacity:.6}
+70%{transform:scale(1.8);opacity:0}
+100%{opacity:0}
+}
+
+
+/* Popup */
+
+#hub-ai-popup{
+position:fixed;
+bottom:110px;
+right:30px;
+width:280px;
+background:#1a1a2e;
+border-radius:14px;
+border:1px solid #333366;
+box-shadow:0 20px 45px rgba(0,0,0,0.6);
+padding:18px;
+display:none;
+font-family:'Inter',sans-serif;
+z-index:2000;
+}
+
+#hub-ai-popup h3{
+margin:0 0 6px 0;
+font-size:16px;
+color:#f0f0f0;
+}
+
+#hub-ai-popup p{
+font-size:13px;
+color:#b0b0d0;
+margin-bottom:14px;
+line-height:1.4;
+}
+
+.hub-ai-open{
+background:#7a6ff0;
+border:none;
+color:white;
+padding:11px;
+width:100%;
+border-radius:8px;
+cursor:pointer;
+font-weight:600;
+}
+
+.hub-ai-close{
+position:absolute;
+top:8px;
+right:12px;
+cursor:pointer;
+font-size:16px;
+color:#b0b0d0;
+}
+
+</style>
+
+<!-- Floating AI Button -->
+
+<div id="hub-ai-button" onclick="toggleHubAI()">
+
+<img src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg">
+
+</div>
+
+<!-- Popup -->
+
+<div id="hub-ai-popup">
+
+<div class="hub-ai-close" onclick="toggleHubAI()">✕</div>
+
+<h3>ZiJun Hub Assistant</h3>
+
+<p>
+Looking for portfolio links or projects?
+The AI assistant can guide you.
+</p>
+
+<button class="hub-ai-open" onclick="openHubAI()">
+Ask AI Assistant
+</button>
+
+</div>
+
+<script>
+
+function toggleHubAI(){
+
+let popup=document.getElementById("hub-ai-popup");
+
+popup.style.display =
+popup.style.display==="block" ? "none" : "block";
+
+}
+
+function openHubAI(){
+
+window.open(
+"https://chatgpt.com/g/g-69b67a347e488191a4681abb18776a44-zijun-hub-assistant",
+"_blank"
+);
+
+}
+
+</script>
+
+<!-- End AI Assistant -->
 </body>
 </html>
