@@ -228,6 +228,35 @@
             z-index: -2;
             filter: brightness(0.6);
         }
+        @media (max-width: 600px) {
+    /* 1. 让容器左右不留白 */
+    .container {
+        padding: 1rem;
+    }
+
+    /* 2. 视频预览区域：让视频在上，文字在下（而不是左右挤） */
+    .video-preview-row {
+        flex-direction: column;
+    }
+
+    /* 3. 项目卡片：一屏一个，不要挤 */
+    .project-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    /* 4. 门户按钮：一行两个，而不是铺满 */
+    .portal-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.6rem;
+    }
+    
+    /* 5. 外部容器不产生横向滚动条 */
+    body {
+        overflow-x: hidden;
+    }
+}
     </style>
 </head>
 <body>
