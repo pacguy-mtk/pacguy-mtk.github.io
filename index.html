@@ -45,6 +45,17 @@
       overflow-x: hidden;
     }
 
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background: radial-gradient(circle 280px at var(--cursor-x, 50%) var(--cursor-y, 50%), rgba(66, 232, 212, 0.13), transparent 72%);
+      opacity: 0.85;
+      transition: opacity 180ms ease;
+    }
+
     a {
       color: inherit;
     }
@@ -259,6 +270,7 @@
       transform: translateX(-50%);
       background: linear-gradient(180deg, rgba(66, 232, 212, 0), var(--cyan));
       box-shadow: 0 0 18px rgba(66, 232, 212, 0.74);
+      animation: signalDrop 2.8s ease-in-out infinite;
     }
 
     .system-line {
@@ -269,6 +281,18 @@
       height: 2px;
       background: linear-gradient(90deg, transparent, rgba(66, 232, 212, 0.82) 12%, rgba(66, 232, 212, 0.82) 88%, transparent);
       box-shadow: 0 0 18px rgba(66, 232, 212, 0.5);
+      overflow: hidden;
+    }
+
+    .system-line::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -20%;
+      width: 20%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(244, 247, 255, 0.95), transparent);
+      animation: signalSweep 3.4s ease-in-out infinite;
     }
 
     .page-grid {
@@ -294,6 +318,11 @@
       text-decoration: none;
       box-shadow: 0 18px 46px rgba(0, 0, 0, 0.36);
       transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+    }
+
+    .page-card > * {
+      position: relative;
+      z-index: 1;
     }
 
     .page-card::before {
@@ -322,6 +351,29 @@
       opacity: 0.72;
     }
 
+    .page-card .page-meta {
+      position: absolute;
+      right: 14px;
+      top: 12px;
+      color: rgba(244, 247, 255, 0.28);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      transition: color 180ms ease;
+    }
+
+    .page-card .page-action {
+      position: absolute;
+      right: 14px;
+      bottom: 12px;
+      color: var(--cyan);
+      font-size: 11px;
+      font-weight: 900;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
     .page-card strong {
       display: flex;
       align-items: center;
@@ -346,6 +398,27 @@
       box-shadow:
         0 22px 56px rgba(0, 0, 0, 0.42),
         0 0 34px rgba(66, 232, 212, 0.22);
+    }
+
+    .page-card:hover .page-meta {
+      color: rgba(66, 232, 212, 0.72);
+    }
+
+    .page-card:hover .page-action {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @keyframes signalSweep {
+      0%, 24% { transform: translateX(0); opacity: 0; }
+      34% { opacity: 1; }
+      70% { opacity: 1; }
+      100% { transform: translateX(600%); opacity: 0; }
+    }
+
+    @keyframes signalDrop {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
     }
 
     .scroll-cue {
@@ -389,6 +462,38 @@
     .section-head {
       max-width: 720px;
       margin-bottom: 30px;
+    }
+
+    .metric-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 0 0 28px;
+    }
+
+    .metric {
+      border: 1px solid rgba(66, 232, 212, 0.16);
+      border-radius: 14px;
+      padding: 16px;
+      background: rgba(8, 11, 20, 0.62);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.2);
+    }
+
+    .metric strong {
+      display: block;
+      color: var(--text);
+      font-size: clamp(26px, 4vw, 42px);
+      line-height: 1;
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
     .eyebrow {
@@ -439,9 +544,18 @@
       transition: border-color 180ms ease, box-shadow 180ms ease;
     }
 
+    .reel-card video {
+      transition: transform 240ms ease, filter 240ms ease;
+    }
+
     .reel-card:hover {
       border-color: rgba(66, 232, 212, 0.42);
       box-shadow: var(--shadow), 0 0 34px rgba(66, 232, 212, 0.14);
+    }
+
+    .reel-card:hover video {
+      transform: scale(1.025);
+      filter: saturate(1.08) contrast(1.06);
     }
 
     .reel-card video {
@@ -580,6 +694,17 @@
       transform: translateX(8px);
       border-color: rgba(66, 232, 212, 0.62);
       box-shadow: 0 18px 50px rgba(0, 0, 0, 0.38), 0 0 34px rgba(66, 232, 212, 0.18);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 520ms ease, transform 520ms ease;
+    }
+
+    .reveal.in-view {
+      opacity: 1;
+      transform: translateY(0);
     }
 
     .contact-link strong {
@@ -747,6 +872,7 @@
       }
 
       .page-grid,
+      .metric-strip,
       .reel-grid,
       .contact-shell {
         grid-template-columns: 1fr;
@@ -838,20 +964,28 @@
           <div class="system-line"></div>
           <div class="page-grid">
             <a class="page-card" href="https://pacguy-mtk.github.io/ai-lab/" target="_blank" rel="noopener">
+              <small class="page-meta">01</small>
               <strong><i class="fas fa-robot"></i>AI Tools</strong>
               <span>Assistants and AI shortcuts.</span>
+              <small class="page-action">OPEN PAGE</small>
             </a>
             <a class="page-card" href="https://pacguy-mtk.github.io/calculator/" target="_blank" rel="noopener">
+              <small class="page-meta">02</small>
               <strong><i class="fas fa-calculator"></i>Tool / Calculator</strong>
               <span>Practical quote system.</span>
+              <small class="page-action">OPEN PAGE</small>
             </a>
             <a class="page-card" href="https://pacguy-mtk.github.io/magic-redirect/" target="_blank" rel="noopener">
+              <small class="page-meta">03</small>
               <strong><i class="fas fa-layer-group"></i>Web / Parallax</strong>
               <span>HTML5 motion experiment.</span>
+              <small class="page-action">OPEN PAGE</small>
             </a>
             <a class="page-card" href="https://drive.google.com/drive/folders/1TuHiogcZ9p08ol-aS3qd7Wcj0U0NhDtS" target="_blank" rel="noopener">
+              <small class="page-meta">04</small>
               <strong><i class="fab fa-google-drive"></i>GDrive / Resume</strong>
               <span>Files and resources.</span>
+              <small class="page-action">OPEN PAGE</small>
             </a>
           </div>
         </div>
@@ -860,13 +994,27 @@
     </section>
 
     <section class="showreel" id="showreel">
-      <div class="section-head">
+      <div class="section-head reveal">
         <span class="eyebrow">AI Showreel</span>
         <h2>Generated motion, characters, and visual tests.</h2>
         <p>Examples of AI video generation and motion experiments. This section shows the visual side of the world behind the Hub.</p>
       </div>
+      <div class="metric-strip reveal">
+        <div class="metric">
+          <strong data-count="04">0</strong>
+          <span>Hub Pages</span>
+        </div>
+        <div class="metric">
+          <strong data-count="02">0</strong>
+          <span>Showreels</span>
+        </div>
+        <div class="metric">
+          <strong data-count="01">0</strong>
+          <span>System</span>
+        </div>
+      </div>
       <div class="reel-grid">
-        <article class="reel-card featured">
+        <article class="reel-card featured reveal">
           <video muted loop playsinline preload="metadata">
             <source src="https://github.com/pacguy-mtk/pacguy-mtk.github.io/raw/refs/heads/main/AI_Compilation.mp4" type="video/mp4">
           </video>
@@ -875,7 +1023,7 @@
             <p>Short generated scenes and motion tests built as visual experiments.</p>
           </div>
         </article>
-        <article class="reel-card">
+        <article class="reel-card reveal">
           <video muted loop playsinline preload="metadata">
             <source src="https://github.com/pacguy-mtk/pacguy-mtk.github.io/raw/refs/heads/main/AI_Compilation2.mp4" type="video/mp4">
           </video>
@@ -889,12 +1037,12 @@
 
     <section class="contact" id="contact">
       <div class="contact-shell">
-        <div class="contact-title">
+        <div class="contact-title reveal">
           <span class="eyebrow">Contact</span>
           <h2>Contact ZiJun</h2>
           <p>For work, collaboration, or questions about this system.</p>
         </div>
-        <div class="contact-board">
+        <div class="contact-board reveal">
           <div class="contact-status">
             <strong>Signal Online</strong>
             <span>Malaysia based</span>
@@ -938,6 +1086,11 @@
     const videoToggle = document.getElementById("videoToggle");
     const pageMenu = document.querySelector(".page-menu");
     const pageToggle = document.getElementById("pageToggle");
+
+    document.addEventListener("pointermove", (event) => {
+      document.body.style.setProperty("--cursor-x", `${event.clientX}px`);
+      document.body.style.setProperty("--cursor-y", `${event.clientY}px`);
+    });
 
     videoToggle.addEventListener("click", () => {
       const icon = videoToggle.querySelector("i");
@@ -984,6 +1137,45 @@
       card.addEventListener("mouseleave", () => {
         video.pause();
       });
+    });
+
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in-view");
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.18 });
+
+    document.querySelectorAll(".reveal").forEach((element) => {
+      revealObserver.observe(element);
+    });
+
+    const countObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) {
+          return;
+        }
+
+        const target = entry.target;
+        const finalValue = Number(target.dataset.count);
+        let current = 0;
+        const timer = setInterval(() => {
+          current += 1;
+          target.textContent = String(current).padStart(2, "0");
+
+          if (current >= finalValue) {
+            clearInterval(timer);
+          }
+        }, 70);
+
+        countObserver.unobserve(target);
+      });
+    }, { threshold: 0.6 });
+
+    document.querySelectorAll("[data-count]").forEach((element) => {
+      countObserver.observe(element);
     });
 
     document.getElementById("currentDate").textContent = new Date().toLocaleDateString("en-MY", {
