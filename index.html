@@ -1,647 +1,1185 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ZiJun — Designer & Developer</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%237c3aed'/%3E%3Ctext x='50' y='70' font-size='50' text-anchor='middle' fill='white' font-family='monospace'%3E%7B%7D%3C/text%3E%3C/svg%3E">
-<style>
-/* ─── RESET ─────────────────────────────── */
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-/* ─── BASE ─────────────────────────────── */
-:root {
-  --purple:   #8b5cf6;
-  --purple-hi: #a855f7;
-  --purple-dim: #7c3aed;
-  --bg:        #0a0a1a;
-  --surface:   #111122;
-  --surface2:  #1a1a2e;
-  --border:    #2d2a5e;
-  --text:      #eef2ff;
-  --muted:     #b9c2d4;
-  --faint:     #9ca3af;
-}
-
-html { scroll-behavior: smooth; }
-
-body {
-  font-family: 'Inter', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-  overflow-x: hidden;
-}
-
-/* ─── VIDEO BACKGROUND ──────────────────── */
-.bg-video {
-  position: fixed;
-  inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover;
-  object-position: 50% 50%;
-  z-index: -2;
-  filter: blur(4px) brightness(0.35) saturate(0.5);
-}
-
-/* Scanline — subtler opacity so content stays readable */
-.bg-scanlines {
-  position: fixed;
-  inset: 0;
-  background-image: repeating-linear-gradient(
-    0deg,
-    rgba(0,255,0,0.04) 0px, rgba(0,255,0,0.04) 1px,
-    transparent 1px, transparent 5px
-  );
-  pointer-events: none;
-  z-index: -1;
-}
-
-/* ─── LAYOUT ────────────────────────────── */
-.container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
-}
-
-/* ─── HERO ──────────────────────────────── */
-.hero {
-  text-align: center;
-  padding: 3.5rem 0 2.5rem;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-
-.avatar {
-  width: 88px; height: 88px;
-  background: linear-gradient(135deg, var(--purple-dim), var(--purple-hi));
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 2.2rem;
-  margin: 0 auto 1.25rem;
-  box-shadow: 0 0 0 4px rgba(124,58,237,0.15), 0 12px 30px rgba(124,58,237,0.35);
-}
-
-h1 {
-  font-size: 2.6rem;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  background: linear-gradient(to right, #c084fc, #a78bfa);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  line-height: 1.15;
-}
-
-.tagline {
-  font-size: 0.95rem;
-  color: var(--faint);
-  margin-top: 0.5rem;
-  letter-spacing: 0.04em;
-}
-
-/* ─── LINKEDIN BUTTON ───────────────────── */
-.linkedin-wrap {
-  text-align: center;
-  margin: 1.75rem 0 0;
-}
-
-/* ─── PORTAL BUTTONS ────────────────────── */
-.portal-section { margin: 1.75rem 0 2rem; }
-
-.portal-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.portal-btn {
-  background: var(--surface);
-  padding: 0.6rem 1.2rem;
-  border-radius: 40px;
-  text-decoration: none;
-  color: #c4b5fd;
-  font-weight: 500;
-  font-size: 0.85rem;
-  border: 1px solid var(--border);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: background 0.2s, border-color 0.2s, color 0.2s;
-}
-
-.portal-btn:hover {
-  background: var(--border);
-  border-color: var(--purple);
-  color: white;
-}
-
-.portal-btn.linkedin-btn {
-  background: #0e4f7a;
-  border-color: #0077b5;
-  color: white;
-}
-.portal-btn.linkedin-btn:hover {
-  background: #0077b5;
-  border-color: #0099e0;
-}
-
-/* ─── AI CARD ───────────────────────────── */
-.ai-card {
-  background: linear-gradient(135deg, var(--surface2), #0f0f1f);
-  border-radius: 1.25rem;
-  padding: 2.25rem 2rem;
-  text-align: center;
-  margin: 1.75rem 0 1.5rem;
-  border: 1px solid var(--border);
-  position: relative;
-  overflow: hidden;
-}
-
-/* Subtle top accent line */
-.ai-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(to right, transparent, var(--purple), transparent);
-}
-
-.ai-card h3 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.6rem;
-}
-
-.ai-card p {
-  color: var(--muted);
-  margin-bottom: 1.4rem;
-  max-width: 460px;
-  margin-left: auto;
-  margin-right: auto;
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
-.ai-btn {
-  background: var(--purple);
-  padding: 0.8rem 2rem;
-  border-radius: 60px;
-  text-decoration: none;
-  color: white;
-  font-weight: 600;
-  font-size: 0.95rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: background 0.2s, transform 0.15s;
-}
-
-.ai-btn:hover {
-  background: var(--purple-hi);
-  transform: translateY(-1px);
-}
-
-/* ─── VIDEO PREVIEW ROWS ────────────────── */
-.video-preview-row {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  margin: 2.5rem 0;
-}
-
-.video-preview-row .video-text { flex: 1; }
-
-.video-preview-row .video-text h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: white;
-  margin-bottom: 0.4rem;
-}
-
-.video-preview-row .video-text p {
-  color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.55;
-}
-
-.video-preview-row .video-window {
-  flex: 1;
-  border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.4), 0 0 0 1px rgba(139,92,246,0.15);
-  background: #000;
-}
-
-.video-preview-row .video-window video {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* ─── SECTION TITLE ─────────────────────── */
-.section-title {
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin: 1.5rem 0 1.1rem;
-  letter-spacing: -0.3px;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* ─── PROJECT GRID ──────────────────────── */
-.project-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.1rem;
-  margin-bottom: 2.5rem;
-}
-
-.project-card {
-  background: var(--surface);
-  border-radius: 1rem;
-  padding: 1.4rem;
-  border: 1px solid #252542;
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-}
-
-/* Tech accent bar at top of card */
-.project-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(to right, var(--purple-dim), transparent);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.project-card:hover {
-  border-color: var(--purple);
-  transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(139,92,246,0.15);
-}
-
-.project-card:hover::before { opacity: 1; }
-
-.project-title {
-  font-size: 1.05rem;
-  font-weight: 600;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  gap: 0.5rem;
-}
-
-.badge {
-  font-size: 0.62rem;
-  background: var(--purple);
-  padding: 0.2rem 0.6rem;
-  border-radius: 20px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.badge.wip {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--faint);
-}
-
-.project-desc {
-  color: var(--muted);
-  font-size: 0.83rem;
-  margin: 0.3rem 0 0.9rem;
-  line-height: 1.5;
-}
-
-.project-links a {
-  color: #a78bfa;
-  text-decoration: none;
-  font-size: 0.82rem;
-  font-weight: 500;
-  transition: color 0.15s;
-}
-
-.project-links a:hover { color: white; }
-
-/* ─── FOOTER ────────────────────────────── */
-.footer {
-  text-align: center;
-  padding: 2rem 0 1.5rem;
-  border-top: 1px solid rgba(255,255,255,0.06);
-  margin-top: 1rem;
-}
-
-.footer-links {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-}
-
-.footer-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.55rem 1.1rem;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 40px;
-  color: #9ca3af;
-  text-decoration: none;
-  font-size: 0.82rem;
-  font-weight: 500;
-  transition: border-color 0.2s, color 0.2s;
-}
-
-.footer-link:hover { border-color: var(--purple); color: white; }
-
-.footer-meta {
-  font-size: 0.75rem;
-  color: #4b5563;
-  line-height: 1.8;
-}
-
-.footer-meta .heart { color: #f43f5e; }
-
-/* ─── FLOATING AI BUTTON ────────────────── */
-#hub-ai-button {
-  position: fixed;
-  bottom: 28px; right: 28px;
-  width: 68px; height: 68px;
-  border-radius: 50%;
-  background: white;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-  z-index: 2000;
-  transition: transform 0.2s;
-}
-
-#hub-ai-button:hover { transform: scale(1.06); }
-
-#hub-ai-button img { width: 40px; height: 40px; }
-
-#hub-ai-button::before {
-  content: '';
-  position: absolute;
-  width: 68px; height: 68px;
-  border-radius: 50%;
-  background: #7a6ff0;
-  opacity: 0.4;
-  animation: hubPulse 2.2s infinite;
-  z-index: -1;
-}
-
-@keyframes hubPulse {
-  0%   { transform: scale(1);   opacity: 0.6; }
-  70%  { transform: scale(1.9); opacity: 0;   }
-  100% { opacity: 0; }
-}
-
-#hub-ai-popup {
-  position: fixed;
-  bottom: 108px; right: 28px;
-  width: 275px;
-  background: var(--surface2);
-  border-radius: 14px;
-  border: 1px solid #333366;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-  padding: 18px;
-  display: none;
-  font-family: 'Inter', sans-serif;
-  z-index: 2000;
-}
-
-#hub-ai-popup h3 { font-size: 15px; color: #f0f0f0; margin: 0 0 6px; }
-
-#hub-ai-popup p {
-  font-size: 13px;
-  color: #b0b0d0;
-  margin-bottom: 14px;
-  line-height: 1.45;
-}
-
-.hub-ai-open {
-  background: #7a6ff0;
-  border: none;
-  color: white;
-  padding: 11px;
-  width: 100%;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
-  transition: background 0.2s;
-}
-
-.hub-ai-open:hover { background: var(--purple-hi); }
-
-.hub-ai-close {
-  position: absolute;
-  top: 10px; right: 14px;
-  cursor: pointer;
-  font-size: 15px;
-  color: #b0b0d0;
-  line-height: 1;
-}
-
-/* ─── RESPONSIVE ────────────────────────── */
-@media (max-width: 640px) {
-  h1 { font-size: 1.8rem; }
-  .container { padding: 1rem; }
-
-  .portal-buttons {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.6rem;
-  }
-
-  .portal-btn { justify-content: center; }
-
-  .video-preview-row {
-    flex-direction: column;
-    gap: 1.25rem;
-  }
-
-  .video-preview-row.reverse { flex-direction: column; }
-
-  .ai-card { padding: 1.75rem 1.25rem; }
-  .ai-card h3 { font-size: 1.25rem; }
-
-  .footer-links { gap: 0.5rem; }
-
-  #hub-ai-button { bottom: 20px; right: 20px; }
-  #hub-ai-popup  { right: 20px; width: 260px; }
-}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ZiJun | The Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%23080b12"/><text x="50" y="68" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" font-weight="900" fill="%23f4f7ff">ZJ</text></svg>'>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --bg: #070912;
+      --panel: rgba(13, 17, 31, 0.72);
+      --panel-solid: #101525;
+      --text: #f4f7ff;
+      --muted: #aab5ce;
+      --faint: #707b95;
+      --line: rgba(255, 255, 255, 0.12);
+      --purple: #8b5cf6;
+      --purple-2: #a855f7;
+      --cyan: #42e8d4;
+      --blue: #7aa7ff;
+      --pink: #ff6f91;
+      --gold: #f8c76c;
+      --shadow: 0 28px 90px rgba(0, 0, 0, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(139, 92, 246, 0.18), transparent 34rem),
+        radial-gradient(circle at 82% 12%, rgba(66, 232, 212, 0.12), transparent 34rem),
+        var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .bg-video {
+      position: fixed;
+      inset: 0;
+      z-index: -3;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.28) saturate(0.72) contrast(1.08);
+    }
+
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(66, 232, 212, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(66, 232, 212, 0.045) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(circle at center, black 0 58%, transparent 82%);
+    }
+
+    .bg-vignette {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at center, transparent 0 42%, rgba(7, 9, 18, 0.68) 74%, rgba(7, 9, 18, 0.96) 100%),
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 5px);
+    }
+
+    .video-toggle {
+      position: fixed;
+      left: 22px;
+      bottom: 22px;
+      z-index: 45;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(8, 11, 20, 0.72);
+      color: var(--muted);
+      backdrop-filter: blur(14px);
+      cursor: pointer;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .video-toggle:hover {
+      color: var(--text);
+      border-color: rgba(66, 232, 212, 0.42);
+    }
+
+    .topbar {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      z-index: 40;
+      width: min(1120px, calc(100vw - 32px));
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 12px 10px 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      transform: translateX(-50%);
+      background: rgba(8, 11, 20, 0.72);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+      overflow: visible;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--purple), var(--cyan));
+      color: #060910;
+      font-weight: 900;
+      box-shadow: 0 0 26px rgba(66, 232, 212, 0.24);
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 14px;
+      letter-spacing: 0;
+    }
+
+    .brand span {
+      display: block;
+      margin-top: 1px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .topbar nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .topbar nav a,
+    .pages-toggle {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      border-radius: 8px;
+      padding: 0 12px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 750;
+      border: 0;
+      background: transparent;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .topbar nav a:hover,
+    .pages-menu:hover .pages-toggle,
+    .pages-toggle:focus-visible {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .pages-menu {
+      position: relative;
+    }
+
+    .pages-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      z-index: 50;
+      width: 220px;
+      border: 1px solid rgba(66, 232, 212, 0.22);
+      border-radius: 12px;
+      padding: 8px;
+      display: grid;
+      gap: 4px;
+      background: rgba(8, 11, 20, 0.94);
+      box-shadow: 0 18px 54px rgba(0, 0, 0, 0.42);
+      backdrop-filter: blur(18px);
+      opacity: 0;
+      transform: translateY(-6px);
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .pages-menu:hover .pages-dropdown,
+    .pages-menu:focus-within .pages-dropdown,
+    .pages-menu.open .pages-dropdown {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .pages-dropdown a {
+      min-height: 38px;
+      justify-content: flex-start;
+      gap: 8px;
+    }
+
+    .pages-dropdown i {
+      width: 18px;
+      color: var(--cyan);
+    }
+
+    section {
+      position: relative;
+      padding: 110px max(20px, calc((100vw - 1120px) / 2));
+    }
+
+    .hub {
+      min-height: 100vh;
+      display: grid;
+      align-items: center;
+      padding-top: 130px;
+      overflow: hidden;
+    }
+
+    .hub-map {
+      position: relative;
+      width: min(1120px, calc(100vw - 36px));
+      margin: 0 auto;
+      display: grid;
+      grid-template-rows: auto 220px auto;
+      gap: 0;
+      isolation: isolate;
+    }
+
+    .circuit-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      filter: drop-shadow(0 0 14px rgba(66, 232, 212, 0.18));
+    }
+
+    .circuit-path {
+      fill: none;
+      stroke: rgba(124, 163, 255, 0.22);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: stroke 180ms ease, stroke-width 180ms ease, filter 180ms ease, opacity 180ms ease;
+    }
+
+    .hub-map:has(.hub-module:hover) .circuit-path {
+      opacity: 0.28;
+    }
+
+    .hub-map:has(.module-ai:hover) .path-ai,
+    .hub-map:has(.module-tools:hover) .path-tools,
+    .hub-map:has(.module-web:hover) .path-web,
+    .hub-map:has(.module-drive:hover) .path-drive {
+      opacity: 1;
+      stroke: var(--cyan);
+      stroke-width: 4;
+      filter: drop-shadow(0 0 10px rgba(66, 232, 212, 0.82));
+    }
+
+    .hub-core {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+
+    .hub-title {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+
+    .hub-title h1 {
+      margin: 0;
+      font-size: clamp(76px, 15vw, 176px);
+      line-height: 0.78;
+      letter-spacing: 0;
+      text-shadow:
+        0 0 26px rgba(66, 232, 212, 0.44),
+        0 0 80px rgba(139, 92, 246, 0.26);
+    }
+
+    .hub-title p {
+      margin: 22px auto 0;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: clamp(15px, 1.5vw, 18px);
+      line-height: 1.6;
+    }
+
+    .hub-branches {
+      position: relative;
+      z-index: 3;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: clamp(20px, 2.6vw, 34px);
+      align-items: start;
+      margin-bottom: 20px;
+    }
+
+    .hub-module {
+      position: relative;
+      display: grid;
+      gap: 10px;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .hub-node {
+      position: relative;
+      z-index: 3;
+      width: 100%;
+      min-height: 86px;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 14px;
+      display: grid;
+      align-content: center;
+      gap: 4px;
+      padding: 14px 16px;
+      background: rgba(13, 17, 31, 0.9);
+      color: var(--text);
+      text-decoration: none;
+      box-shadow: 0 18px 46px rgba(0, 0, 0, 0.32);
+      backdrop-filter: blur(14px);
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+    }
+
+    .hub-node strong {
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+
+    .hub-node span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .hub-node i {
+      color: var(--cyan);
+      margin-right: 6px;
+    }
+
+    .hub-map:has(.hub-module:hover) .hub-module:not(:hover) .hub-node,
+    .hub-map:has(.hub-module:hover) .hub-module:not(:hover) .hub-drawer {
+      opacity: 0.42;
+      box-shadow: none;
+    }
+
+    .hub-module:hover .hub-node {
+      transform: translateY(-6px) scale(1.035);
+      border-color: rgba(66, 232, 212, 0.74);
+      box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.42),
+        0 0 36px rgba(66, 232, 212, 0.26);
+    }
+
+    .hub-drawer {
+      min-height: 130px;
+      border: 1px solid rgba(66, 232, 212, 0.16);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      background: rgba(7, 10, 18, 0.7);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 180ms ease, transform 180ms ease, border-color 180ms ease;
+      pointer-events: none;
+    }
+
+    .hub-module:hover .hub-drawer {
+      opacity: 1;
+      transform: translateY(0);
+      border-color: rgba(66, 232, 212, 0.46);
+    }
+
+    .hub-drawer strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 11px;
+    }
+
+    .hub-drawer span {
+      display: inline-flex;
+      width: fit-content;
+      margin-top: auto;
+      min-height: 26px;
+      align-items: center;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: rgba(66, 232, 212, 0.12);
+      color: var(--cyan);
+      font-weight: 900;
+      letter-spacing: 0.04em;
+    }
+
+    .scroll-cue {
+      position: absolute;
+      left: 50%;
+      bottom: 28px;
+      z-index: 4;
+      transform: translateX(-50%);
+      color: var(--faint);
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .section-head {
+      max-width: 720px;
+      margin-bottom: 30px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 10px;
+      border: 1px solid rgba(66, 232, 212, 0.3);
+      border-radius: 999px;
+      color: var(--cyan);
+      background: rgba(66, 232, 212, 0.08);
+      font-size: 12px;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .section-head h2 {
+      margin: 16px 0 10px;
+      font-size: clamp(34px, 5vw, 64px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .section-head p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    .showreel {
+      background: linear-gradient(180deg, rgba(7, 9, 18, 0.78), rgba(7, 9, 18, 0.94));
+    }
+
+    .reel-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+    }
+
+    .reel-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .reel-card video {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      background: #000;
+    }
+
+    .reel-card:hover {
+      border-color: rgba(66, 232, 212, 0.42);
+      box-shadow:
+        var(--shadow),
+        0 0 34px rgba(66, 232, 212, 0.14);
+    }
+
+    .reel-body {
+      padding: 18px;
+    }
+
+    .reel-body h3 {
+      margin: 0 0 6px;
+      font-size: 20px;
+    }
+
+    .reel-body p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .contact {
+      min-height: 72vh;
+      display: grid;
+      align-items: center;
+      background:
+        linear-gradient(180deg, rgba(7, 9, 18, 0.94), rgba(7, 9, 18, 0.98)),
+        radial-gradient(circle at 15% 40%, rgba(66, 232, 212, 0.14), transparent 28rem);
+    }
+
+    .contact-shell {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(260px, 0.75fr) minmax(0, 1.25fr);
+      gap: 34px;
+      align-items: stretch;
+    }
+
+    .contact-shell::before {
+      content: "";
+      position: absolute;
+      left: 31%;
+      top: 18px;
+      bottom: 18px;
+      width: 1px;
+      background: linear-gradient(180deg, transparent, rgba(66, 232, 212, 0.56), transparent);
+      box-shadow: 0 0 18px rgba(66, 232, 212, 0.38);
+    }
+
+    .contact-title {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      align-content: center;
+      min-height: 340px;
+      padding-right: 20px;
+    }
+
+    .contact-title .eyebrow {
+      width: fit-content;
+    }
+
+    .contact-title h2 {
+      margin: 18px 0 14px;
+      max-width: 380px;
+      font-size: clamp(42px, 6vw, 78px);
+      line-height: 0.92;
+      letter-spacing: 0;
+      text-shadow: 0 0 44px rgba(66, 232, 212, 0.2);
+    }
+
+    .contact-title p {
+      max-width: 360px;
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .contact-board {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      align-content: center;
+      gap: 12px;
+    }
+
+    .contact-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      min-height: 52px;
+      border: 1px solid rgba(66, 232, 212, 0.28);
+      border-radius: 999px;
+      padding: 0 16px;
+      color: var(--muted);
+      background: rgba(8, 11, 20, 0.62);
+      backdrop-filter: blur(14px);
+    }
+
+    .contact-status strong {
+      color: var(--cyan);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .contact-status span {
+      font-size: 13px;
+    }
+
+    .contact-link {
+      position: relative;
+      min-height: 74px;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 14px;
+      padding: 15px 18px 15px 58px;
+      display: grid;
+      align-content: center;
+      color: var(--text);
+      text-decoration: none;
+      background:
+        linear-gradient(90deg, rgba(66, 232, 212, 0.12), transparent 44%),
+        rgba(13, 17, 31, 0.68);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.34);
+      overflow: hidden;
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .contact-link::before {
+      content: "";
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      transform: translateY(-50%);
+      background: var(--cyan);
+      box-shadow: 0 0 18px rgba(66, 232, 212, 0.78);
+    }
+
+    .contact-link::after {
+      content: "";
+      position: absolute;
+      left: 24px;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: rgba(66, 232, 212, 0.2);
+    }
+
+    .contact-link:hover {
+      transform: translateX(8px);
+      border-color: rgba(66, 232, 212, 0.62);
+      background:
+        linear-gradient(90deg, rgba(66, 232, 212, 0.2), transparent 48%),
+        rgba(13, 17, 31, 0.82);
+      box-shadow:
+        0 18px 50px rgba(0, 0, 0, 0.38),
+        0 0 34px rgba(66, 232, 212, 0.18);
+    }
+
+    .contact-link strong {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 18px;
+    }
+
+    .contact-link span {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .contact-link i {
+      color: var(--cyan);
+      font-size: 18px;
+    }
+
+    .footer {
+      padding: 26px 20px 42px;
+      text-align: center;
+      color: var(--faint);
+      font-size: 13px;
+    }
+
+    .footer a {
+      color: var(--cyan);
+      text-decoration: none;
+      font-weight: 800;
+    }
+
+    #hub-ai-button {
+      position: fixed;
+      right: 28px;
+      bottom: 28px;
+      z-index: 50;
+      width: 66px;
+      height: 66px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: white;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.42);
+      cursor: pointer;
+      transition: transform 180ms ease;
+    }
+
+    #hub-ai-button:hover {
+      transform: scale(1.06);
+    }
+
+    #hub-ai-button::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      background: var(--purple);
+      opacity: 0.45;
+      animation: pulse 2.2s ease-out infinite;
+    }
+
+    #hub-ai-button img {
+      width: 38px;
+      height: 38px;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.52; }
+      75% { transform: scale(1.9); opacity: 0; }
+      100% { opacity: 0; }
+    }
+
+    #hub-ai-popup {
+      position: fixed;
+      right: 28px;
+      bottom: 108px;
+      z-index: 50;
+      display: none;
+      width: min(300px, calc(100vw - 32px));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      background: var(--panel-solid);
+      box-shadow: var(--shadow);
+    }
+
+    #hub-ai-popup.open {
+      display: block;
+    }
+
+    .hub-ai-close {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    #hub-ai-popup h3 {
+      margin: 0 26px 6px 0;
+      font-size: 16px;
+    }
+
+    #hub-ai-popup p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .hub-ai-open {
+      width: 100%;
+      min-height: 42px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--purple);
+      color: white;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    @media (max-width: 860px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        top: 10px;
+        min-height: auto;
+      }
+
+      .topbar nav {
+        width: 100%;
+        overflow-x: visible;
+        overflow-y: visible;
+        flex-wrap: wrap;
+      }
+
+      .hub-map {
+        min-height: auto;
+        grid-template-rows: auto 18px auto;
+      }
+
+      .circuit-svg {
+        display: none;
+      }
+
+      .hub-core {
+        width: 100%;
+        text-align: center;
+      }
+
+      .hub-title {
+        text-align: center;
+      }
+
+      .hub-title h1 {
+        font-size: clamp(58px, 18vw, 96px);
+        line-height: 0.86;
+      }
+
+      .hub-title p {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .hub-branches,
+      .reel-grid,
+      .contact-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .hub-branches {
+        gap: 14px;
+        margin-bottom: 14px;
+      }
+
+      .contact-shell::before {
+        display: none;
+      }
+
+      .contact-title {
+        min-height: auto;
+        padding-right: 0;
+      }
+
+      .contact-title h2 {
+        max-width: none;
+        font-size: clamp(38px, 12vw, 58px);
+      }
+
+      .hub-drawer {
+        display: none;
+      }
+
+    }
+
+    @media (max-width: 560px) {
+      section {
+        padding: 92px 16px;
+      }
+
+      .hub {
+        padding-top: 170px;
+      }
+
+      .scroll-cue {
+        top: 136px;
+        bottom: auto;
+      }
+
+      .brand span span {
+        display: none;
+      }
+
+      .topbar nav a {
+        padding: 0 10px;
+        font-size: 12px;
+      }
+
+      .pages-toggle {
+        padding: 0 10px;
+        font-size: 12px;
+      }
+
+      .pages-dropdown {
+        left: 0;
+        right: auto;
+        width: 210px;
+      }
+
+      .hub-title p {
+        font-size: 14px;
+      }
+
+      .hub-node {
+        min-height: 72px;
+        padding: 13px 14px;
+      }
+
+      .contact-link {
+        padding-left: 48px;
+      }
+
+      .video-toggle {
+        left: 14px;
+        bottom: 14px;
+        max-width: calc(100vw - 104px);
+      }
+    }
+  </style>
 </head>
 <body>
+  <video class="bg-video" autoplay muted loop playsinline>
+    <source src="https://github.com/pacguy-mtk/pacguy-mtk.github.io/raw/refs/heads/main/githubhubvid2.mp4" type="video/mp4">
+  </video>
+  <div class="bg-grid"></div>
+  <div class="bg-vignette"></div>
+  <button class="video-toggle" id="videoToggle" type="button">
+    <i class="fas fa-pause"></i>
+    <span>Pause background</span>
+  </button>
 
-<!-- Background video -->
-<video class="bg-video" autoplay muted loop playsinline>
-  <source src="https://github.com/pacguy-mtk/pacguy-mtk.github.io/raw/refs/heads/main/githubhubvid2.mp4" type="video/mp4">
-</video>
-
-<!-- Scanline overlay (subtle) -->
-<div class="bg-scanlines"></div>
-
-<div class="container">
-
-  <!-- HERO -->
-  <div class="hero">
-    <div class="avatar">
-      <i class="fas fa-code"></i>
-    </div>
-    <h1>ZiJun</h1>
-    <div class="tagline">Designer × Developer × AI Toolmaker</div>
-
-    <!-- LinkedIn sits right under the hero tagline -->
-    <div class="linkedin-wrap" style="margin-top:1.25rem;">
-      <a href="https://www.linkedin.com/in/looi-jia-jun-b734133b2" target="_blank" rel="noopener" class="portal-btn linkedin-btn">
-        <i class="fab fa-linkedin"></i> LinkedIn
-      </a>
-    </div>
-  </div>
-
-  <!-- AI CARD -->
-  <div class="ai-card">
-    <h3><i class="fas fa-comment-dots"></i> Ask My AI Assistant</h3>
-    <p>Want to know about my work? Just ask — it finds links and answers fast.</p>
-    <a href="https://chatgpt.com/g/g-69b67a347e488191a4681abb18776a44-zijun-hub-assistant" class="ai-btn" target="_blank">
-      <i class="fas fa-comment"></i> Chat Now
+  <header class="topbar">
+    <a class="brand" href="#hub" aria-label="The Hub">
+      <div class="brand-mark">ZJ</div>
+      <span>
+        <strong>ZiJun Hub</strong>
+        <span>Design / AI / Tools</span>
+      </span>
     </a>
+    <nav aria-label="Main navigation">
+      <a href="#hub">Hub</a>
+      <div class="pages-menu">
+        <button class="pages-toggle" id="pagesToggle" type="button" aria-expanded="false">Page</button>
+        <div class="pages-dropdown">
+          <a href="https://pacguy-mtk.github.io/ai-lab/" target="_blank" rel="noopener"><i class="fas fa-robot"></i>AI Tools</a>
+          <a href="https://pacguy-mtk.github.io/calculator/" target="_blank" rel="noopener"><i class="fas fa-calculator"></i>Calculator</a>
+          <a href="https://pacguy-mtk.github.io/magic-redirect/" target="_blank" rel="noopener"><i class="fas fa-layer-group"></i>Parallax Web</a>
+          <a href="https://drive.google.com/drive/folders/1TuHiogcZ9p08ol-aS3qd7Wcj0U0NhDtS" target="_blank" rel="noopener"><i class="fab fa-google-drive"></i>GDrive / Resume</a>
+        </div>
+      </div>
+      <a href="#showreel">AI Showreel</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hub" id="hub">
+      <div class="hub-map">
+        <svg class="circuit-svg" viewBox="0 0 1120 520" aria-hidden="true">
+          <path class="circuit-path" d="M560 190 V280" />
+          <path class="circuit-path path-ai" d="M560 280 V330 H140 V356" />
+          <path class="circuit-path path-tools" d="M560 280 V346 H420 V356" />
+          <path class="circuit-path path-web" d="M560 280 V346 H700 V356" />
+          <path class="circuit-path path-drive" d="M560 280 V330 H980 V356" />
+        </svg>
+
+        <div class="hub-core">
+          <div class="hub-title">
+            <h1>THE HUB</h1>
+            <p>Welcome to ZiJun System. This system is designed by ZiJun and built by AI.</p>
+          </div>
+        </div>
+
+        <div class="hub-branches">
+          <a class="hub-module module-ai" href="https://pacguy-mtk.github.io/ai-lab/" target="_blank" rel="noopener">
+            <div class="hub-node">
+              <strong><i class="fas fa-robot"></i>AI Tools</strong>
+              <span>Assistants and AI shortcuts.</span>
+            </div>
+            <div class="hub-drawer">
+              <strong>Overview</strong>
+              AI assistants and small workflow ideas written by ZiJun for faster creative work.
+              <span>CLICK</span>
+            </div>
+          </a>
+
+          <a class="hub-module module-tools" href="https://pacguy-mtk.github.io/calculator/" target="_blank" rel="noopener">
+            <div class="hub-node">
+              <strong><i class="fas fa-calculator"></i>Tool / Calculator</strong>
+              <span>Practical quote system.</span>
+            </div>
+            <div class="hub-drawer">
+              <strong>Overview</strong>
+              A signage quotation calculator built from a real daily work process.
+              <span>CLICK</span>
+            </div>
+          </a>
+
+          <a class="hub-module module-web" href="https://pacguy-mtk.github.io/magic-redirect/" target="_blank" rel="noopener">
+            <div class="hub-node">
+              <strong><i class="fas fa-layer-group"></i>Web / Parallax</strong>
+              <span>HTML5 motion experiment.</span>
+            </div>
+            <div class="hub-drawer">
+              <strong>Overview</strong>
+              A visual web experiment focused on depth, hover motion, and layered parallax.
+              <span>CLICK</span>
+            </div>
+          </a>
+
+          <a class="hub-module module-drive" href="https://drive.google.com/drive/folders/1TuHiogcZ9p08ol-aS3qd7Wcj0U0NhDtS" target="_blank" rel="noopener">
+            <div class="hub-node">
+              <strong><i class="fab fa-google-drive"></i>GDrive / Resume</strong>
+              <span>Files and resources.</span>
+            </div>
+            <div class="hub-drawer">
+              <strong>Overview</strong>
+              A simple folder for portfolio files, references, and supporting documents.
+              <span>CLICK</span>
+            </div>
+          </a>
+        </div>
+
+      </div>
+
+      <div class="scroll-cue">Scroll for showreel</div>
+    </section>
+
+    <section class="showreel" id="showreel">
+      <div class="section-head">
+        <span class="eyebrow">AI Showreel</span>
+        <h2>Generated motion, characters, and visual tests.</h2>
+        <p>Examples of AI video generation and motion experiments. This section shows the visual side of the world behind the Hub.</p>
+      </div>
+
+      <div class="reel-grid">
+        <article class="reel-card">
+          <video muted loop playsinline preload="metadata">
+            <source src="https://github.com/pacguy-mtk/pacguy-mtk.github.io/raw/refs/heads/main/AI_Compilation.mp4" type="video/mp4">
+          </video>
+          <div class="reel-body">
+            <h3>AI Motion Work</h3>
+            <p>Short generated scenes and motion tests built as visual experiments.</p>
+          </div>
+        </article>
+
+        <article class="reel-card">
+          <video muted loop playsinline preload="metadata">
+            <source src="https://github.com/pacguy-mtk/pacguy-mtk.github.io/raw/refs/heads/main/AI_Compilation2.mp4" type="video/mp4">
+          </video>
+          <div class="reel-body">
+            <h3>AI Characters</h3>
+            <p>Character generation tests, style exploration, and cinematic fragments.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="contact" id="contact">
+      <div class="contact-shell">
+        <div class="contact-title">
+          <span class="eyebrow">Contact</span>
+          <h2>Contact ZiJun</h2>
+          <p>For work, collaboration, or questions about this system.</p>
+        </div>
+
+        <div class="contact-board">
+          <div class="contact-status">
+            <strong>Signal Online</strong>
+            <span>Malaysia based</span>
+          </div>
+
+          <a class="contact-link" href="https://www.linkedin.com/in/looi-jia-jun-b734133b2" target="_blank" rel="noopener">
+            <strong><i class="fab fa-linkedin"></i>LinkedIn</strong>
+            <span>Professional profile and work connection.</span>
+          </a>
+
+          <a class="contact-link" href="mailto:juniorlooi95@gmail.com">
+            <strong><i class="fas fa-envelope"></i>Email</strong>
+            <span>juniorlooi95@gmail.com</span>
+          </a>
+
+          <a class="contact-link" href="https://wa.me/60173588931?text=Hi%20from%20The%20Hub" target="_blank" rel="noopener">
+            <strong><i class="fab fa-whatsapp"></i>WhatsApp</strong>
+            <span>Direct message for quick contact.</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Malaysia. Built with design, code, and AI.</p>
+    <p>Last updated: <span id="currentDate"></span></p>
+    <p>Current ver: 3. <a href="https://drive.google.com/file/d/17umrl0Ip0qNCMbniMmGeU9yqf0PLbG8p/view?usp=drive_link" target="_blank" rel="noopener">Resume</a></p>
+  </footer>
+
+  <div id="hub-ai-button" onclick="toggleHubAI()">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" alt="AI Assistant">
   </div>
 
-  <!-- PORTAL BUTTONS -->
-  <div class="portal-section">
-    <div class="portal-buttons">
-      <a href="https://pacguy-mtk.github.io/calculator/" class="portal-btn" target="_blank"><i class="fas fa-calculator"></i> Calculator</a>
-      <a href="https://pacguy-mtk.github.io/magic-redirect/" class="portal-btn" target="_blank"><i class="fas fa-palette"></i> Parallax</a>
-      <a href="https://drive.google.com/drive/folders/1TuHiogcZ9p08ol-aS3qd7Wcj0U0NhDtS" class="portal-btn" target="_blank"><i class="fab fa-google-drive"></i> Drive Portal</a>
-      <a href="https://pacguy-mtk.github.io/ai-lab/" class="portal-btn"><i class="fas fa-robot"></i> AI Tools</a>
-      <a href="#" class="portal-btn"><i class="fas fa-briefcase"></i> Portfolio</a>
-    </div>
+  <div id="hub-ai-popup">
+    <div class="hub-ai-close" onclick="toggleHubAI()">X</div>
+    <h3>ZiJun Hub Assistant</h3>
+    <p>Looking for portfolio links or projects? The AI assistant can guide you.</p>
+    <button class="hub-ai-open" onclick="openHubAI()">Ask AI Assistant</button>
   </div>
 
-  <!-- VIDEO PREVIEW 1 -->
-  <div class="video-preview-row">
-    <div class="video-text">
-      <h3>🎬 Watch a Preview</h3>
-      <p>This video loops silently — sample of my AI-generated motion work.</p>
-    </div>
-    <div class="video-window">
-      <video autoplay muted loop playsinline>
-        <source src="https://github.com/pacguy-mtk/pacguy-mtk.github.io/raw/refs/heads/main/AI_Compilation.mp4" type="video/mp4">
-      </video>
-    </div>
-  </div>
+  <script>
+    const bgVideo = document.querySelector(".bg-video");
+    const videoToggle = document.getElementById("videoToggle");
 
-  <!-- VIDEO PREVIEW 2 (reversed) -->
-  <div class="video-preview-row reverse">
-    <div class="video-window">
-      <video autoplay muted loop playsinline>
-        <source src="https://github.com/pacguy-mtk/pacguy-mtk.github.io/raw/refs/heads/main/AI_Compilation2.mp4">
-      </video>
-    </div>
-    <div class="video-text">
-      <h3>🎬 AI Character</h3>
-      <p>This video loops silently — sample of my AI-generated characters.</p>
-    </div>
-  </div>
+    videoToggle.addEventListener("click", () => {
+      const icon = videoToggle.querySelector("i");
+      const label = videoToggle.querySelector("span");
 
-  <!-- LIVE PROJECTS -->
-  <div class="section-title">⚡ Live Projects</div>
-  <div class="project-grid">
-    <div class="project-card">
-      <div class="project-title">
-        Design Calculator <span class="badge">LIVE</span>
-      </div>
-      <div class="project-desc">Quote printing jobs instantly. Built for real office use — saves time, reduces errors.</div>
-      <div class="project-links">
-        <a href="https://pacguy-mtk.github.io/calculator/" target="_blank">🔗 Try it →</a>
-      </div>
-    </div>
+      if (bgVideo.paused) {
+        bgVideo.play().catch(() => {});
+        icon.className = "fas fa-pause";
+        label.textContent = "Pause background";
+      } else {
+        bgVideo.pause();
+        icon.className = "fas fa-play";
+        label.textContent = "Play background";
+      }
+    });
 
-    <div class="project-card">
-      <div class="project-title">
-        Parallax Portfolio <span class="badge wip">WIP</span>
-      </div>
-      <div class="project-desc">Immersive scrolling site with layered visuals. Shows design + dev together.</div>
-      <div class="project-links">
-        <a href="https://pacguy-mtk.github.io/magic-redirect/" target="_blank">🔗 View →</a>
-      </div>
-    </div>
+    document.querySelectorAll(".reel-card").forEach((card) => {
+      const video = card.querySelector("video");
 
-    <div class="project-card">
-      <div class="project-title">
-        Drive Portal <span class="badge">LIVE</span>
-      </div>
-      <div class="project-desc">Clean gateway to Google Drive resources — built for quick access.</div>
-      <div class="project-links">
-        <a href="https://drive.google.com/drive/folders/1TuHiogcZ9p08ol-aS3qd7Wcj0U0NhDtS" target="_blank">🔗 Open →</a>
-      </div>
-    </div>
+      card.addEventListener("mouseenter", () => {
+        video.play().catch(() => {});
+      });
 
-    <div class="project-card">
-      <div class="project-title">
-        AI Assistants <span class="badge">6× GPTs</span>
-      </div>
-      <div class="project-desc">Quote bots, gold math, work order tools — built to make work lazier (smarter).</div>
-      <div class="project-links">
-        <a href="https://pacguy-mtk.github.io/ai-lab/">📦 Portfolio AI →</a>
-      </div>
-    </div>
-  </div>
+      card.addEventListener("mouseleave", () => {
+        video.pause();
+      });
+    });
 
-  <!-- FOOTER -->
-  <div class="footer">
-    <div class="footer-links">
-      <a href="mailto:juniorlooi95@gmail.com" class="footer-link"><i class="fas fa-envelope"></i> Email</a>
-      <a href="https://wa.me/60173588931?text=Hi%20from%20portfolio" class="footer-link"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-      <a href="https://drive.google.com/file/d/17umrl0Ip0qNCMbniMmGeU9yqf0PLbG8p/view?usp=drive_link" class="footer-link"><i class="fas fa-file-alt"></i> Resume</a>
-    </div>
-    <div class="footer-meta">
-      <div>📍 Malaysia &nbsp;•&nbsp; Built with <i class="fas fa-heart heart"></i> and AI</div>
-      <div>This hub is always evolving. Last updated: <span id="currentDate"></span></div>
-    </div>
-  </div>
+    const pagesMenu = document.querySelector(".pages-menu");
+    const pagesToggle = document.getElementById("pagesToggle");
 
-</div><!-- /container -->
+    pagesToggle.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const isOpen = pagesMenu.classList.toggle("open");
+      pagesToggle.setAttribute("aria-expanded", String(isOpen));
+    });
 
-<!-- FLOATING AI BUTTON -->
-<div id="hub-ai-button" onclick="toggleHubAI()">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" alt="AI Assistant">
-</div>
+    document.addEventListener("click", (event) => {
+      if (!pagesMenu.contains(event.target)) {
+        pagesMenu.classList.remove("open");
+        pagesToggle.setAttribute("aria-expanded", "false");
+      }
+    });
 
-<!-- POPUP -->
-<div id="hub-ai-popup">
-  <div class="hub-ai-close" onclick="toggleHubAI()">✕</div>
-  <h3>ZiJun Hub Assistant</h3>
-  <p>Looking for portfolio links or projects? The AI assistant can guide you.</p>
-  <button class="hub-ai-open" onclick="openHubAI()">Ask AI Assistant</button>
-</div>
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        pagesMenu.classList.remove("open");
+        pagesToggle.setAttribute("aria-expanded", "false");
+      }
+    });
 
-<script>
-  document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-MY', { year:'numeric', month:'long', day:'numeric' });
+    document.getElementById("currentDate").textContent = new Date().toLocaleDateString("en-MY", {
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
 
-  function toggleHubAI() {
-    const popup = document.getElementById('hub-ai-popup');
-    popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
-  }
+    function toggleHubAI() {
+      document.getElementById("hub-ai-popup").classList.toggle("open");
+    }
 
-  function openHubAI() {
-    window.open('https://chatgpt.com/g/g-69b67a347e488191a4681abb18776a44-zijun-hub-assistant', '_blank');
-  }
-</script>
+    function openHubAI() {
+      window.open("https://chatgpt.com/g/g-69b67a347e488191a4681abb18776a44-zijun-hub-assistant", "_blank");
+    }
+  </script>
 </body>
 </html>
