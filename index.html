@@ -217,6 +217,85 @@
       color: var(--cyan);
     }
 
+    .page-dropdown-group {
+      display: grid;
+      gap: 4px;
+    }
+
+    .page-dropdown-toggle {
+      width: 100%;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 0;
+      border-radius: 8px;
+      padding: 0 12px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .page-dropdown-toggle:hover,
+    .page-dropdown-group.open > .page-dropdown-toggle {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .page-dropdown-toggle i:last-child {
+      margin-left: auto;
+      font-size: 11px;
+      color: rgba(66, 232, 212, 0.9);
+    }
+
+    .page-subdropdown {
+      display: grid;
+      gap: 4px;
+      max-height: 0;
+      overflow: hidden;
+      margin-left: 10px;
+      opacity: 0;
+      transform: translateY(-4px);
+      pointer-events: none;
+      transition: max-height 180ms ease, opacity 160ms ease, transform 160ms ease, margin-top 160ms ease;
+    }
+
+    .page-dropdown-group.open .page-subdropdown {
+      max-height: 120px;
+      margin-top: 4px;
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .page-subdropdown a {
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 8px;
+      padding: 0 12px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .page-subdropdown a:hover {
+      background: rgba(66, 232, 212, 0.08);
+    }
+
+    .page-subdropdown i {
+      width: 18px;
+      color: var(--cyan);
+      font-size: 12px;
+    }
+
     section {
       position: relative;
       padding: 110px max(20px, calc((100vw - 1120px) / 2));
@@ -407,6 +486,91 @@
     .page-card:hover .page-action {
       opacity: 1;
       transform: translateY(0);
+    }
+
+    .page-card-menu {
+      display: block;
+    }
+
+    .page-card-menu > .page-card {
+      width: 100%;
+      appearance: none;
+      -webkit-appearance: none;
+      font: inherit;
+      text-align: left;
+    }
+
+    .page-card-dropdown {
+      display: grid;
+      gap: 8px;
+      max-height: 0;
+      overflow: hidden;
+      margin-top: 0;
+      padding: 0 8px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      background: rgba(8, 11, 20, 0.9);
+      opacity: 0;
+      transform: translateY(-6px);
+      pointer-events: none;
+      transition:
+        max-height 220ms ease,
+        margin-top 220ms ease,
+        padding 220ms ease,
+        opacity 180ms ease,
+        transform 180ms ease,
+        border-color 180ms ease;
+    }
+
+    .page-card-menu.open > .page-card {
+      transform: translateY(-4px);
+      border-color: rgba(66, 232, 212, 0.72);
+      box-shadow:
+        0 22px 56px rgba(0, 0, 0, 0.42),
+        0 0 34px rgba(66, 232, 212, 0.22);
+    }
+
+    .page-card-menu.open > .page-card .page-action {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .page-card-menu.open .page-card-dropdown {
+      max-height: 160px;
+      margin-top: 10px;
+      padding: 10px;
+      border-color: rgba(66, 232, 212, 0.18);
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .page-card-dropdown a {
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 0 12px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+    }
+
+    .page-card-dropdown a:hover {
+      border-color: rgba(66, 232, 212, 0.44);
+      background: rgba(66, 232, 212, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .page-card-dropdown i {
+      width: 18px;
+      color: var(--cyan);
+      font-size: 13px;
     }
 
     @keyframes signalSweep {
@@ -945,7 +1109,17 @@
         <div class="page-dropdown">
           <a href="https://pacguy-mtk.github.io/ai-lab/" target="_blank" rel="noopener"><i class="fas fa-robot"></i>AI Tools</a>
           <a href="https://pacguy-mtk.github.io/calculator/" target="_blank" rel="noopener"><i class="fas fa-calculator"></i>Calculator</a>
-          <a href="https://pacguy-mtk.github.io/magic-redirect/" target="_blank" rel="noopener"><i class="fas fa-layer-group"></i>Parallax Web</a>
+          <div class="page-dropdown-group">
+            <button class="page-dropdown-toggle" id="pageParallaxToggle" type="button" aria-expanded="false" aria-haspopup="true" aria-controls="pageParallaxChoices">
+              <i class="fas fa-layer-group"></i>
+              <span>Parallax Web</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="page-subdropdown" id="pageParallaxChoices">
+              <a href="https://pacguy-mtk.github.io/magic-redirect/" target="_blank" rel="noopener"><i class="fas fa-layer-group"></i><span>Parallax site</span></a>
+              <a href="https://pacguy-mtk.github.io/rainforest-brand-mockup/" target="_blank" rel="noopener"><i class="fas fa-seedling"></i><span>Brand site</span></a>
+            </div>
+          </div>
           <a href="https://drive.google.com/drive/folders/1TuHiogcZ9p08ol-aS3qd7Wcj0U0NhDtS" target="_blank" rel="noopener"><i class="fab fa-google-drive"></i>GDrive / Resume</a>
         </div>
       </div>
@@ -975,12 +1149,24 @@
               <span>Practical quote system.</span>
               <small class="page-action">OPEN PAGE</small>
             </a>
-            <a class="page-card" href="https://pacguy-mtk.github.io/magic-redirect/" target="_blank" rel="noopener">
-              <small class="page-meta">03</small>
-              <strong><i class="fas fa-layer-group"></i>Web / Parallax</strong>
-              <span>HTML5 motion experiment.</span>
-              <small class="page-action">OPEN PAGE</small>
-            </a>
+            <div class="page-card-menu">
+              <button class="page-card" id="webParallaxToggle" type="button" aria-expanded="false" aria-haspopup="true" aria-controls="webParallaxChoices">
+                <small class="page-meta">03</small>
+                <strong><i class="fas fa-layer-group"></i>Web / Parallax</strong>
+                <span>HTML5 motion experiment.</span>
+                <small class="page-action">OPEN MENU</small>
+              </button>
+              <div class="page-card-dropdown" id="webParallaxChoices">
+                <a href="https://pacguy-mtk.github.io/magic-redirect/" target="_blank" rel="noopener">
+                  <i class="fas fa-layer-group"></i>
+                  <span>Parallax site</span>
+                </a>
+                <a href="https://pacguy-mtk.github.io/rainforest-brand-mockup/" target="_blank" rel="noopener">
+                  <i class="fas fa-seedling"></i>
+                  <span>Brand site</span>
+                </a>
+              </div>
+            </div>
             <a class="page-card" href="https://drive.google.com/drive/folders/1TuHiogcZ9p08ol-aS3qd7Wcj0U0NhDtS" target="_blank" rel="noopener">
               <small class="page-meta">04</small>
               <strong><i class="fab fa-google-drive"></i>GDrive / Resume</strong>
@@ -1086,6 +1272,28 @@
     const videoToggle = document.getElementById("videoToggle");
     const pageMenu = document.querySelector(".page-menu");
     const pageToggle = document.getElementById("pageToggle");
+    const pageParallaxMenu = document.querySelector(".page-dropdown-group");
+    const pageParallaxToggle = document.getElementById("pageParallaxToggle");
+    const webParallaxMenu = document.querySelector(".page-card-menu");
+    const webParallaxToggle = document.getElementById("webParallaxToggle");
+
+    function setPageMenuOpen(isOpen) {
+      pageMenu.classList.toggle("open", isOpen);
+      pageToggle.setAttribute("aria-expanded", String(isOpen));
+      if (!isOpen) {
+        setPageParallaxMenuOpen(false);
+      }
+    }
+
+    function setPageParallaxMenuOpen(isOpen) {
+      pageParallaxMenu.classList.toggle("open", isOpen);
+      pageParallaxToggle.setAttribute("aria-expanded", String(isOpen));
+    }
+
+    function setWebParallaxMenuOpen(isOpen) {
+      webParallaxMenu.classList.toggle("open", isOpen);
+      webParallaxToggle.setAttribute("aria-expanded", String(isOpen));
+    }
 
     document.addEventListener("pointermove", (event) => {
       document.body.style.setProperty("--cursor-x", `${event.clientX}px`);
@@ -1108,22 +1316,38 @@
     });
 
     pageToggle.addEventListener("click", (event) => {
+      const isOpen = !pageMenu.classList.contains("open");
+      setPageMenuOpen(isOpen);
+    });
+
+    pageParallaxToggle.addEventListener("click", (event) => {
       event.stopPropagation();
-      const isOpen = pageMenu.classList.toggle("open");
-      pageToggle.setAttribute("aria-expanded", String(isOpen));
+      const isOpen = !pageParallaxMenu.classList.contains("open");
+      setPageParallaxMenuOpen(isOpen);
+    });
+
+    webParallaxToggle.addEventListener("click", () => {
+      const isOpen = !webParallaxMenu.classList.contains("open");
+      setWebParallaxMenuOpen(isOpen);
     });
 
     document.addEventListener("click", (event) => {
       if (!pageMenu.contains(event.target)) {
-        pageMenu.classList.remove("open");
-        pageToggle.setAttribute("aria-expanded", "false");
+        setPageMenuOpen(false);
+      } else if (!pageParallaxMenu.contains(event.target)) {
+        setPageParallaxMenuOpen(false);
+      }
+
+      if (!webParallaxMenu.contains(event.target)) {
+        setWebParallaxMenuOpen(false);
       }
     });
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
-        pageMenu.classList.remove("open");
-        pageToggle.setAttribute("aria-expanded", "false");
+        setPageMenuOpen(false);
+        setPageParallaxMenuOpen(false);
+        setWebParallaxMenuOpen(false);
       }
     });
 
