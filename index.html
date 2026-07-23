@@ -2394,6 +2394,7 @@ BEHAVIOR:
         addBotMessage(aiText, cardKeys);
       } catch (err) {
         removeTypingIndicator();
+        console.error('Chatbot API error:', err.message, err);
         const cardKeys = extractCards(text);
         addBotMessage('I can help you navigate. What are you looking for?', cardKeys);
       } finally {
