@@ -1,0 +1,7 @@
+{
+  "id": "tempest-v3",
+  "displayName": "Tempest V3",
+  "description": "A round glossy blue slime pet inspired by Rimuru Tempest's soft dome-like slime form.",
+  "spritesheetPath": "spritesheet.webp",
+  "kind": "creature"
+}
