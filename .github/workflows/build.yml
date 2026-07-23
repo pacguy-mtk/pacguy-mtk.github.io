@@ -17,10 +17,9 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Inject API key into HTML files
+      - name: Inject API key into index.html
         run: |
           sed -i "s|__API_KEY__|${{ secrets.OPENROUTER_API_KEY }}|g" index.html
-          sed "s|__API_KEY__|${{ secrets.OPENROUTER_API_KEY }}|g" index-api.template.html > index-api.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
