@@ -2342,7 +2342,7 @@ BEHAVIOR:
       chatInput.value = '';
       chatSend.disabled = true;
 
-      if (!HUB_AI_API_KEY || HUB_AI_API_KEY === '__API_KEY__') {
+      if (!HUB_AI_API_KEY || HUB_AI_API_KEY.length < 10) {
         const cardKeys = extractCards(text);
         const responses = {
           feed: 'Here\'s the Hub Feed with mockup posts.',
