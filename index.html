@@ -2767,6 +2767,19 @@ BEHAVIOR:
 
     const DEFAULT_POSTS = [
       {
+        id: 'default-0',
+        author: 'ZiJun Looi',
+        role: 'Product Designer & Developer',
+        time: 'Just now • Brand Site Mockup',
+        text: '🌿 **New Brand Site Mockup!**\n\nI have updated a new mockup brand website, check out now:\n🔗 Brand site page: https://pacguy-mtk.github.io/rainforest-brand-mockup/',
+        category: 'UI/UX Design',
+        likes: 0,
+        liked: false,
+        media: [
+          { type: 'image', src: 'https://github.com/pacguy-mtk/pacguy-mtk.github.io/blob/main/post/Screenshot%202026-07-23%20235201.jpg?raw=true' }
+        ]
+      },
+      {
         id: 'default-1',
         author: 'ZiJun Looi',
         role: 'Product Designer & Developer',
@@ -2797,7 +2810,7 @@ BEHAVIOR:
         author: 'ZiJun Looi',
         role: 'Product Designer & Developer',
         time: 'Just now • Travel Agency Mockup',
-        text: '🌍 **New Travel Agency Website Mockup!**\n\nI have updated a new mockup travel agency website, check out now:\n🔗 Travel Agency page link: https://pacguy-mtk.github.io/test-travelagency/',
+        text: '🌍 **New Travel Agency Website Mockup!**\n\nI have updated a new mockup travel agency website, check out now:\n🔗 Travel Agency page: https://pacguy-mtk.github.io/test-travelagency/',
         category: 'UI/UX Design',
         likes: 0,
         liked: false,
@@ -2915,6 +2928,7 @@ BEHAVIOR:
       let escaped = escapeHtml(text);
       escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
       escaped = escaped.replace(/#(\w+)/g, '<span style="color: var(--cyan); font-weight: 700;">#$1</span>');
+      escaped = escaped.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener" style="color: var(--cyan); text-decoration: underline;">$1</a>');
       return escaped;
     }
 
