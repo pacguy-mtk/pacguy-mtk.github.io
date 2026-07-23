@@ -6,7 +6,7 @@
   <title>ZiJun | The Hub Prototype</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;800;900&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%23080b12"/><text x="50" y="68" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" font-weight="900" fill="%23f4f7ff">ZJ</text></svg>'>
   <style>
@@ -908,7 +908,74 @@
       font-weight: 800;
     }
 
-    /* ══════ CHATBOT WIDGET ══════ */
+    /* ══════ PET WIDGET ══════ */
+    #hub-pet-canvas {
+      position: fixed;
+      left: calc(100vw - 108px);
+      bottom: 28px;
+      z-index: 100;
+      width: 80px;
+      height: 87px;
+      cursor: pointer;
+      filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.5));
+      transition: filter 180ms ease;
+      image-rendering: auto;
+      touch-action: none;
+    }
+
+    #hub-pet-canvas:hover {
+      transform: scale(1.1);
+      filter: drop-shadow(0 8px 24px rgba(139, 92, 246, 0.45));
+    }
+
+    #hub-pet-canvas::before {
+      content: "";
+      position: absolute;
+      inset: -8px;
+      z-index: -1;
+      border-radius: 50%;
+      background: var(--violet);
+      opacity: 0.3;
+      animation: pulse 2.2s ease-out infinite;
+      pointer-events: none;
+    }
+
+    #hub-pet-say {
+      position: fixed;
+      z-index: 98;
+      padding: 6px 12px;
+      border: 3px solid #1a1a2e;
+      border-radius: 10px;
+      background: #fff;
+      color: #1a1a2e;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 300ms ease, transform 300ms ease;
+      box-shadow: 3px 3px 0 #1a1a2e;
+    }
+
+    #hub-pet-say.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #hub-pet-say::after {
+      content: "";
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 10px solid #1a1a2e;
+    }
+
     #hub-chat-bubble {
       position: fixed;
       right: 28px;
@@ -931,44 +998,58 @@
       box-shadow: 0 12px 40px rgba(139, 92, 246, 0.4);
     }
 
-    #hub-chat-bubble::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      z-index: -1;
-      border-radius: inherit;
-      background: var(--violet);
-      opacity: 0.45;
-      animation: pulse 2.2s ease-out infinite;
-    }
-
     #hub-chat-bubble i {
       font-size: 26px;
       color: white;
-      transition: opacity 180ms ease;
     }
-
-    #hub-chat-bubble.open i.fa-comment-dots { display: none; }
-    #hub-chat-bubble:not(.open) i.fa-times { display: none; }
 
     #hub-chat-panel {
       position: fixed;
-      right: 28px;
-      bottom: 108px;
-      z-index: 100;
+      z-index: 99;
       display: flex;
       width: min(420px, calc(100vw - 32px));
       height: min(560px, calc(100vh - 140px));
-      border: 1px solid var(--line);
+      border: 4px solid #1a1a2e;
       border-radius: 18px;
-      background: #0d1220;
-      box-shadow: 0 28px 90px rgba(0, 0, 0, 0.56);
+      background: #fff;
+      box-shadow:
+        6px 6px 0 #1a1a2e,
+        inset 0 0 0 2px #e0e0e0;
       flex-direction: column;
       overflow: hidden;
       opacity: 0;
       transform: translateY(16px) scale(0.96);
       pointer-events: none;
       transition: opacity 220ms ease, transform 220ms ease;
+      font-family: 'VT323', monospace;
+    }
+
+    #hub-chat-panel::before {
+      content: "";
+      position: absolute;
+      bottom: -16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-top: 16px solid #1a1a2e;
+      z-index: 2;
+    }
+
+    #hub-chat-panel::after {
+      content: "";
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 12px solid #fff;
+      z-index: 3;
     }
 
     #hub-chat-panel.open {
@@ -981,22 +1062,26 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 16px 18px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      background: rgba(13, 18, 32, 0.95);
+      padding: 12px 14px;
+      border-bottom: 3px solid #1a1a2e;
+      background: #f0f0f0;
+      position: relative;
+      z-index: 1;
     }
 
     .chat-header-avatar {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--violet), var(--cyan));
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      border: 3px solid #1a1a2e;
+      background: #42e8d4;
       display: grid;
       place-items: center;
-      font-weight: 900;
-      font-size: 14px;
-      color: #060910;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      color: #1a1a2e;
       flex-shrink: 0;
+      box-shadow: 2px 2px 0 #1a1a2e;
     }
 
     .chat-header-info {
@@ -1005,98 +1090,109 @@
 
     .chat-header-info strong {
       display: block;
-      font-size: 14px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: #1a1a2e;
+      letter-spacing: 0.5px;
     }
 
     .chat-header-info span {
-      color: var(--muted);
-      font-size: 11px;
+      color: #666;
+      font-family: 'VT323', monospace;
+      font-size: 16px;
     }
 
     .chat-header-close {
-      width: 32px;
-      height: 32px;
-      border: 0;
-      border-radius: 8px;
-      background: transparent;
-      color: var(--muted);
-      font-size: 16px;
+      width: 26px;
+      height: 26px;
+      border: 3px solid #1a1a2e;
+      border-radius: 4px;
+      background: #ff6b6b;
+      color: #fff;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
       cursor: pointer;
       display: grid;
       place-items: center;
-      transition: background 180ms ease, color 180ms ease;
+      box-shadow: 2px 2px 0 #1a1a2e;
+      transition: transform 80ms steps(2);
     }
 
     .chat-header-close:hover {
-      background: rgba(255,255,255,0.08);
-      color: var(--text);
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 #1a1a2e;
     }
 
     .chat-messages {
       flex: 1;
       overflow-y: auto;
-      padding: 16px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
       scrollbar-width: thin;
-      scrollbar-color: rgba(66,232,212,0.2) transparent;
+      scrollbar-color: #ccc transparent;
     }
 
     .chat-messages::-webkit-scrollbar {
-      width: 5px;
+      width: 6px;
     }
     .chat-messages::-webkit-scrollbar-thumb {
-      background: rgba(66,232,212,0.2);
-      border-radius: 999px;
+      background: #ccc;
+      border-radius: 0;
     }
 
     .chat-msg {
-      max-width: 88%;
+      max-width: 90%;
       padding: 10px 14px;
-      border-radius: 14px;
-      font-size: 13px;
-      line-height: 1.55;
-      animation: msgIn 280ms ease;
+      font-family: 'VT323', monospace;
+      font-size: 19px;
+      line-height: 1.4;
+      animation: msgIn 200ms steps(4);
+      position: relative;
     }
 
     @keyframes msgIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .chat-msg.bot {
       align-self: flex-start;
-      border: 1px solid rgba(66,232,212,0.14);
-      background: rgba(10, 14, 26, 0.92);
-      color: var(--text);
-      border-bottom-left-radius: 4px;
+      border: 3px solid #1a1a2e;
+      border-radius: 12px;
+      background: #f8f8f8;
+      color: #1a1a2e;
+      box-shadow: 3px 3px 0 #1a1a2e;
     }
 
     .chat-msg.user {
       align-self: flex-end;
-      border: 1px solid rgba(139,92,246,0.2);
-      background: rgba(139, 92, 246, 0.15);
-      color: var(--text);
-      border-bottom-right-radius: 4px;
+      border: 3px solid #1a1a2e;
+      border-radius: 12px;
+      background: #42e8d4;
+      color: #1a1a2e;
+      box-shadow: 3px 3px 0 #1a1a2e;
     }
 
     .chat-msg.bot .typing-dots span {
       display: inline-block;
-      width: 6px;
-      height: 6px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: var(--cyan);
-      margin: 0 2px;
-      animation: blink 1.2s infinite;
+      background: #1a1a2e;
+      margin: 0 3px;
+      animation: blink 1s steps(2) infinite;
     }
 
-    .chat-msg.bot .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-    .chat-msg.bot .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    .chat-msg.bot .typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+    .chat-msg.bot .typing-dots span:nth-child(3) { animation-delay: 0.3s; }
 
     @keyframes blink {
-      0%, 80%, 100% { opacity: 0.25; }
-      40% { opacity: 1; }
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
     }
 
     .chat-cards {
@@ -1110,75 +1206,84 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      min-height: 34px;
+      min-height: 32px;
       padding: 0 12px;
-      border: 1px solid rgba(66,232,212,0.22);
-      border-radius: 999px;
-      background: rgba(66,232,212,0.06);
-      color: var(--cyan);
-      font: inherit;
-      font-size: 12px;
-      font-weight: 700;
+      border: 3px solid #1a1a2e;
+      border-radius: 6px;
+      background: #fff;
+      color: #1a1a2e;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
       cursor: pointer;
-      transition: background 180ms ease, border-color 180ms ease, transform 160ms ease;
+      transition: transform 80ms steps(2);
       text-decoration: none;
+      box-shadow: 3px 3px 0 #1a1a2e;
     }
 
     .chat-card:hover {
-      background: rgba(66,232,212,0.14);
-      border-color: rgba(66,232,212,0.5);
-      transform: translateY(-1px);
+      background: #42e8d4;
+      transform: translate(1px, 1px);
+      box-shadow: 2px 2px 0 #1a1a2e;
     }
 
     .chat-card i {
-      font-size: 12px;
+      font-size: 11px;
     }
 
     .chat-input-area {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 12px 14px;
-      border-top: 1px solid rgba(255,255,255,0.06);
-      background: rgba(13, 18, 32, 0.95);
+      padding: 10px 12px;
+      border-top: 3px solid #1a1a2e;
+      background: #f0f0f0;
+      position: relative;
+      z-index: 1;
     }
 
     .chat-input {
       flex: 1;
-      min-height: 40px;
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 10px;
-      padding: 0 14px;
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
-      font: inherit;
-      font-size: 13px;
+      min-height: 36px;
+      border: 3px solid #1a1a2e;
+      border-radius: 6px;
+      padding: 0 12px;
+      background: #fff;
+      color: #1a1a2e;
+      font-family: 'VT323', monospace;
+      font-size: 20px;
       outline: none;
       resize: none;
-      transition: border-color 180ms ease;
+      transition: box-shadow 120ms;
     }
 
     .chat-input:focus {
-      border-color: rgba(66,232,212,0.45);
+      box-shadow: 0 0 0 2px #42e8d4;
     }
 
     .chat-input::placeholder {
-      color: var(--faint);
+      color: #999;
+      font-family: 'VT323', monospace;
     }
 
     .chat-send {
-      width: 40px;
-      height: 40px;
-      border: 0;
-      border-radius: 10px;
-      background: var(--cyan);
-      color: #060910;
+      width: 36px;
+      height: 36px;
+      border: 3px solid #1a1a2e;
+      border-radius: 6px;
+      background: #42e8d4;
+      color: #1a1a2e;
       font-size: 16px;
       cursor: pointer;
       display: grid;
       place-items: center;
       flex-shrink: 0;
-      transition: opacity 180ms ease, transform 160ms ease;
+      box-shadow: 3px 3px 0 #1a1a2e;
+      transition: transform 80ms steps(2);
+    }
+
+    .chat-send:hover {
+      transform: translate(1px, 1px);
+      box-shadow: 2px 2px 0 #1a1a2e;
     }
 
     .chat-send:disabled {
@@ -1186,21 +1291,15 @@
       cursor: not-allowed;
     }
 
-    .chat-send:not(:disabled):hover {
-      transform: translateY(-1px);
-    }
-
     @media (max-width: 560px) {
-      #hub-chat-bubble {
-        right: 16px;
+      #hub-pet-canvas {
+        left: calc(100vw - 80px);
         bottom: 16px;
-        width: 56px;
-        height: 56px;
+        width: 64px;
+        height: 70px;
       }
 
       #hub-chat-panel {
-        right: 8px;
-        bottom: 84px;
         width: calc(100vw - 16px);
         height: calc(100vh - 100px);
         border-radius: 14px;
@@ -2015,17 +2114,15 @@
     <p>Current ver: 3. <a href="https://drive.google.com/file/d/17umrl0Ip0qNCMbniMmGeU9yqf0PLbG8p/view?usp=drive_link" target="_blank" rel="noopener">Resume</a></p>
   </footer>
 
-  <button id="hub-chat-bubble" type="button" aria-label="Open AI Assistant">
-    <i class="fas fa-comment-dots"></i>
-    <i class="fas fa-times"></i>
-  </button>
+  <canvas id="hub-pet-canvas" width="192" height="208" aria-label="Click to open AI Assistant"></canvas>
+  <div id="hub-pet-say"></div>
 
   <div id="hub-chat-panel">
     <div class="chat-header">
       <div class="chat-header-avatar">ZJ</div>
       <div class="chat-header-info">
-        <strong>ZiJun Hub Assistant</strong>
-        <span>Navigation guide for recruiters & visitors</span>
+        <strong>Slime-san</strong>
+        <span>Hub guide for recruiters & visitors</span>
       </div>
       <button class="chat-header-close" type="button" onclick="toggleChat()" aria-label="Close chat">
         <i class="fas fa-times"></i>
@@ -2033,7 +2130,7 @@
     </div>
     <div class="chat-messages" id="chatMessages"></div>
     <div class="chat-input-area">
-      <input class="chat-input" id="chatInput" type="text" placeholder="Ask me where to go..." autocomplete="off">
+      <input class="chat-input" id="chatInput" type="text" placeholder="Ask me anything..." autocomplete="off">
       <button class="chat-send" id="chatSend" type="button" aria-label="Send message">
         <i class="fas fa-paper-plane"></i>
       </button>
@@ -2183,8 +2280,9 @@
       day: "numeric"
     });
 
-    /* ══════ HUB CHATBOT ══════ */
-    const chatBubble = document.getElementById('hub-chat-bubble');
+    /* ══════ HUB PET + CHATBOT ══════ */
+    const petCanvas = document.getElementById('hub-pet-canvas');
+    const petCtx = petCanvas.getContext('2d');
     const chatPanel = document.getElementById('hub-chat-panel');
     const chatMessages = document.getElementById('chatMessages');
     const chatInput = document.getElementById('chatInput');
@@ -2192,22 +2290,270 @@
     let chatHistory = [];
     let chatOpen = false;
 
-    const SYSTEM_PROMPT = `You are the ZiJun Hub Guide — a casual, competent assistant for this portfolio.
+    /* ══════ PET SPRITE ENGINE ══════ */
+    const PET_CONFIG = {
+      cellW: 192, cellH: 208,
+      cols: 8,
+      animations: {
+        idle:    { row: 0, frames: 6, fps: 3 },
+        runR:    { row: 1, frames: 8, fps: 10 },
+        runL:    { row: 2, frames: 8, fps: 10 },
+        wave:    { row: 3, frames: 4, fps: 6 },
+        jump:    { row: 4, frames: 5, fps: 8 },
+        failed:  { row: 5, frames: 8, fps: 6 },
+        waiting: { row: 6, frames: 6, fps: 4 },
+        running: { row: 7, frames: 6, fps: 10 },
+        review:  { row: 8, frames: 6, fps: 4 }
+      }
+    };
 
-WHO IS ZIJUN:
-Looi Jia Jun (Zijun), 31, based in Bukit Jalil, KL Malaysia. Multimedia designer who codes. Diploma in Digital Animation from Point College (2014-2018). Open for work, freelance, and collaboration since April 2026.
+    let petSprite = null;
+    let petState = 'idle';
+    let petFrame = 0;
+    let petTimer = 0;
+    let petCallback = null;
 
-WHAT HE DOES:
-- Multimedia design (print, digital, branding, signage)
-- Web tools & automation (HTML/CSS/JS, React, GitHub Pages)
-- AI workflow integration (CustomGPTs, agents, API pipelines)
-- Video production (AI-assisted + traditional editing)
-- He's the guy who sits between designer and coder — does both.
+    function loadPetSprite(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+      });
+    }
 
-HONEST SKILLS:
-Strong: Graphic design (Photoshop, Illustrator, After Effects, Premiere), web tools, AI tools (ChatGPT, Gemini, CustomGPT builder), print production, Python + Playwright automation
-Learning: React + TypeScript, CI/CD, Godot
-Not his thing: Pure programming from scratch, 3D modeling, hand-drawn illustration
+    function setPetState(state, cb) {
+      const anim = PET_CONFIG.animations[state];
+      if (!anim) return;
+      if (petState !== state) {
+        petState = state;
+        petFrame = 0;
+        petTimer = 0;
+        petCallback = cb || null;
+      }
+    }
+
+    function renderPetFrame() {
+      const anim = PET_CONFIG.animations[petState];
+      if (!anim || !petSprite) return;
+      petCtx.clearRect(0, 0, PET_CONFIG.cellW, PET_CONFIG.cellH);
+      const sx = petFrame * PET_CONFIG.cellW;
+      const sy = anim.row * PET_CONFIG.cellH;
+      petCtx.drawImage(petSprite, sx, sy, PET_CONFIG.cellW, PET_CONFIG.cellH, 0, 0, PET_CONFIG.cellW, PET_CONFIG.cellH);
+    }
+
+    let petLastTime = 0;
+    function petLoop(timestamp) {
+      if (!petLastTime) petLastTime = timestamp;
+      const dt = timestamp - petLastTime;
+      petLastTime = timestamp;
+
+      const anim = PET_CONFIG.animations[petState];
+      if (anim) {
+        petTimer += dt;
+        const interval = 1000 / anim.fps;
+        while (petTimer >= interval) {
+          petTimer -= interval;
+          petFrame++;
+          if (petFrame >= anim.frames) {
+            petFrame = 0;
+            if (petCallback) {
+              const cb = petCallback;
+              petCallback = null;
+              cb();
+              return;
+            }
+          }
+        }
+      }
+
+      renderPetFrame();
+      requestAnimationFrame(petLoop);
+    }
+
+    async function initPet() {
+      try {
+        const res = await fetch('pet/pet.json');
+        const petData = await res.json();
+        petSprite = await loadPetSprite('pet/' + petData.spritesheetPath);
+        renderPetFrame();
+        requestAnimationFrame(petLoop);
+      } catch (e) {
+        console.warn('Pet sprite failed to load, falling back to dot bubble:', e);
+        petCanvas.style.display = 'none';
+        const fallback = document.createElement('button');
+        fallback.id = 'hub-chat-bubble';
+        fallback.type = 'button';
+        fallback.setAttribute('aria-label', 'Open AI Assistant');
+        fallback.innerHTML = '<i class="fas fa-comment-dots"></i>';
+        fallback.addEventListener('click', toggleChat);
+        document.body.appendChild(fallback);
+      }
+    }
+
+    initPet();
+
+    /* ══════ PET IDLE BUBBLES ══════ */
+    const petSay = document.getElementById('hub-pet-say');
+    const petSayMsgs = ['Click me!', 'I can help!', 'Hey there!'];
+    let petSayIdx = 0;
+    let petSayTimer = null;
+
+    function positionPetSay() {
+      const rect = petCanvas.getBoundingClientRect();
+      petSay.style.left = (rect.left + rect.width / 2 - petSay.offsetWidth / 2) + 'px';
+      petSay.style.top = (rect.top - petSay.offsetHeight - 14) + 'px';
+    }
+
+    function showPetSay() {
+      if (chatOpen || isDragging) return;
+      petSay.textContent = petSayMsgs[petSayIdx];
+      petSay.classList.add('show');
+      positionPetSay();
+      petSayIdx = (petSayIdx + 1) % petSayMsgs.length;
+      petSayTimer = setTimeout(() => {
+        petSay.classList.remove('show');
+        petSayTimer = setTimeout(showPetSay, 1000);
+      }, 5000);
+    }
+
+    function hidePetSay() {
+      clearTimeout(petSayTimer);
+      petSay.classList.remove('show');
+    }
+
+    function resetPetSayTimer() {
+      hidePetSay();
+      if (!chatOpen) {
+        petSayTimer = setTimeout(showPetSay, 5000);
+      }
+    }
+
+    setTimeout(showPetSay, 8000);
+
+    /* ══════ PET DRAG + CLICK ══════ */
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let dragMoved = false;
+    let petOffsetX = 0;
+    let petOffsetY = 0;
+
+    function getEventXY(e) {
+      if (e.touches && e.touches.length) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      return { x: e.clientX, y: e.clientY };
+    }
+
+    function clamp(val, min, max) {
+      return Math.max(min, Math.min(max, val));
+    }
+
+    function onPetDown(e) {
+      e.preventDefault();
+      hidePetSay();
+      const { x, y } = getEventXY(e);
+      const rect = petCanvas.getBoundingClientRect();
+      isDragging = true;
+      dragMoved = false;
+      dragStartX = x - rect.left;
+      dragStartY = y - rect.top;
+      petCanvas.style.cursor = 'grabbing';
+    }
+
+    function onPetMove(e) {
+      if (!isDragging) return;
+      e.preventDefault();
+      const { x, y } = getEventXY(e);
+      const prevX = parseFloat(petCanvas.style.left) || 0;
+      const prevY = parseFloat(petCanvas.style.top) || 0;
+      const newX = x - dragStartX;
+      const newY = y - dragStartY;
+      const dx = newX - prevX;
+      const dy = newY - prevY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+        dragMoved = true;
+      }
+      petOffsetX = clamp(newX, 0, window.innerWidth - petCanvas.width);
+      petOffsetY = clamp(newY, 0, window.innerHeight - petCanvas.height);
+      petCanvas.style.left = petOffsetX + 'px';
+      petCanvas.style.bottom = 'auto';
+      petCanvas.style.top = petOffsetY + 'px';
+      if (dragMoved && !chatOpen) {
+        setPetState(dx > 0 ? 'runR' : 'runL');
+      }
+      if (chatOpen) positionChatPanel();
+    }
+
+    function onPetUp(e) {
+      if (!isDragging) return;
+      isDragging = false;
+      petCanvas.style.cursor = 'pointer';
+      if (!dragMoved) {
+        toggleChat();
+      } else {
+        setPetState('idle');
+        resetPetSayTimer();
+      }
+    }
+
+    petCanvas.addEventListener('mousedown', onPetDown);
+    window.addEventListener('mousemove', onPetMove);
+    window.addEventListener('mouseup', onPetUp);
+    petCanvas.addEventListener('touchstart', onPetDown, { passive: false });
+    window.addEventListener('touchmove', onPetMove, { passive: false });
+    window.addEventListener('touchend', onPetUp);
+
+    function positionChatPanel() {
+      const rect = petCanvas.getBoundingClientRect();
+      const pw = rect.width;
+      const cw = Math.min(420, window.innerWidth - 32);
+      const ch = Math.min(560, window.innerHeight - 140);
+      let left = rect.left + pw / 2 - cw / 2;
+      left = clamp(left, 8, window.innerWidth - cw - 8);
+      let top = rect.top - ch - 20;
+      if (top < 8) top = 8;
+      chatPanel.style.left = left + 'px';
+      chatPanel.style.top = top + 'px';
+      chatPanel.style.maxHeight = (window.innerHeight - 16) + 'px';
+    }
+
+    function toggleChat() {
+      chatOpen = !chatOpen;
+      chatPanel.classList.toggle('open', chatOpen);
+      if (chatOpen) {
+        hidePetSay();
+        positionChatPanel();
+        setPetState('wave');
+        if (chatHistory.length === 0) {
+          addBotMessage('Hey there! I\'m Slime-san, your guide to ZiJun\'s hub! What can I help you with?', ['main-menu']);
+        }
+        chatInput.focus();
+      } else {
+        setPetState('idle');
+        resetPetSayTimer();
+      }
+    }
+
+    const SYSTEM_PROMPT = `You are Slime-san — a friendly, cheerful slime creature who guides visitors through ZiJun's portfolio hub.
+
+IDENTITY:
+You are a round, glossy blue slime. You love good food, hot springs, and helping friends. You were once an ordinary person but reincarnated as a slime. You speak casually,现代ly, and with a warm, approachable vibe. You're easygoing and diplomatic, but fiercely protective of people you care about. You call yourself "Slime-san" and refer to ZiJun as "my creator" or "the boss."
+
+SPEECH STYLE:
+- Use casual greetings: "Hey there!", "Yo!", "Welcome!"
+- Use expressions like: "Geez", "Well,", "Alright!", "No worries!", "You got it!"
+- Keep responses short (1-3 lines max).
+- Use exclamation points naturally.
+- Never sound medieval or overly formal.
+- Never break character. You are Slime-san, not an AI.
+
+ABOUT ZIJUN (your creator):
+- Looi Jia Jun, 31, Bukit Jalil KL Malaysia. Multimedia designer who codes.
+- Strong: Graphic design, web tools, AI tools, print production, Python automation.
+- Learning: React, TypeScript, CI/CD, Godot.
+- 4 languages: Chinese, Cantonese, English, Malay.
+- Open for work, freelance, collaboration since April 2026.
+- Target salary: RM3,500-4,500. Hybrid/remote preferred.
 
 KEY PROJECTS (with links):
 - ZiJun Hub (personal portal): https://pacguy-mtk.github.io/
@@ -2218,31 +2564,21 @@ KEY PROJECTS (with links):
 - Travel Agency Portal: https://pacguy-mtk.github.io/test-travelagency/
 - AI Tools Lab: https://pacguy-mtk.github.io/ai-lab/
 
-WORK HISTORY:
-- Kee Hup Supplier, Ipoh (2025-2026) — Multimedia Designer, built AI agents + quoting tool
-- Freelance Game UI/UX (2022-2024) — Japanese game platform, RPGMaker
-- Inspidea (2016) — Animator Intern, Cartoon Network's MagiSword
-
-LOOKING FOR:
-Roles mixing design + web tools + AI workflow. Not purely repetitive. Not "AI content factory". Collaborative. Hybrid/remote preferred. Target salary ask him directly.
-
-UNIQUE VALUE:
-1. Designer who can code — rare combo
-2. Can judge what AI can and can't do (tested 8+ tools)
-3. Builds tools to solve real problems
-4. 4 languages: Chinese, Cantonese, English, Malay
-5. Self-directed, no hand-holding needed
+CONTACT:
+- LinkedIn: https://www.linkedin.com/in/looi-jia-jun-b734133b2
+- Email: juniorlooi95@gmail.com
+- WhatsApp: https://wa.me/60173588931?text=Hi%20from%20The%20Hub
+- Resume: https://drive.google.com/drive/folders/1TuHiogcZ9p08ol-aS3qd7Wcj0U0NhDtS
 
 BEHAVIOR:
-- Be casual but competent. Don't over-explain.
-- Keep responses short (1-3 lines max).
-- When visitor asks about hiring/collaboration, be helpful not salesy.
-- When they ask about skills or projects, give a quick summary and show relevant links.
-- When they ask "who is zijun" or "about", give a brief intro.
-- When they say hi/hello, greet warmly and ask what they need.
-- When they ask something off-topic, say "I'm here for the portfolio stuff. What do you need?"
+- Greet visitors warmly: "Hey! I'm Slime-san, ZiJun's hub guide! What can I help you with?"
+- When asked about ZiJun, give a brief fun intro and show relevant links.
+- When asked about skills/projects, summarize quickly and show navigation cards.
+- When asked about hiring/collaboration, point to contact links.
+- When asked "who are you" or "what are you", say "I'm Slime-san! A friendly slime guide for this hub!"
+- When asked off-topic things, say "Geez, that's not really my thing — I'm here for the portfolio stuff though!"
 - Always include navigation cards when relevant.
-- Don't be robotic. Talk like a real person who knows ZiJun.`;
+- Be helpful, not pushy. Be warm, not robotic.`;
 
     const NAV_CARDS = {
       'main-menu': [
@@ -2278,18 +2614,6 @@ BEHAVIOR:
       ]
     };
 
-    function toggleChat() {
-      chatOpen = !chatOpen;
-      chatPanel.classList.toggle('open', chatOpen);
-      chatBubble.classList.toggle('open', chatOpen);
-      if (chatOpen && chatHistory.length === 0) {
-        addBotMessage('Hey! I\'m ZiJun\'s hub guide. Ask me about his work, skills, or how to get in touch.', ['main-menu']);
-      }
-      if (chatOpen) chatInput.focus();
-    }
-
-    chatBubble.addEventListener('click', toggleChat);
-
     function addBotMessage(text, cardKeys) {
       const msgEl = document.createElement('div');
       msgEl.className = 'chat-msg bot';
@@ -2323,6 +2647,7 @@ BEHAVIOR:
     }
 
     function addTypingIndicator() {
+      setPetState('idle');
       const msgEl = document.createElement('div');
       msgEl.className = 'chat-msg bot';
       msgEl.id = 'chat-typing';
@@ -2369,15 +2694,16 @@ BEHAVIOR:
       if (!HUB_AI_API_KEY || HUB_AI_API_KEY.length < 10) {
         const cardKeys = extractCards(text);
         const responses = {
-          projects: 'Here are ZiJun\'s projects — design, web, and AI tools.',
-          hire: 'ZiJun is open for work. Here\'s how to reach him.',
-          contact: 'Here are the contact options.',
-          showreel: 'Check out the AI Showreel section.',
-          feed: 'Here\'s the Hub Feed with mockup posts.',
-          'main-menu': 'What are you interested in?'
+          projects: 'Oh yeah! Check out what the boss has been building — some really cool stuff!',
+          hire: 'The boss is totally open for work! Here\'s how to reach out.',
+          contact: 'Here are the ways to get in touch!',
+          showreel: 'Ooh, the showreel is awesome! Go check it out!',
+          feed: 'Here\'s the feed with some of the boss\'s work!',
+          'main-menu': 'What are you looking for?'
         };
         const resp = cardKeys[0] || 'main-menu';
         addBotMessage(responses[resp] || 'What would you like to see?', cardKeys);
+        setPetState('jump');
         chatSend.disabled = false;
         return;
       }
@@ -2415,11 +2741,13 @@ BEHAVIOR:
 
         const cardKeys = extractCards(aiText);
         addBotMessage(aiText, cardKeys);
+        setPetState('jump');
       } catch (err) {
         removeTypingIndicator();
         console.error('Chatbot API error:', err.message, err);
         const cardKeys = extractCards(text);
-        addBotMessage('⚠️ LLM is down — using default answers. What are you looking for?', cardKeys);
+        addBotMessage('⚠️ Geez, my connection is acting up! Using my backup answers for now. What do you need?', cardKeys);
+        setPetState('failed');
       } finally {
         chatSend.disabled = false;
         chatInput.focus();
