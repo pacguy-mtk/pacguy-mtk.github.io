@@ -1085,11 +1085,18 @@
     /* ══════ POSTS SECTION ══════ */
     .posts {
       background: linear-gradient(180deg, rgba(6,8,17,0.78), rgba(6,8,17,0.94));
+      overflow: hidden;
     }
 
     .posts-shell {
       max-width: 680px;
       margin: 0 auto;
+    }
+
+    .feed-wrap {
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      padding: 0 24px;
     }
 
     /* Composer */
@@ -1278,8 +1285,24 @@
 
     /* Feed */
     .feed {
-      display: grid;
-      gap: 18px;
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding: 12px 0 16px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(66,232,212,0.25) transparent;
+    }
+
+    .feed::-webkit-scrollbar {
+      height: 6px;
+    }
+    .feed::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .feed::-webkit-scrollbar-thumb {
+      background: rgba(66,232,212,0.25);
+      border-radius: 999px;
     }
 
     .feed-empty {
@@ -1288,6 +1311,7 @@
       border: 1px dashed rgba(255,255,255,0.1);
       border-radius: 16px;
       color: var(--faint);
+      width: 100%;
     }
 
     .feed-empty i {
@@ -1311,9 +1335,22 @@
       backdrop-filter: blur(14px);
       box-shadow: var(--shadow);
       overflow: hidden;
+      min-width: 260px;
+      max-width: 300px;
+      flex-shrink: 0;
+      scroll-snap-align: start;
       opacity: 0;
       transform: translateY(14px);
-      transition: opacity 420ms ease, transform 420ms ease;
+      transition: opacity 420ms ease, transform 420ms ease, box-shadow 400ms cubic-bezier(0.22, 1, 0.36, 1), max-width 520ms cubic-bezier(0.22, 1, 0.36, 1), border-color 400ms ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    .post-card:hover {
+      max-width: 700px;
+      z-index: 10;
+      box-shadow: 0 0 0 1px rgba(66,232,212,0.15), 0 20px 60px rgba(0,0,0,0.5);
+      border-color: rgba(66,232,212,0.2);
     }
 
     .post-card.in-view {
@@ -1324,31 +1361,31 @@
     .post-header {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 16px 18px 0;
+      gap: 10px;
+      padding: 12px 16px 0;
     }
 
     .post-avatar {
-      width: 40px;
-      height: 40px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       background: linear-gradient(135deg, var(--violet), var(--cyan));
       display: grid;
       place-items: center;
       font-weight: 900;
-      font-size: 14px;
+      font-size: 12px;
       color: #060910;
       flex-shrink: 0;
     }
 
     .post-author strong {
       display: block;
-      font-size: 14px;
+      font-size: 13px;
     }
 
     .post-author span {
       color: var(--muted);
-      font-size: 12px;
+      font-size: 11px;
     }
 
     .post-delete {
@@ -1363,7 +1400,7 @@
       cursor: pointer;
       display: grid;
       place-items: center;
-      transition: background 180ms ease, color 180ms ease;
+      transition: background 220ms ease, color 220ms ease, opacity 260ms ease;
     }
 
     .post-delete:hover {
@@ -1372,23 +1409,70 @@
     }
 
     .post-body {
-      padding: 14px 18px;
+      padding: 10px 16px;
     }
 
     .post-text {
-      font-size: 14px;
-      line-height: 1.65;
+      font-size: 13px;
+      line-height: 1.55;
       color: var(--text);
       white-space: pre-wrap;
       word-break: break-word;
+      max-height: 80px;
+      overflow: hidden;
+      position: relative;
+      transition: max-height 480ms cubic-bezier(0.22, 1, 0.36, 1) 40ms, font-size 400ms ease 40ms, line-height 400ms ease 40ms;
+    }
+
+    .post-text::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 22px;
+      background: linear-gradient(transparent, rgba(10,14,26,0.95));
+      pointer-events: none;
+      transition: opacity 360ms ease 60ms;
+    }
+
+    .post-card:hover .post-text {
+      max-height: 900px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .post-card:hover .post-text::after {
+      opacity: 0;
+    }
+
+    .post-expand-hint {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--cyan);
+      opacity: 0.6;
+      transition: opacity 320ms ease, font-size 400ms ease;
+    }
+
+    .post-card:hover .post-expand-hint {
+      opacity: 0;
+      font-size: 0;
     }
 
     .post-media {
       display: grid;
       gap: 2px;
-      margin-top: 12px;
-      border-radius: 12px;
+      margin-top: 10px;
+      border-radius: 10px;
       overflow: hidden;
+      max-height: 140px;
+      transition: max-height 520ms cubic-bezier(0.22, 1, 0.36, 1) 80ms;
+    }
+
+    .post-card:hover .post-media {
+      max-height: 700px;
     }
 
     .post-media.single { grid-template-columns: 1fr; }
@@ -1399,25 +1483,35 @@
     .post-media img {
       width: 100%;
       height: 100%;
+      min-height: 140px;
       object-fit: cover;
       display: block;
-      max-height: 400px;
       background: rgba(255,255,255,0.03);
+      transition: min-height 520ms cubic-bezier(0.22, 1, 0.36, 1) 80ms;
+    }
+
+    .post-card:hover .post-media img {
+      min-height: 200px;
     }
 
     .post-media video {
       width: 100%;
-      max-height: 400px;
+      min-height: 140px;
       object-fit: cover;
       display: block;
       background: #000;
+      transition: min-height 520ms cubic-bezier(0.22, 1, 0.36, 1) 80ms;
+    }
+
+    .post-card:hover .post-media video {
+      min-height: 260px;
     }
 
     .post-footer {
       display: flex;
       align-items: center;
       gap: 4px;
-      padding: 10px 18px 14px;
+      padding: 8px 16px 10px;
       border-top: 1px solid rgba(255,255,255,0.06);
     }
 
@@ -1617,8 +1711,10 @@
         </div>
 
         <!-- Feed Stream -->
-        <div class="feed" id="postsFeed">
-          <!-- Dynamically populated by JS -->
+        <div class="feed-wrap">
+          <div class="feed" id="postsFeed">
+            <!-- Dynamically populated by JS -->
+          </div>
         </div>
       </div>
     </section>
@@ -1889,6 +1985,19 @@
         media: [
           { type: 'video', src: 'https://github.com/pacguy-mtk/pacguy-mtk.github.io/raw/refs/heads/main/post/202607231141-480sfx.mp4' }
         ]
+      },
+      {
+        id: 'default-3',
+        author: 'ZiJun Looi',
+        role: 'Product Designer & Developer',
+        time: 'Just now • Travel Agency Mockup',
+        text: '🌍 **New Travel Agency Website Mockup!**\n\nI have updated a new mockup travel agency website, check out now:\n🔗 Travel Agency page link: https://pacguy-mtk.github.io/test-travelagency/',
+        category: 'UI/UX Design',
+        likes: 0,
+        liked: false,
+        media: [
+          { type: 'image', src: 'https://raw.githubusercontent.com/pacguy-mtk/pacguy-mtk.github.io/refs/heads/main/post/Screenshot%202026-07-23%20150012.jpg' }
+        ]
       }
     ];
 
@@ -1935,6 +2044,7 @@
       feedContainer.innerHTML = posts.map(post => {
         const mediaHtml = renderPostMedia(post.media);
         const tagIcon = getCategoryIcon(post.category);
+        const hasLongText = post.text && post.text.length > 60;
         
         return `
           <article class="post-card reveal in-view" id="post-${post.id}">
@@ -1949,7 +2059,7 @@
               </button>
             </div>
             <div class="post-body">
-              <div class="post-text">${formatPostText(post.text)}</div>
+              <div class="post-text">${formatPostText(post.text)}${hasLongText ? '<span class="post-expand-hint"> — hover to read more</span>' : ''}</div>
               ${mediaHtml}
             </div>
             <div class="post-footer">
