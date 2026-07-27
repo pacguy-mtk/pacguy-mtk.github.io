@@ -2686,7 +2686,7 @@ When using tools, present results clearly. Do NOT repeat raw JSON.`;
       }
     }
 
-    function addBotMessage(text, cardKeys) {
+    function addBotMessage(text, cardKeys, toolResults) {
       const msgEl = document.createElement('div');
       msgEl.className = 'chat-msg bot';
 
@@ -2697,7 +2697,41 @@ When using tools, present results clearly. Do NOT repeat raw JSON.`;
         return '';
       });
       cleanedText = cleanedText.replace(/https?:\/\/[^\s<,)]+/g, '');
+      cleanedText = cleanedText.replace(/\*+/g, '');
       cleanedText = cleanedText.replace(/\n{3,}/g, '\n\n').trim();
+
+      /* Auto-generate buttons from tool results */
+      if (toolResults) {
+        for (const [toolName, result] of Object.entries(toolResults)) {
+          if (toolName === 'get_projects' && result.projects) {
+            result.projects.forEach(p => {
+              if (!toolButtons.find(b => b.url === p.url)) {
+                toolButtons.push({ label: p.name, url: p.url });
+              }
+            });
+          }
+          if (toolName === 'get_contact') {
+            const links = [
+              { label: 'LinkedIn', url: result.linkedin },
+              { label: 'Email', url: 'mailto:' + result.email },
+              { label: 'WhatsApp', url: result.whatsapp },
+              { label: 'Resume', url: result.resume }
+            ];
+            links.forEach(l => {
+              if (l.url && !toolButtons.find(b => b.url === l.url)) {
+                toolButtons.push(l);
+              }
+            });
+          }
+          if (toolName === 'search_projects' && result.results) {
+            result.results.forEach(p => {
+              if (!toolButtons.find(b => b.url === p.url)) {
+                toolButtons.push({ label: p.name, url: p.url });
+              }
+            });
+          }
+        }
+      }
 
       let cardsHtml = '';
       if (cardKeys && cardKeys.length > 0) {
@@ -2800,6 +2834,7 @@ When using tools, present results clearly. Do NOT repeat raw JSON.`;
 
       try {
         let aiText = null;
+        let collectedToolResults = {};
         for (const model of models) {
           try {
             const apiMessages = [
@@ -2835,6 +2870,7 @@ When using tools, present results clearly. Do NOT repeat raw JSON.`;
                 let fnArgs = {};
                 try { fnArgs = JSON.parse(tc.function.arguments || "{}"); } catch {}
                 const result = executeTool(tc.function.name, fnArgs);
+                collectedToolResults[tc.function.name] = result;
                 apiMessages.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(result) });
               }
               const followUp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -2857,7 +2893,7 @@ When using tools, present results clearly. Do NOT repeat raw JSON.`;
         if (!aiText) throw new Error('All models failed');
 
         const cardKeys = extractCards(text);
-        addBotMessage(aiText, cardKeys);
+        addBotMessage(aiText, cardKeys, Object.keys(collectedToolResults).length > 0 ? collectedToolResults : null);
         setPetState('jump');
       } catch (err) {
         removeTypingIndicator();
