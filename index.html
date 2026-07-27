@@ -2572,23 +2572,22 @@ CONTACT:
 
 BEHAVIOR:
 - Greet visitors warmly: "Hey! I'm Slime-san, ZiJun's hub guide! What can I help you with?"
-- When asked about ZiJun, give a brief fun intro. Do NOT include URLs in your text — the chat buttons handle navigation.
-- When asked about skills/projects, give a quick summary. Do NOT paste links in your response.
-- When asked about hiring/collaboration, say "The boss is open for work!" — buttons will appear automatically.
+- When asked about ZiJun, give a brief fun intro and show relevant links.
+- When asked about skills/projects, summarize quickly and show navigation cards.
+- When asked about hiring/collaboration, point to contact links.
 - When asked "who are you" or "what are you", say "I'm Slime-san! A friendly slime guide for this hub!"
 - When asked off-topic things, say "Geez, that's not really my thing — I'm here for the portfolio stuff though!"
 - Keep responses under 3 sentences. No filler like "great question". Answer first, personality second.
-- NEVER include raw URLs or hyperlinks in your text. When showing links, use the format: {{btn:Label|url}} — these will render as clickable buttons automatically.
-- If user says "show links", "show all", "show buttons", or "show me everything", list all available links using {{btn:Label|url}} format.
+- Always include navigation cards when relevant.
 - Be helpful, not pushy. Be warm, not robotic.
 
-AVAILABLE TOOLS — Use them when the user asks about projects, skills, contact, or feed:
-- get_projects(): List all projects on this hub with names, URLs, descriptions
-- get_skills(): Get ZiJun's skill set with proficiency levels
-- get_contact(): Get all contact information (LinkedIn, email, WhatsApp, resume)
+AVAILABLE TOOLS — Use when user asks about projects, skills, contact, or posts:
+- get_projects(): List all projects with names and URLs
+- get_skills(): ZiJun's skills with proficiency levels
+- get_contact(): LinkedIn, email, WhatsApp, resume
 - search_projects(query): Search projects by keyword
-- get_feed_posts(): Get recent feed/posts from the hub
-When using tools, present the result clearly and concisely. Do NOT repeat the raw JSON.`;
+- get_feed_posts(): Recent hub posts
+When using tools, present results clearly. Do NOT repeat raw JSON.`;
 
     const NAV_CARDS = {
       'main-menu': [
@@ -2624,35 +2623,93 @@ When using tools, present the result clearly and concisely. Do NOT repeat the ra
       ]
     };
 
+    /* ═══════════════════════════════════════════════════
+       TOOL DEFINITIONS — Agent Function Calling
+       ═══════════════════════════════════════════════════ */
+    const TOOL_DEFINITIONS = [
+      { type: "function", function: { name: "get_projects", description: "List all projects with names and URLs.", parameters: { type: "object", properties: {} } } },
+      { type: "function", function: { name: "get_skills", description: "Get ZiJun's skills with proficiency levels.", parameters: { type: "object", properties: {} } } },
+      { type: "function", function: { name: "get_contact", description: "Get LinkedIn, email, WhatsApp, resume.", parameters: { type: "object", properties: {} } } },
+      { type: "function", function: { name: "search_projects", description: "Search projects by keyword.", parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } } },
+      { type: "function", function: { name: "get_feed_posts", description: "Get recent hub posts.", parameters: { type: "object", properties: {} } } }
+    ];
+
+    function executeTool(name, args) {
+      switch (name) {
+        case "get_projects": {
+          const cards = document.querySelectorAll('.page-card[href]');
+          const dropdowns = document.querySelectorAll('.page-card-dropdown a');
+          const projects = [];
+          cards.forEach(c => {
+            const title = c.querySelector('strong')?.textContent?.trim();
+            const desc = c.querySelector('span')?.textContent?.trim();
+            if (title && c.href) projects.push({ name: title, description: desc || '', url: c.href });
+          });
+          dropdowns.forEach(a => {
+            const span = a.querySelector('span')?.textContent?.trim();
+            if (span && a.href) projects.push({ name: span, description: '', url: a.href });
+          });
+          return { projects, count: projects.length };
+        }
+        case "get_skills": {
+          return { skills: [
+            { name: "Graphic Design", level: "85%", note: "branding, logos, layouts" },
+            { name: "HTML / CSS Layout", level: "80%", note: "responsive sites, parallax" },
+            { name: "JavaScript Interaction", level: "78%", note: "tools, calculators, animations" },
+            { name: "UI / UX Design", level: "86%", note: "user-friendly interfaces" },
+            { name: "AI Workflow / Prompt Ops", level: "88%", note: "AI-assisted development" },
+            { name: "Business Tool Prototyping", level: "82%", note: "quotation calculators, apps" }
+          ]};
+        }
+        case "get_contact": {
+          return { linkedin: "https://www.linkedin.com/in/looi-jia-jun-b734133b2", email: "juniorlooi95@gmail.com", whatsapp: "https://wa.me/60173588931", resume: "https://drive.google.com/drive/folders/1TuHiogcZ9p08ol-aS3qd7Wcj0U0NhDtS" };
+        }
+        case "search_projects": {
+          const q = (args.query || '').toLowerCase();
+          const all = document.querySelectorAll('.page-card[href], .page-card-dropdown a');
+          const results = [];
+          all.forEach(el => {
+            const text = (el.querySelector('strong')?.textContent || el.querySelector('span')?.textContent || '').trim();
+            if (text.toLowerCase().includes(q)) results.push({ name: text, url: el.href });
+          });
+          return { query: args.query, results, count: results.length };
+        }
+        case "get_feed_posts": {
+          const posts = [];
+          document.querySelectorAll('.post-card').forEach(p => {
+            const text = p.querySelector('.post-text')?.textContent?.trim()?.slice(0, 100);
+            if (text) posts.push({ text });
+          });
+          return { posts, count: posts.length };
+        }
+        default: return { error: "Unknown tool" };
+      }
+    }
+
     function addBotMessage(text, cardKeys) {
       const msgEl = document.createElement('div');
       msgEl.className = 'chat-msg bot';
 
-      /* Extract {{btn:Label|url}} buttons from text */
+      /* Parse {{btn:Label|url}} from LLM response */
       const toolButtons = [];
       let cleanedText = text.replace(/\{\{btn:([^|]+)\|([^}]+)\}\}/g, (_, label, url) => {
         toolButtons.push({ label: label.trim(), url: url.trim() });
         return '';
       });
-      /* Also strip any bare URLs that slipped through */
-      cleanedText = cleanedText.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '$1');
       cleanedText = cleanedText.replace(/https?:\/\/[^\s<,)]+/g, '');
-      cleanedText = cleanedText.replace(/[-•]\s*$/gm, '').replace(/\n{3,}/g, '\n\n').trim();
+      cleanedText = cleanedText.replace(/\n{3,}/g, '\n\n').trim();
 
       let cardsHtml = '';
       if (cardKeys && cardKeys.length > 0) {
         cardsHtml = '<div class="chat-cards">' + cardKeys.map(key => {
           const cards = NAV_CARDS[key] || [];
           return cards.map(card => {
-            if (card.action === 'scroll') {
-              return `<button class="chat-card" onclick="scrollToSection('${card.target}')"><i class="${card.icon}"></i>${card.label}</button>`;
-            }
+            if (card.action === 'scroll') return `<button class="chat-card" onclick="scrollToSection('${card.target}')"><i class="${card.icon}"></i>${card.label}</button>`;
             return `<a class="chat-card" href="${card.url}" target="_blank" rel="noopener"><i class="${card.icon}"></i>${card.label}</a>`;
           }).join('');
         }).join('') + '</div>';
       }
 
-      /* Add tool-generated buttons */
       if (toolButtons.length > 0) {
         cardsHtml += '<div class="chat-cards">' + toolButtons.map(b =>
           `<a class="chat-card" href="${b.url}" target="_blank" rel="noopener"><i class="fas fa-link"></i>${b.label}</a>`
@@ -2703,152 +2760,10 @@ When using tools, present the result clearly and concisely. Do NOT repeat the ra
       if (/project|built|work|portfolio|site|page|tool|demo/.test(lower)) found.push('projects');
       if (/hire|job|recruit|freelance|collaborate|salary|work with|employ/.test(lower)) found.push('hire');
       if (/contact|reach|email|linkedin|whatsapp|message|call|talk/.test(lower)) found.push('contact');
-      if (/showreel|video|motion|ai work|compilation|reel/.test(lower)) found.push('showreel');
+      if (/showreel|video|motion|reel/.test(lower)) found.push('showreel');
       if (/feed|post|mockup/.test(lower)) found.push('feed');
       if (found.length === 0) return [];
       return found;
-    }
-
-    /* ═══════════════════════════════════════════════════
-       TOOL DEFINITIONS — OpenRouter Function Calling
-       ═══════════════════════════════════════════════════ */
-    const TOOL_DEFINITIONS = [
-      {
-        type: "function",
-        function: {
-          name: "get_projects",
-          description: "List all projects on this hub with names, URLs, and descriptions.",
-          parameters: { type: "object", properties: {} }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "get_skills",
-          description: "Get ZiJun's skill set with proficiency levels.",
-          parameters: { type: "object", properties: {} }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "get_contact",
-          description: "Get all contact information (LinkedIn, email, WhatsApp, resume).",
-          parameters: { type: "object", properties: {} }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "search_projects",
-          description: "Search projects by keyword. Returns matching projects.",
-          parameters: {
-            type: "object",
-            properties: {
-              query: { type: "string", description: "Search keyword, e.g. 'travel', 'calculator', 'brand'" }
-            },
-            required: ["query"]
-          }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "get_feed_posts",
-          description: "Get recent feed/posts from the hub section.",
-          parameters: { type: "object", properties: {} }
-        }
-      }
-    ];
-
-    /* ═══════════════════════════════════════════════════
-       TOOL EXECUTION
-       ═══════════════════════════════════════════════════ */
-    function executeTool(name, args) {
-      switch (name) {
-        case "get_projects": {
-          const cards = document.querySelectorAll('.page-card[href]');
-          const dropdowns = document.querySelectorAll('.page-card-dropdown a');
-          const projects = [];
-          cards.forEach(c => {
-            const title = c.querySelector('strong')?.textContent?.trim();
-            const desc = c.querySelector('span')?.textContent?.trim();
-            const url = c.href;
-            if (title && url) projects.push({ name: title, description: desc || '', url });
-          });
-          dropdowns.forEach(a => {
-            const span = a.querySelector('span')?.textContent?.trim();
-            if (span && a.href) projects.push({ name: span, description: '', url: a.href });
-          });
-          /* Return as button format for addBotMessage to parse */
-          const buttons = projects.map(p => `{{btn:${p.name}|${p.url}}}`).join('\n');
-          return { projects, buttons, count: projects.length };
-        }
-        case "get_skills": {
-          return {
-            skills: [
-              { name: "Graphic Design", level: "85%", note: "branding, logos, layouts, visual identity" },
-              { name: "HTML / CSS Layout", level: "80%", note: "responsive sites, parallax pages, modern UI" },
-              { name: "JavaScript Interaction", level: "78%", note: "interactive tools, calculators, animations" },
-              { name: "UI / UX Design", level: "86%", note: "user-friendly interfaces, clean navigation" },
-              { name: "AI Workflow / Prompt Ops", level: "88%", note: "AI-assisted development, smart automation" },
-              { name: "Business Tool Prototyping", level: "82%", note: "quotation calculators, business apps" }
-            ]
-          };
-        }
-        case "get_contact": {
-          const data = {
-            linkedin: "https://www.linkedin.com/in/looi-jia-jun-b734133b2",
-            email: "mailto:juniorlooi95@gmail.com",
-            whatsapp: "https://wa.me/60173588931",
-            resume: "https://drive.google.com/drive/folders/1TuHiogcZ9p08ol-aS3qd7Wcj0U0NhDtS"
-          };
-          const buttons = [
-            `{{btn:LinkedIn|${data.linkedin}}}`,
-            `{{btn:Email|${data.email}}}`,
-            `{{btn:WhatsApp|${data.whatsapp}}}`,
-            `{{btn:Resume|${data.resume}}}`
-          ].join('\n');
-          return { ...data, buttons };
-        }
-        case "search_projects": {
-          const q = (args.query || '').toLowerCase();
-          const cards = document.querySelectorAll('.page-card[href]');
-          const dropdowns = document.querySelectorAll('.page-card-dropdown a');
-          const results = [];
-          cards.forEach(c => {
-            const title = c.querySelector('strong')?.textContent?.trim() || '';
-            const desc = c.querySelector('span')?.textContent?.trim() || '';
-            if (title.toLowerCase().includes(q) || desc.toLowerCase().includes(q)) {
-              results.push({ name: title, description: desc, url: c.href });
-            }
-          });
-          dropdowns.forEach(a => {
-            const span = a.querySelector('span')?.textContent?.trim() || '';
-            if (span.toLowerCase().includes(q)) {
-              results.push({ name: span, description: '', url: a.href });
-            }
-          });
-          return { query: args.query, results, count: results.length };
-        }
-        case "get_feed_posts": {
-          const posts = document.querySelectorAll('.post-card');
-          const data = [];
-          posts.forEach(p => {
-            const text = p.querySelector('.post-text')?.textContent?.trim()?.slice(0, 120);
-            const img = p.querySelector('.post-media img');
-            const vid = p.querySelector('.post-media video');
-            data.push({
-              text: text || '',
-              hasMedia: Boolean(img || vid),
-              mediaType: img ? 'image' : vid ? 'video' : 'none'
-            });
-          });
-          return { posts: data, count: data.length };
-        }
-        default:
-          return { error: "Unknown tool" };
-      }
     }
 
     async function sendChatMessage() {
@@ -2914,34 +2829,18 @@ When using tools, present the result clearly and concisely. Do NOT repeat the ra
             const choice = data?.choices?.[0];
             const msg = choice?.message;
 
-            /* Handle tool calls */
             if (msg?.tool_calls?.length) {
               apiMessages.push({ role: 'assistant', tool_calls: msg.tool_calls });
               for (const tc of msg.tool_calls) {
-                const fnName = tc.function.name;
                 let fnArgs = {};
                 try { fnArgs = JSON.parse(tc.function.arguments || "{}"); } catch {}
-                const result = executeTool(fnName, fnArgs);
-                apiMessages.push({
-                  role: 'tool',
-                  tool_call_id: tc.id,
-                  content: JSON.stringify(result)
-                });
+                const result = executeTool(tc.function.name, fnArgs);
+                apiMessages.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(result) });
               }
               const followUp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${HUB_AI_API_KEY}`,
-                  'HTTP-Referer': 'https://pacguy-mtk.github.io/',
-                  'X-Title': 'ZiJun Hub Navigation'
-                },
-                body: JSON.stringify({
-                  model,
-                  messages: apiMessages,
-                  tools: TOOL_DEFINITIONS,
-                  max_tokens: 350
-                })
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${HUB_AI_API_KEY}`, 'HTTP-Referer': 'https://pacguy-mtk.github.io/', 'X-Title': 'ZiJun Hub Navigation' },
+                body: JSON.stringify({ model, messages: apiMessages, tools: TOOL_DEFINITIONS, max_tokens: 350 })
               });
               const followData = await followUp.json();
               aiText = followData?.choices?.[0]?.message?.content?.trim();
@@ -2950,21 +2849,19 @@ When using tools, present the result clearly and concisely. Do NOT repeat the ra
               aiText = msg?.content?.trim();
               if (aiText) break;
             }
-          } catch (e) { console.warn('Model failed:', e); continue; }
+          } catch (e) { continue; }
         }
 
         removeTypingIndicator();
 
         if (!aiText) throw new Error('All models failed');
 
-        /* Only show cards from user input keywords — not from bot response */
-        const userCards = extractCards(text);
-        addBotMessage(aiText, userCards);
+        const cardKeys = extractCards(text);
+        addBotMessage(aiText, cardKeys);
         setPetState('jump');
       } catch (err) {
         removeTypingIndicator();
         console.error('Chatbot API error:', err.message, err);
-        const userCards = extractCards(text);
         addBotMessage('⚠️ Geez, my connection is acting up! Try again in a sec.', ['main-menu']);
         setPetState('failed');
       } finally {
