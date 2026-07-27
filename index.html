@@ -2578,8 +2578,8 @@ BEHAVIOR:
 - When asked "who are you" or "what are you", say "I'm Slime-san! A friendly slime guide for this hub!"
 - When asked off-topic things, say "Geez, that's not really my thing — I'm here for the portfolio stuff though!"
 - Keep responses under 3 sentences. No filler like "great question". Answer first, personality second.
-- NEVER include URLs or hyperlinks in your text. Navigation is handled by buttons below your message.
-- If user says "show links", "show all", "show buttons", or "show me everything", then list all available links as plain text.
+- NEVER include raw URLs or hyperlinks in your text. When showing links, use the format: {{btn:Label|url}} — these will render as clickable buttons automatically.
+- If user says "show links", "show all", "show buttons", or "show me everything", list all available links using {{btn:Label|url}} format.
 - Be helpful, not pushy. Be warm, not robotic.
 
 AVAILABLE TOOLS — Use them when the user asks about projects, skills, contact, or feed:
@@ -2628,23 +2628,16 @@ When using tools, present the result clearly and concisely. Do NOT repeat the ra
       const msgEl = document.createElement('div');
       msgEl.className = 'chat-msg bot';
 
-      /* Auto-convert URLs in text to clickable buttons */
-      let cleanedText = text;
-      const urlButtons = [];
-      const urlRegex = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)|(https?:\/\/[^\s<]+)/g;
-      let match;
-      while ((match = urlRegex.exec(text)) !== null) {
-        const label = match[1] || match[3]?.replace(/[,.)]*$/, '').split('/').pop() || 'Link';
-        const url = match[2] || match[3];
-        if (url && !urlButtons.find(b => b.url === url)) {
-          const cleanLabel = label.replace(/[-–—]\s*$/, '').trim();
-          urlButtons.push({ label: cleanLabel, url });
-        }
-      }
-      /* Remove URLs from display text */
-      cleanedText = text.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '$1');
+      /* Extract {{btn:Label|url}} buttons from text */
+      const toolButtons = [];
+      let cleanedText = text.replace(/\{\{btn:([^|]+)\|([^}]+)\}\}/g, (_, label, url) => {
+        toolButtons.push({ label: label.trim(), url: url.trim() });
+        return '';
+      });
+      /* Also strip any bare URLs that slipped through */
+      cleanedText = cleanedText.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '$1');
       cleanedText = cleanedText.replace(/https?:\/\/[^\s<,)]+/g, '');
-      cleanedText = cleanedText.replace(/-\s*$/gm, '').replace(/\n{3,}/g, '\n\n').trim();
+      cleanedText = cleanedText.replace(/[-•]\s*$/gm, '').replace(/\n{3,}/g, '\n\n').trim();
 
       let cardsHtml = '';
       if (cardKeys && cardKeys.length > 0) {
@@ -2659,9 +2652,9 @@ When using tools, present the result clearly and concisely. Do NOT repeat the ra
         }).join('') + '</div>';
       }
 
-      /* Add extracted URL buttons */
-      if (urlButtons.length > 0) {
-        cardsHtml += '<div class="chat-cards">' + urlButtons.map(b =>
+      /* Add tool-generated buttons */
+      if (toolButtons.length > 0) {
+        cardsHtml += '<div class="chat-cards">' + toolButtons.map(b =>
           `<a class="chat-card" href="${b.url}" target="_blank" rel="noopener"><i class="fas fa-link"></i>${b.label}</a>`
         ).join('') + '</div>';
       }
@@ -2787,7 +2780,9 @@ When using tools, present the result clearly and concisely. Do NOT repeat the ra
             const span = a.querySelector('span')?.textContent?.trim();
             if (span && a.href) projects.push({ name: span, description: '', url: a.href });
           });
-          return { projects, count: projects.length };
+          /* Return as button format for addBotMessage to parse */
+          const buttons = projects.map(p => `{{btn:${p.name}|${p.url}}}`).join('\n');
+          return { projects, buttons, count: projects.length };
         }
         case "get_skills": {
           return {
@@ -2802,12 +2797,19 @@ When using tools, present the result clearly and concisely. Do NOT repeat the ra
           };
         }
         case "get_contact": {
-          return {
+          const data = {
             linkedin: "https://www.linkedin.com/in/looi-jia-jun-b734133b2",
-            email: "juniorlooi95@gmail.com",
+            email: "mailto:juniorlooi95@gmail.com",
             whatsapp: "https://wa.me/60173588931",
             resume: "https://drive.google.com/drive/folders/1TuHiogcZ9p08ol-aS3qd7Wcj0U0NhDtS"
           };
+          const buttons = [
+            `{{btn:LinkedIn|${data.linkedin}}}`,
+            `{{btn:Email|${data.email}}}`,
+            `{{btn:WhatsApp|${data.whatsapp}}}`,
+            `{{btn:Resume|${data.resume}}}`
+          ].join('\n');
+          return { ...data, buttons };
         }
         case "search_projects": {
           const q = (args.query || '').toLowerCase();
