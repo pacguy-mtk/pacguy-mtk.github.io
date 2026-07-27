@@ -1,1 +1,1 @@
-V3 Massive updated. Status: Stable.
+V4 LLM + Pet updated. Status: Testing.
