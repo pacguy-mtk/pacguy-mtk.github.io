@@ -2628,6 +2628,24 @@ When using tools, present the result clearly and concisely. Do NOT repeat the ra
       const msgEl = document.createElement('div');
       msgEl.className = 'chat-msg bot';
 
+      /* Auto-convert URLs in text to clickable buttons */
+      let cleanedText = text;
+      const urlButtons = [];
+      const urlRegex = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)|(https?:\/\/[^\s<]+)/g;
+      let match;
+      while ((match = urlRegex.exec(text)) !== null) {
+        const label = match[1] || match[3]?.replace(/[,.)]*$/, '').split('/').pop() || 'Link';
+        const url = match[2] || match[3];
+        if (url && !urlButtons.find(b => b.url === url)) {
+          const cleanLabel = label.replace(/[-–—]\s*$/, '').trim();
+          urlButtons.push({ label: cleanLabel, url });
+        }
+      }
+      /* Remove URLs from display text */
+      cleanedText = text.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '$1');
+      cleanedText = cleanedText.replace(/https?:\/\/[^\s<,)]+/g, '');
+      cleanedText = cleanedText.replace(/-\s*$/gm, '').replace(/\n{3,}/g, '\n\n').trim();
+
       let cardsHtml = '';
       if (cardKeys && cardKeys.length > 0) {
         cardsHtml = '<div class="chat-cards">' + cardKeys.map(key => {
@@ -2641,7 +2659,14 @@ When using tools, present the result clearly and concisely. Do NOT repeat the ra
         }).join('') + '</div>';
       }
 
-      msgEl.innerHTML = text.replace(/\n/g, '<br>') + cardsHtml;
+      /* Add extracted URL buttons */
+      if (urlButtons.length > 0) {
+        cardsHtml += '<div class="chat-cards">' + urlButtons.map(b =>
+          `<a class="chat-card" href="${b.url}" target="_blank" rel="noopener"><i class="fas fa-link"></i>${b.label}</a>`
+        ).join('') + '</div>';
+      }
+
+      msgEl.innerHTML = cleanedText.replace(/\n/g, '<br>') + cardsHtml;
       chatMessages.appendChild(msgEl);
       chatMessages.scrollTop = chatMessages.scrollHeight;
       chatHistory.push({ role: 'assistant', content: text });
