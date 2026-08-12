@@ -2138,7 +2138,8 @@
   </div>
 
   <script>
-    const HUB_AI_API_KEY = "__API_KEY__";
+    const GROQ_API_KEY = "__GROQ_API_KEY__";
+    const OPENROUTER_API_KEY = "__OPENROUTER_API_KEY__";
 
     const bgVideo = document.querySelector(".bg-video");
     const videoToggle = document.getElementById("videoToggle");
@@ -2726,7 +2727,7 @@ BEHAVIOR:
       chatInput.value = '';
       chatSend.disabled = true;
 
-      if (!HUB_AI_API_KEY || HUB_AI_API_KEY.length < 10) {
+      if ((!GROQ_API_KEY || GROQ_API_KEY.length < 10) && (!OPENROUTER_API_KEY || OPENROUTER_API_KEY.length < 10)) {
         const cardKeys = extractCards(text);
         const responses = {
           projects: 'Oh yeah! Check out what the boss has been building — some really cool stuff!',
@@ -2746,22 +2747,22 @@ BEHAVIOR:
       addTypingIndicator();
 
       const models = [
-        'nvidia/nemotron-3-ultra-550b-a55b:free',
-        'openai/gpt-oss-120b'
+        { url: 'https://api.groq.com/openai/v1/chat/completions', model: 'openai/gpt-oss-120b', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_API_KEY}` } },
+        { url: 'https://openrouter.ai/api/v1/chat/completions', model: 'nvidia/nemotron-3-ultra-550b-a55b:free', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENROUTER_API_KEY}`, 'HTTP-Referer': 'https://pacguy-mtk.github.io/', 'X-Title': 'ZiJun Hub' } }
       ];
 
       try {
         let aiText = null;
-        for (const model of models) {
+        for (const srv of models) {
           try {
             const apiMessages = [
               { role: 'system', content: SYSTEM_PROMPT },
               ...chatHistory
             ];
-            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            const response = await fetch(srv.url, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${HUB_AI_API_KEY}`, 'HTTP-Referer': 'https://pacguy-mtk.github.io/', 'X-Title': 'ZiJun Hub' },
-              body: JSON.stringify({ model, messages: apiMessages, tools: TOOL_DEFS, max_tokens: 300 })
+              headers: srv.headers,
+              body: JSON.stringify({ model: srv.model, messages: apiMessages, tools: TOOL_DEFS, max_tokens: 300 })
             });
             const data = await response.json();
             if (!response.ok) continue;
@@ -2772,10 +2773,10 @@ BEHAVIOR:
                 let a = {}; try { a = JSON.parse(tc.function.arguments || "{}"); } catch {}
                 apiMessages.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(runTool(tc.function.name, a)) });
               }
-              const f = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+              const f = await fetch(srv.url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${HUB_AI_API_KEY}`, 'HTTP-Referer': 'https://pacguy-mtk.github.io/', 'X-Title': 'ZiJun Hub' },
-                body: JSON.stringify({ model, messages: apiMessages, tools: TOOL_DEFS, max_tokens: 300 })
+                headers: srv.headers,
+                body: JSON.stringify({ model: srv.model, messages: apiMessages, tools: TOOL_DEFS, max_tokens: 300 })
               });
               const fd = await f.json();
               aiText = fd?.choices?.[0]?.message?.content?.trim();
@@ -2789,7 +2790,7 @@ BEHAVIOR:
 
         removeTypingIndicator();
 
-        if (!aiText) throw new Error('All models failed');
+        if (!aiText) throw new Error('All providers failed');
 
         const cardKeys = extractCards(aiText);
         addBotMessage(aiText, cardKeys);
