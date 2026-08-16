@@ -1667,8 +1667,9 @@
     .post-card:hover {
       max-width: 700px;
       z-index: 10;
-      box-shadow: 0 0 0 1px rgba(66,232,212,0.15), 0 20px 60px rgba(0,0,0,0.5);
-      border-color: rgba(66,232,212,0.2);
+      box-shadow: 0 0 0 2px rgba(66,232,212,0.45), 0 0 40px rgba(66,232,212,0.18), 0 20px 60px rgba(0,0,0,0.5);
+      border-color: rgba(66,232,212,0.6);
+      background: rgba(10,18,34,0.92);
     }
 
     .post-card.in-view {
@@ -1806,6 +1807,10 @@
       display: block;
       background: rgba(255,255,255,0.03);
       transition: min-height 520ms cubic-bezier(0.22, 1, 0.36, 1) 80ms;
+      -webkit-user-drag: none;
+      user-select: none;
+      -webkit-user-select: none;
+      pointer-events: none;
     }
 
     .post-card:hover .post-media img {
@@ -2620,7 +2625,8 @@ BEHAVIOR:
       { type: "function", function: { name: "get_projects", description: "List all projects with names and URLs.", parameters: { type: "object", properties: {} } } },
       { type: "function", function: { name: "get_skills", description: "Get ZiJun's skills with proficiency levels.", parameters: { type: "object", properties: {} } } },
       { type: "function", function: { name: "get_contact", description: "Get LinkedIn, email, WhatsApp, resume.", parameters: { type: "object", properties: {} } } },
-      { type: "function", function: { name: "search_projects", description: "Search projects by keyword.", parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } } }
+      { type: "function", function: { name: "search_projects", description: "Search projects by keyword.", parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } } },
+      { type: "function", function: { name: "get_feed", description: "Get latest feed posts from the Hub. Returns post titles, text, categories, and dates.", parameters: { type: "object", properties: { limit: { type: "number", description: "Max posts to return (default 5)" } } } } }
     ];
 
     function runTool(name, args) {
@@ -2646,6 +2652,17 @@ BEHAVIOR:
           if (t.toLowerCase().includes(q)) r.push({ name: t, url: el.href });
         });
         return { results: r };
+      }
+      if (name === "get_feed") {
+        const limit = args.limit || 5;
+        const posts = getAllPosts().slice(0, limit).map(p => ({
+          id: p.id,
+          text: p.text,
+          category: p.category,
+          time: p.time,
+          likes: p.likes
+        }));
+        return { posts, total: getAllPosts().length };
       }
       return {};
     }
@@ -2820,6 +2837,19 @@ BEHAVIOR:
 
     const DEFAULT_POSTS = [
       {
+        id: 'default-comfyui',
+        author: 'ZiJun Looi',
+        role: 'AI & Web Engineer',
+        time: 'Just now • AI Workflow',
+        text: '🔄 **ComfyUI Pipeline Workflow — Full Circle**\n\nWhat a journey. A big round back to where I started.\n\nRecently, I was just playing with something I found interesting a few years ago. But back then, I just knew it was a failure at outputting anything I wanted. I never really went deep into it because there was less information available.\n\nThis time, with AI knowledge assisting me (as an ignorant person, yes), I\'m building a pipeline workflow. It creates an easy way to tweak a few things, making the output closer and closer to what I want.',
+        category: 'AI Prototype',
+        likes: 1,
+        liked: false,
+        media: [
+          { type: 'image', src: 'https://github.com/pacguy-mtk/pacguy-mtk.github.io/blob/main/post/comfyui-pipelineworkflow.jpg?raw=true' }
+        ]
+      },
+      {
         id: 'default-new',
         author: 'ZiJun Looi',
         role: 'AI & Web Engineer',
@@ -2973,7 +3003,7 @@ BEHAVIOR:
         if (item.type === 'video') {
           return `<video controls playsinline preload="metadata"><source src="${escapeHtml(item.src)}">Your browser does not support video.</video>`;
         }
-        return `<img src="${escapeHtml(item.src)}" alt="Mockup Attachment" onclick="openLightbox('${escapeHtml(item.src)}')">`;
+        return `<img src="${escapeHtml(item.src)}" alt="Mockup Attachment">`;
       }).join('');
 
       return `<div class="post-media ${countClass}">${items}</div>`;
@@ -3144,8 +3174,16 @@ BEHAVIOR:
     }
 
     function openLightbox(src) {
-      window.open(src, '_blank');
+      // Disabled — image protection active
     }
+
+    document.addEventListener('contextmenu', function(e) {
+      if (e.target.tagName === 'IMG') e.preventDefault();
+    });
+
+    document.addEventListener('dragstart', function(e) {
+      if (e.target.tagName === 'IMG') e.preventDefault();
+    });
 
     // Initialize Feed
     renderFeed();
