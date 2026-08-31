@@ -2588,7 +2588,7 @@
             
             <div class="gallery-top-actions">
               <div class="gallery-counter">
-                <span id="galleryCurrentNum">01</span> / <span id="galleryTotalNum">01</span>
+                <span id="galleryCurrentNum">01</span> / <span id="galleryTotalNum">02</span>
               </div>
               <button class="gallery-action-btn" id="galleryAutoplayBtn" type="button" title="Toggle Auto Slideshow" aria-label="Toggle Autoplay">
                 <i class="fas fa-play"></i>
@@ -2636,7 +2636,8 @@
           <!-- Slide Pagination Dots -->
           <div class="gallery-dots-bar">
             <div class="gallery-dots" id="galleryDots">
-              <button class="gallery-dot active" type="button" aria-label="Slide 1"></button>
+              <button class="gallery-dot active" type="button" aria-label="Slide 1: Vocaloid: Hatsune Miku"></button>
+              <button class="gallery-dot" type="button" aria-label="Slide 2: For Reduced the piano keys error."></button>
             </div>
           </div>
         </div>
@@ -2651,6 +2652,9 @@
             <div class="gallery-thumbs-track" id="galleryThumbsTrack">
               <div class="gallery-thumb-item active" data-index="0" title="Vocaloid: Hatsune Miku">
                 <img src="images/gallery/deviantart_aicompare_30_SP2.jpg" alt="Vocaloid: Hatsune Miku" onerror="this.src='deviantart_aicompare_30_SP2.jpg'">
+              </div>
+              <div class="gallery-thumb-item" data-index="1" title="For Reduced the piano keys error.">
+                <img src="images/gallery/ComfyUI_temp_npikj_00091_.png" alt="For Reduced the piano keys error." onerror="this.src='ComfyUI_temp_npikj_00091_.png'">
               </div>
             </div>
           </div>
@@ -3877,13 +3881,36 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
     /* ==========================================================================
        AI ART GALLERY & SLIDER CONTROLLER
        ========================================================================== */
-    const GALLERY_ITEMS = [
+    const GITHUB_GALLERY_CONFIG = {
+      enableAutoDetect: true,
+      owner: 'pacguy-mtk',
+      repo: 'pacguy-mtk.github.io',
+      folderPath: 'images/gallery'
+    };
+
+    // Custom titles dictionary for specific filenames
+    const GALLERY_TITLE_MAP = {
+      'deviantart_aicompare_30_SP2.jpg': 'Vocaloid: Hatsune Miku',
+      'ComfyUI_temp_npikj_00091_.png': 'For Reduced the piano keys error.',
+      'deviantart_aicompare_30_SP.jpg': 'Vocaloid: Hatsune Miku (Alt)',
+      'deviantart_aicompare_30.jpg': 'AI Comparison #30'
+    };
+
+    let GALLERY_ITEMS = [
       {
         src: 'images/gallery/deviantart_aicompare_30_SP2.jpg',
         fallback: 'deviantart_aicompare_30_SP2.jpg',
         filename: 'deviantart_aicompare_30_SP2.jpg',
         title: 'Vocaloid: Hatsune Miku',
         subtitle: 'Special Edition 2 &bull; ComfyUI Prompt &amp; Model Comparison',
+        dim: '1216 &times; 832'
+      },
+      {
+        src: 'images/gallery/ComfyUI_temp_npikj_00091_.png',
+        fallback: 'ComfyUI_temp_npikj_00091_.png',
+        filename: 'ComfyUI_temp_npikj_00091_.png',
+        title: 'For Reduced the piano keys error.',
+        subtitle: 'ComfyUI Prompt &amp; Model Comparison',
         dim: '1216 &times; 832'
       }
     ];
@@ -3894,7 +3921,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
     let galleryTouchStartX = 0;
     let galleryTouchStartY = 0;
 
-    function initGallery() {
+    function renderGalleryDOM() {
       const track = document.getElementById('galleryTrack');
       const dots = document.getElementById('galleryDots');
       const thumbsTrack = document.getElementById('galleryThumbsTrack');
@@ -3913,7 +3940,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
       GALLERY_ITEMS.forEach((item, index) => {
         // Create Slide
         const slide = document.createElement('div');
-        slide.className = `gallery-slide ${index === 0 ? 'active' : ''}`;
+        slide.className = `gallery-slide ${index === currentGalleryIndex ? 'active' : ''}`;
         slide.dataset.index = index;
 
         const img = document.createElement('img');
@@ -3933,7 +3960,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
 
         // Create Dot
         const dot = document.createElement('button');
-        dot.className = `gallery-dot ${index === 0 ? 'active' : ''}`;
+        dot.className = `gallery-dot ${index === currentGalleryIndex ? 'active' : ''}`;
         dot.type = 'button';
         dot.setAttribute('aria-label', `Slide ${index + 1}: ${item.title}`);
         dot.addEventListener('click', () => {
@@ -3943,7 +3970,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
 
         // Create Thumbnail
         const thumb = document.createElement('div');
-        thumb.className = `gallery-thumb-item ${index === 0 ? 'active' : ''}`;
+        thumb.className = `gallery-thumb-item ${index === currentGalleryIndex ? 'active' : ''}`;
         thumb.dataset.index = index;
         thumb.title = item.title;
 
@@ -3965,8 +3992,57 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
         thumbsTrack.appendChild(thumb);
       });
 
-      goToGallerySlide(0, false);
+      goToGallerySlide(currentGalleryIndex, false);
+    }
+
+    async function checkGitHubGalleryAutoDetect() {
+      if (!GITHUB_GALLERY_CONFIG.enableAutoDetect) return;
+
+      const apiUrl = `https://api.github.com/repos/${GITHUB_GALLERY_CONFIG.owner}/${GITHUB_GALLERY_CONFIG.repo}/contents/${GITHUB_GALLERY_CONFIG.folderPath}`;
+      try {
+        const response = await fetch(apiUrl, { cache: 'no-cache' });
+        if (!response.ok) return;
+
+        const data = await response.json();
+        if (!Array.isArray(data)) return;
+
+        const imageFiles = data.filter(file => 
+          file.type === 'file' && /\.(jpe?g|png|webp|gif)$/i.test(file.name)
+        );
+
+        if (imageFiles.length > 0) {
+          const autoItems = imageFiles.map(file => {
+            const cleanTitle = GALLERY_TITLE_MAP[file.name] || 
+              file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            return {
+              src: `images/gallery/${file.name}`,
+              fallback: file.download_url || file.name,
+              filename: file.name,
+              title: cleanTitle,
+              subtitle: 'AI Generation &bull; ComfyUI Model Render',
+              dim: 'Auto'
+            };
+          });
+
+          // Ensure Vocaloid: Hatsune Miku is first
+          autoItems.sort((a, b) => {
+            if (a.filename === 'deviantart_aicompare_30_SP2.jpg') return -1;
+            if (b.filename === 'deviantart_aicompare_30_SP2.jpg') return 1;
+            return a.filename.localeCompare(b.filename);
+          });
+
+          GALLERY_ITEMS = autoItems;
+          renderGalleryDOM();
+        }
+      } catch (e) {
+        // Fallback gracefully to default items
+      }
+    }
+
+    function initGallery() {
+      renderGalleryDOM();
       setupGalleryEvents();
+      checkGitHubGalleryAutoDetect();
     }
 
     function goToGallerySlide(index, animate = true) {
