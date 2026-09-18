@@ -1491,6 +1491,30 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
 
       var BENTO_ITEMS = [
         {
+          title: 'Sword Maiden',
+          context: 'Video clip',
+          src: 'post/swordmaiden.webm',
+          type: 'video',
+          category: 'ai-generated',
+          date: '2026-09'
+        },
+        {
+          title: 'Cat Shinny',
+          context: 'Video clip',
+          src: 'post/catshinny.webm',
+          type: 'video',
+          category: 'ai-generated',
+          date: '2026-09'
+        },
+        {
+          title: 'Not So AI',
+          context: 'AI generated image',
+          src: 'post/notsoai1.jpg',
+          type: 'image',
+          category: 'ai-generated',
+          date: '2026-09'
+        },
+        {
           title: '202609150053',
           context: 'Video clip',
           src: 'post/202609150053.webm',
