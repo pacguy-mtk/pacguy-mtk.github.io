@@ -2629,19 +2629,18 @@
     }
 
     .bento-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
+      position: relative;
       max-width: 1100px;
       margin: 0 auto;
     }
 
     .bento-item {
+      position: absolute;
       border-radius: 18px;
       overflow: hidden;
-      position: relative;
       cursor: pointer;
       background: #0a0d14;
+      transition: opacity 0.2s;
     }
 
     .bento-item:hover {
@@ -2720,15 +2719,13 @@
 
     @media (max-width: 900px) {
       .bento-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 14px;
+        max-width: 100%;
       }
     }
 
     @media (max-width: 520px) {
       .bento-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
+        max-width: 100%;
       }
     }
 
