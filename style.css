@@ -2629,15 +2629,14 @@
     }
 
     .bento-grid {
-      column-count: 3;
-      column-gap: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
       max-width: 1100px;
       margin: 0 auto;
     }
 
     .bento-item {
-      break-inside: avoid;
-      margin-bottom: 18px;
       border-radius: 18px;
       overflow: hidden;
       position: relative;
@@ -2721,23 +2720,15 @@
 
     @media (max-width: 900px) {
       .bento-grid {
-        column-count: 2;
-        column-gap: 14px;
-      }
-      .bento-item {
-        margin-bottom: 14px;
-        border-radius: 14px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
       }
     }
 
     @media (max-width: 520px) {
       .bento-grid {
-        column-count: 2;
-        column-gap: 10px;
-      }
-      .bento-item {
-        margin-bottom: 10px;
-        border-radius: 12px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
       }
     }
 
