@@ -2629,20 +2629,18 @@
     }
 
     .bento-grid {
-      column-count: 3;
-      column-gap: 18px;
+      position: relative;
       max-width: 1100px;
       margin: 0 auto;
     }
 
     .bento-item {
-      break-inside: avoid;
-      margin-bottom: 18px;
+      position: absolute;
       border-radius: 18px;
       overflow: hidden;
-      position: relative;
       cursor: pointer;
       background: #0a0d14;
+      transition: opacity 0.2s;
     }
 
     .bento-item:hover {
@@ -2721,23 +2719,13 @@
 
     @media (max-width: 900px) {
       .bento-grid {
-        column-count: 2;
-        column-gap: 14px;
-      }
-      .bento-item {
-        margin-bottom: 14px;
-        border-radius: 14px;
+        max-width: 100%;
       }
     }
 
     @media (max-width: 520px) {
       .bento-grid {
-        column-count: 2;
-        column-gap: 10px;
-      }
-      .bento-item {
-        margin-bottom: 10px;
-        border-radius: 12px;
+        max-width: 100%;
       }
     }
 
