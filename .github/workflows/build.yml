@@ -1,0 +1,59 @@
+name: Build HTML with API Key
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Debug - Check secrets
+        run: |
+          if [ -z "${{ secrets.GROQ_API_KEY }}" ]; then
+            echo "GROQ_API_KEY IS EMPTY OR MISSING"
+            exit 1
+          else
+            echo "GROQ_API_KEY FOUND (length: ${#GROQ_API_KEY} chars)"
+          fi
+          if [ -z "${{ secrets.OPENROUTER_API_KEY }}" ]; then
+            echo "OPENROUTER_API_KEY IS EMPTY OR MISSING"
+            exit 1
+          else
+            echo "OPENROUTER_API_KEY FOUND (length: ${#OPENROUTER_API_KEY} chars)"
+          fi
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+      - name: Inject API keys into index.html
+        run: |
+          sed -i "s|__GROQ_API_KEY__|${{ secrets.GROQ_API_KEY }}|g" index.html
+          sed -i "s|__OPENROUTER_API_KEY__|${{ secrets.OPENROUTER_API_KEY }}|g" index.html
+          echo "Placeholders replaced. Checking result..."
+          grep -o "GROQ_API_KEY = \".*\"" index.html | head -c 40
+          grep -o "OPENROUTER_API_KEY = \".*\"" index.html | head -c 40
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

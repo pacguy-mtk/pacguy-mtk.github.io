@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ZiJun | The Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;800;900&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/fa-subset.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%23080b12"/><text x="50" y="68" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" font-weight="900" fill="%23f4f7ff">ZJ</text></svg>'>
+</head>
+<body>
+  <video class="bg-video" muted loop playsinline id="bgVideo">
+    <source src="https://github.com/pacguy-mtk/pacguy-mtk.github.io/raw/refs/heads/main/githubhubvid2.mp4" type="video/mp4">
+  </video>
+  <div class="bg-grid"></div>
+  <div class="bg-vignette"></div>
+  <button class="video-toggle" id="videoToggle" type="button">
+    <i class="fas fa-pause"></i>
+    <span>Pause background</span>
+  </button>
+
+  <!-- Welcome Popup -->
+  <div class="welcome-overlay" id="welcomeOverlay">
+    <div class="welcome-modal">
+      <h2>Welcome to ZiJun Hub</h2>
+      <p>What would you like to see first?</p>
+      <div class="welcome-actions">
+        <a href="#hub" class="welcome-btn" onclick="dismissWelcome()">HUB</a>
+        <a href="#gallery" class="welcome-btn" onclick="dismissWelcome()">Gallery</a>
+        <a href="#contact" class="welcome-btn" onclick="dismissWelcome()">Contact</a>
+      </div>
+      <label class="welcome-check">
+        <input type="checkbox" id="welcomeDontAsk"> Don't ask again
+      </label>
+    </div>
+  </div>
+
+  <!-- Scroll Nav -->
+  <nav class="scroll-nav" id="scrollNav" aria-label="Section navigation">
+    <a href="#hub" class="scroll-nav-btn active" data-section="hub" title="Top">01</a>
+    <a href="#gallery" class="scroll-nav-btn" data-section="gallery" title="Gallery">02</a>
+    <a href="#contact" class="scroll-nav-btn" data-section="contact" title="Contact">03</a>
+  </nav>
+
+  <header class="topbar">
+    <a class="brand" href="#hub" aria-label="The Hub">
+      <div class="brand-mark">ZJ</div>
+      <span>
+        <strong>ZiJun Hub</strong>
+        <span>Design / AI / Tools</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="Main navigation">
+      <a href="#hub">Hub</a>
+      <a href="#gallery"><i class="fas fa-images" style="font-size: 11px; margin-right: 4px; color: var(--cyan);"></i>Gallery</a>
+      <div class="page-menu">
+        <button class="page-toggle" id="pageToggle" type="button" aria-expanded="false">Page</button>
+        <div class="page-dropdown">
+          <a href="https://pacguy-mtk.github.io/ai-lab/" target="_blank" rel="noopener"><i class="fas fa-robot"></i>AI Tools</a>
+          <a href="https://pacguy-mtk.github.io/calculator/" target="_blank" rel="noopener"><i class="fas fa-calculator"></i>Calculator</a>
+          <div class="page-dropdown-group">
+            <button class="page-dropdown-toggle" id="pageParallaxToggle" type="button" aria-expanded="false" aria-haspopup="true" aria-controls="pageParallaxChoices">
+              <i class="fas fa-layer-group"></i>
+              <span>Parallax Web</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="page-subdropdown" id="pageParallaxChoices">
+              <a href="https://pacguy-mtk.github.io/magic-redirect/" target="_blank" rel="noopener"><i class="fas fa-layer-group"></i><span>Parallax site</span></a>
+              <a href="https://pacguy-mtk.github.io/rainforest-brand-mockup/" target="_blank" rel="noopener"><i class="fas fa-seedling"></i><span>Brand site</span></a>
+              <a href="https://pacguy-mtk.github.io/landing/" target="_blank" rel="noopener"><i class="fas fa-globe"></i><span>Landing site</span></a>
+              <a href="http://pacguy-mtk.github.io/test-travelagency" target="_blank" rel="noopener"><i class="fas fa-luggage-cart"></i><span>Travel Agency</span></a>
+            </div>
+          </div>
+          <a href="https://drive.google.com/drive/folders/1TuHiogcZ9p08ol-aS3qd7Wcj0U0NhDtS" target="_blank" rel="noopener"><i class="fab fa-google-drive"></i>GDrive / Resume</a>
+        </div>
+      </div>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="hub">
+      <div class="hero-inner">
+        <h1>THE HUB</h1>
+        <p class="hero-subtitle">Welcome to ZiJun System. This system is designed by ZiJun and built by AI.</p>
+
+        <div class="system-map">
+          <div class="system-line"></div>
+          <div class="page-grid">
+            <a class="page-card" href="https://pacguy-mtk.github.io/ai-lab/" target="_blank" rel="noopener">
+              <small class="page-meta">01</small>
+              <strong><i class="fas fa-robot"></i>AI Tools</strong>
+              <span>Assistants and AI shortcuts.</span>
+              <small class="page-action">OPEN PAGE</small>
+            </a>
+            <a class="page-card" href="https://pacguy-mtk.github.io/calculator/" target="_blank" rel="noopener">
+              <small class="page-meta">02</small>
+              <strong><i class="fas fa-calculator"></i>Tool / Calculator</strong>
+              <span>Practical quote system.</span>
+              <small class="page-action">OPEN PAGE</small>
+            </a>
+            <div class="page-card-menu">
+              <button class="page-card" id="webParallaxToggle" type="button" aria-expanded="false" aria-haspopup="true" aria-controls="webParallaxChoices">
+                <small class="page-meta">03</small>
+                <strong><i class="fas fa-layer-group"></i>Web / Parallax</strong>
+                <span>HTML5 motion experiment.</span>
+                <small class="page-action">OPEN MENU</small>
+              </button>
+              <div class="page-card-dropdown" id="webParallaxChoices">
+                <a href="https://pacguy-mtk.github.io/magic-redirect/" target="_blank" rel="noopener">
+                  <i class="fas fa-layer-group"></i>
+                  <span>Parallax site</span>
+                </a>
+                <a href="https://pacguy-mtk.github.io/rainforest-brand-mockup/" target="_blank" rel="noopener">
+                  <i class="fas fa-seedling"></i>
+                  <span>Brand site</span>
+                </a>
+                <a href="https://pacguy-mtk.github.io/landing/" target="_blank" rel="noopener">
+                  <i class="fas fa-globe"></i>
+                  <span>Landing site</span>
+                </a>
+                <a href="http://pacguy-mtk.github.io/test-travelagency" target="_blank" rel="noopener">
+                  <i class="fas fa-luggage-cart"></i>
+                  <span>Travel Agency</span>
+                </a>
+              </div>
+            </div>
+            <a class="page-card" href="https://drive.google.com/drive/folders/1TuHiogcZ9p08ol-aS3qd7Wcj0U0NhDtS" target="_blank" rel="noopener">
+              <small class="page-meta">04</small>
+              <strong><i class="fab fa-google-drive"></i>GDrive / Resume</strong>
+              <span>Files and resources.</span>
+              <small class="page-action">OPEN PAGE</small>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="scroll-cue">Scroll for gallery</div>
+    </section>
+
+    <!-- BENTO GALLERY -->
+    <section class="bento-section" id="gallery">
+      <div class="section-head reveal">
+        <span class="eyebrow"><i class="fas fa-images" style="margin-right: 6px;"></i>Gallery</span>
+        <h2>All Work &amp; Projects</h2>
+      </div>
+      <div class="bento-filters reveal" id="bentoFilters">
+        <button class="bento-filter active" data-filter="all">All</button>
+        <button class="bento-filter" data-filter="ai-generated">AI Generated</button>
+        <button class="bento-filter" data-filter="mockups">Mockups</button>
+        <button class="bento-filter" data-filter="case-study">Case Study</button>
+      </div>
+      <div class="bento-grid" id="bentoGrid">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <section class="contact" id="contact">
+      <div class="contact-shell">
+        <div class="contact-title reveal">
+          <span class="eyebrow">Contact</span>
+          <h2>Contact ZiJun</h2>
+          <p>For work, collaboration, or questions about this system.</p>
+        </div>
+        <div class="contact-board reveal">
+          <div class="contact-status">
+            <strong>Signal Online</strong>
+            <span>Malaysia based</span>
+          </div>
+          <a class="contact-link" href="https://www.linkedin.com/in/looi-jia-jun-b734133b2" target="_blank" rel="noopener">
+            <strong><i class="fab fa-linkedin"></i>LinkedIn</strong>
+            <span>Professional profile and work connection.</span>
+          </a>
+          <a class="contact-link" href="mailto:juniorlooi95@gmail.com">
+            <strong><i class="fas fa-envelope"></i>Email</strong>
+            <span>juniorlooi95@gmail.com</span>
+          </a>
+          <a class="contact-link" href="https://wa.me/60173588931?text=Hi%20from%20The%20Hub" target="_blank" rel="noopener">
+            <strong><i class="fab fa-whatsapp"></i>WhatsApp</strong>
+            <span>Direct message for quick contact.</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-version-timeline" id="versionTimeline">
+      <div class="ver-card active" data-ver="2.0">
+        <div class="ver-preview ver-text-only">
+          <span>Online</span>
+        </div>
+        <span class="ver-label">v2.0</span>
+      </div>
+      <span class="ver-line"></span>
+      <div class="ver-card clickable" data-ver="1.4" data-src="version/v1.4.png">
+        <div class="ver-preview">
+          <img src="version/v1.4.png" alt="v1.4 preview" loading="lazy">
+        </div>
+        <span class="ver-label">v1.4</span>
+      </div>
+      <span class="ver-line"></span>
+      <div class="ver-card clickable" data-ver="1.3" data-src="version/v1.3.png">
+        <div class="ver-preview">
+          <img src="version/v1.3.png" alt="v1.3 preview" loading="lazy">
+        </div>
+        <span class="ver-label">v1.3</span>
+      </div>
+      <span class="ver-line"></span>
+      <div class="ver-card clickable" data-ver="1.2" data-src="version/v1.2.png">
+        <div class="ver-preview">
+          <img src="version/v1.2.png" alt="v1.2 preview" loading="lazy">
+        </div>
+        <span class="ver-label">v1.2</span>
+      </div>
+      <span class="ver-line"></span>
+      <div class="ver-card clickable" data-ver="1.1" data-src="version/v1.1.png">
+        <div class="ver-preview">
+          <img src="version/v1.1.png" alt="v1.1 preview" loading="lazy">
+        </div>
+        <span class="ver-label">v1.1</span>
+      </div>
+      <span class="ver-line"></span>
+      <div class="ver-card clickable" data-ver="1.0" data-src="version/v1.0.png">
+        <div class="ver-preview">
+          <img src="version/v1.0.png" alt="v1.0 preview" loading="lazy">
+        </div>
+        <span class="ver-label">v1.0</span>
+      </div>
+    </div>
+    <p>Malaysia. Built with design, code, and AI.</p>
+    <p>Last updated: <span id="currentDate"></span></p>
+    <p>Current ver: 2.0. <a href="https://drive.google.com/file/d/17umrl0Ip0qNCMbniMmGeU9yqf0PLbG8p/view?usp=drive_link" target="_blank" rel="noopener">Resume</a></p>
+  </footer>
+
+  <!-- Version Preview Modal -->
+  <div class="ver-modal" id="verModal">
+    <div class="ver-modal-backdrop" id="verModalBackdrop"></div>
+    <div class="ver-modal-content">
+      <button class="ver-modal-close" id="verModalClose" type="button">X</button>
+      <img class="ver-modal-img" id="verModalImg" src="" alt="Version preview">
+      <div class="ver-modal-footer">
+        <span class="ver-modal-title" id="verModalTitle"></span>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="hub-pet-canvas" width="192" height="208" aria-label="Click to open AI Assistant"></canvas>
+  <div id="hub-pet-say"></div>
+
+  <div id="hub-chat-panel">
+    <div class="chat-header">
+      <div class="chat-header-avatar">ZJ</div>
+      <div class="chat-header-info">
+        <strong>Slime-san</strong>
+        <span>Hub guide for recruiters & visitors</span>
+      </div>
+      <button class="chat-header-close" type="button" onclick="toggleChat()" aria-label="Close chat">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input-area">
+      <input class="chat-input" id="chatInput" type="text" placeholder="Ask me anything..." autocomplete="off">
+      <button class="chat-send" id="chatSend" type="button" aria-label="Send message">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Gallery Lightbox Modal -->
+  <div class="gallery-lightbox" id="galleryLightbox" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="lightbox-backdrop" id="lightboxBackdrop"></div>
+    <div class="lightbox-container">
+      <button class="lightbox-close" id="lightboxClose" type="button" aria-label="Close Lightbox">X</button>
+      <button class="lightbox-nav-btn prev" id="lightboxPrev" type="button" aria-label="Previous Image">&lt;</button>
+      <button class="lightbox-nav-btn next" id="lightboxNext" type="button" aria-label="Next Image">&gt;</button>
+      <div class="lightbox-content">
+        <img class="lightbox-img" id="lightboxImg" src="" alt="High resolution gallery preview">
+        <div class="lightbox-footer">
+          <span class="lightbox-title" id="lightboxTitle"></span>
+          <span class="lightbox-counter" id="lightboxCounter">01 / 01</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
