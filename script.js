@@ -1655,11 +1655,9 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
         bentoGrid.innerHTML = '';
         filter = filter || 'all';
 
-        var filtered = BENTO_ITEMS.filter(function(item) {
-          return filter === 'all' || item.category === filter;
-        });
+        BENTO_ITEMS.forEach(function(item, idx) {
+          if (filter !== 'all' && item.category !== filter) return;
 
-        filtered.forEach(function(item) {
           var el = document.createElement('div');
           el.className = 'bento-item';
           el.dataset.category = item.category;
@@ -1682,7 +1680,6 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
               canvas.getContext('2d').drawImage(vid, 0, 0, canvas.width, canvas.height);
               vid.poster = canvas.toDataURL('image/jpeg', 0.7);
               vid.classList.add('loaded');
-              layoutBento();
             });
             el.appendChild(vid);
 
@@ -1709,7 +1706,6 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
             img.draggable = false;
             img.addEventListener('load', function() {
               img.classList.add('loaded');
-              layoutBento();
             });
             el.appendChild(img);
           }
@@ -1728,63 +1724,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
         });
 
         observeLazyMedia();
-        layoutBento();
       }
-
-      function layoutBento() {
-        var items = bentoGrid.querySelectorAll('.bento-item');
-        if (!items.length) return;
-
-        var gap = 18;
-        var gridWidth = bentoGrid.offsetWidth;
-        var cols = 3;
-        if (gridWidth <= 520) cols = 2;
-        else if (gridWidth <= 900) cols = 2;
-
-        var colWidth = (gridWidth - (cols - 1) * gap) / cols;
-        var colHeights = [];
-        for (var c = 0; c < cols; c++) colHeights[c] = 0;
-
-        items.forEach(function(el) {
-          var shortestCol = 0;
-          for (var c = 1; c < cols; c++) {
-            if (colHeights[c] < colHeights[shortestCol]) shortestCol = c;
-          }
-
-          var x = shortestCol * (colWidth + gap);
-          var y = colHeights[shortestCol];
-
-          el.style.width = colWidth + 'px';
-          el.style.left = x + 'px';
-          el.style.top = y + 'px';
-
-          var media = el.querySelector('.bento-media');
-          if (media && media.classList.contains('loaded')) {
-            var aspectRatio = media.naturalHeight / media.naturalWidth;
-            if (media.tagName === 'VIDEO' && media.videoHeight) {
-              aspectRatio = media.videoHeight / media.videoWidth;
-            }
-            if (aspectRatio && isFinite(aspectRatio)) {
-              el.style.height = (colWidth * aspectRatio) + 'px';
-            } else {
-              el.style.height = (colWidth * 0.75) + 'px';
-            }
-          } else {
-            el.style.height = (colWidth * 0.75) + 'px';
-          }
-
-          colHeights[shortestCol] = y + el.offsetHeight + gap;
-        });
-
-        var maxH = Math.max.apply(null, colHeights);
-        bentoGrid.style.height = maxH + 'px';
-      }
-
-      var resizeTimer;
-      window.addEventListener('resize', function() {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(layoutBento, 150);
-      });
 
       function observeLazyMedia() {
         var lazyEls = document.querySelectorAll('.bento-media.lazy');
