@@ -1491,6 +1491,14 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
 
       var BENTO_ITEMS = [
         {
+          title: 'AI Flyer',
+          context: 'AI generated flyer',
+          src: 'post/aiflyer_0011.jpg',
+          type: 'image',
+          category: 'ai-generated',
+          date: '2026-09'
+        },
+        {
           title: 'Sword Maiden',
           context: 'Video clip',
           src: 'post/swordmaiden.webm',
