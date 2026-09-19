@@ -1491,6 +1491,30 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
 
       var BENTO_ITEMS = [
         {
+          title: 'Character Sheet Xiaowan',
+          context: 'Character sheet design',
+          src: 'post/charactershet_xiaowan.png',
+          type: 'image',
+          category: 'ai-generated',
+          date: '2026-09'
+        },
+        {
+          title: 'Character Sheet Mr Lu',
+          context: 'Character sheet design',
+          src: 'post/charactershet_mrlu.png',
+          type: 'image',
+          category: 'ai-generated',
+          date: '2026-09'
+        },
+        {
+          title: 'Character Sheet Xiaoyin',
+          context: 'Character sheet design',
+          src: 'post/charactersheet_xiaoyin.png',
+          type: 'image',
+          category: 'ai-generated',
+          date: '2026-09'
+        },
+        {
           title: 'AI Flyer',
           context: 'AI generated flyer',
           src: 'post/aiflyer_0011.jpg',
