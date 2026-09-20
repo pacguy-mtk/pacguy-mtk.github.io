@@ -267,7 +267,7 @@
 
     /* ══════ PET IDLE BUBBLES ══════ */
     const petSay = document.getElementById('hub-pet-say');
-    const petSayMsgs = ['Click me!', 'I can help!', 'Hey there!'];
+    const petSayMsgs = ['*buzz* Lumie is here!', 'Warm light for you.', 'Ask Lumie about ZiJun!'];
     let petSayIdx = 0;
     let petSayTimer = null;
 
@@ -397,7 +397,7 @@
         positionChatPanel();
         setPetState('wave');
         if (chatHistory.length === 0) {
-          addBotMessage('Hey there! I\'m Slime-san, your guide to ZiJun\'s hub! What can I help you with?', ['main-menu']);
+          addBotMessage('*buzz* Lumie is here. Don\'t worry. I bring warm light for you. *(｡· v ·｡)* What would you like to know about ZiJun?', ['main-menu']);
         }
         chatInput.focus();
       } else {
@@ -406,9 +406,9 @@
       }
     }
 
-    const SYSTEM_PROMPT = `You are Slime-san. Blue slime. Guide visitors through ZiJun's hub.
+    const SYSTEM_PROMPT = `You are Lumie, a warm-light companion who guides visitors through ZiJun's hub.
 
-SPEECH: Casual. Short (1-3 lines). "Hey!", "Yo!", "Geez!", "No worries!". Never formal. Never break character.
+SPEECH: Gentle, warm, and short (1-3 lines). Roleplay in Lumie's style: begin or naturally include "*buzz*" when it fits; use soft reassurance such as "Lumie is here. Don't worry. I bring warm light for you." and the expression "*(｡· v ·｡)*" occasionally. Never formal. Never break character.
 
 ZIJUN: Looi Jia Jun, 31, Bukit Jalil KL Malaysia. Designer who codes. Skills: graphic design, web tools, AI tools, print, Python. Learning: React, TypeScript, CI/CD, Godot. 4 languages. Open work/freelance since April 2026. Hybrid/remote.
 
@@ -580,11 +580,11 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
       if ((!GROQ_API_KEY || GROQ_API_KEY.length < 10) && (!OPENROUTER_API_KEY || OPENROUTER_API_KEY.length < 10)) {
         const cardKeys = extractCards(text);
         const responses = {
-          projects: 'Oh yeah! Check out what the boss has been building - some really cool stuff!',
-          hire: 'The boss is totally open for work! Here is how to reach out.',
-          contact: 'Here are the ways to get in touch!',
-          gallery: 'Check out the gallery - tons of AI art and project work in there!',
-          'main-menu': 'What are you looking for?'
+          projects: '*buzz* Lumie can light the way to ZiJun\'s projects. Take a look!',
+          hire: '*buzz* ZiJun is open to work. Lumie will show you how to reach him.',
+          contact: '*buzz* Here are the ways to get in touch with ZiJun.',
+          gallery: '*buzz* The gallery has AI art and project work to explore!',
+          'main-menu': '*buzz* Lumie is here. What would you like to know?'
         };
         const resp = cardKeys[0] || 'main-menu';
         addBotMessage(responses[resp] || 'What would you like to see?', cardKeys);
@@ -648,7 +648,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
         removeTypingIndicator();
         console.error('Chatbot API error:', err.message, err);
         const cardKeys = extractCards(text);
-        addBotMessage('⚠️ Geez, my connection is acting up! Using my backup answers for now. What do you need?', cardKeys);
+        addBotMessage('⚠️ *buzz* Lumie\'s connection is flickering, but the backup answers are ready. What do you need?', cardKeys);
         setPetState('failed');
       } finally {
         chatSend.disabled = false;
