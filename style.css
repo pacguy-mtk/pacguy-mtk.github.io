@@ -2698,29 +2698,6 @@
       display: none;
     }
 
-    .bento-play-icon {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      background: rgba(0, 0, 0, 0.5);
-      border: 2px solid rgba(255, 255, 255, 0.25);
-      display: grid;
-      place-items: center;
-      color: #fff;
-      font-size: 16px;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-
-    .bento-item:hover .bento-play-icon {
-      opacity: 1;
-    }
-
     .bento-item.hidden {
       display: none;
     }

@@ -1737,11 +1737,6 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
             });
             el.appendChild(vid);
 
-            var playIcon = document.createElement('div');
-            playIcon.className = 'bento-play-icon';
-            playIcon.innerHTML = '<i class="fas fa-play"></i>';
-            el.appendChild(playIcon);
-
             el.addEventListener('mouseenter', function() {
               vid.play().catch(function() {});
             });
