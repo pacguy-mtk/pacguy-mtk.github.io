@@ -336,6 +336,7 @@
       if (!isDragging) return;
       e.preventDefault();
       const { x, y } = getEventXY(e);
+      const petRect = petCanvas.getBoundingClientRect();
       const prevX = parseFloat(petCanvas.style.left) || 0;
       const prevY = parseFloat(petCanvas.style.top) || 0;
       const newX = x - dragStartX;
@@ -345,8 +346,10 @@
       if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
         dragMoved = true;
       }
-      petOffsetX = clamp(newX, 0, window.innerWidth - petCanvas.width);
-      petOffsetY = clamp(newY, 0, window.innerHeight - petCanvas.height);
+      // The drawing buffer is 192×208, but CSS displays a smaller pet.
+      // Clamp to the rendered size so it can reach the viewport edges.
+      petOffsetX = clamp(newX, 0, window.innerWidth - petRect.width);
+      petOffsetY = clamp(newY, 0, window.innerHeight - petRect.height);
       petCanvas.style.left = petOffsetX + 'px';
       petCanvas.style.bottom = 'auto';
       petCanvas.style.top = petOffsetY + 'px';
