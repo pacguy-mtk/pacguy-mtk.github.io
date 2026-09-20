@@ -1494,6 +1494,22 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
 
       var BENTO_ITEMS = [
         {
+          title: 'Cyberpunk Officer',
+          context: 'Cyberpunk character artwork',
+          src: 'post/cyberpunk_officer.png',
+          type: 'image',
+          category: 'ai-generated',
+          date: '2026-09'
+        },
+        {
+          title: '202609202057',
+          context: 'Video clip',
+          src: 'post/202609202057.webm',
+          type: 'video',
+          category: 'ai-generated',
+          date: '2026-09'
+        },
+        {
           title: 'Character Sheet Xiaowan',
           context: 'Character sheet design',
           src: 'post/charactershet_xiaowan.png',
