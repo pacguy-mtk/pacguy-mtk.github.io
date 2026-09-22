@@ -1494,6 +1494,14 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
 
       var BENTO_ITEMS = [
         {
+          title: 'gfruit mockup',
+          context: 'Gfruit mockup design',
+          src: 'post/sep22-gacfruit.webp',
+          type: 'image',
+          category: 'mockups',
+          date: '2026-09'
+        },
+        {
           title: 'Cyberpunk Officer',
           context: 'Cyberpunk character artwork',
           src: 'post/cyberpunk_officer.png',
