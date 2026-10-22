@@ -1494,6 +1494,14 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
 
       var BENTO_ITEMS = [
         {
+          title: '202610222230',
+          context: 'Video clip',
+          src: 'post/202610222230.webm',
+          type: 'video',
+          category: 'ai-generated',
+          date: '2026-10'
+        },
+        {
           title: '202610221443',
           context: 'Video clip',
           src: 'post/202610221443.webm',
