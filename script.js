@@ -1493,7 +1493,15 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
       var bentoFilters = document.getElementById('bentoFilters');
       if (!bentoGrid) return;
 
-      var BENTO_ITEMS = [
+var BENTO_ITEMS = [
+        {
+          title: '202610312125',
+          context: 'Video clip',
+          src: 'post/202610312125.webm',
+          type: 'video',
+          category: 'ai-generated',
+          date: '2026-10'
+        },
         {
           title: '202610311407',
           context: 'Video clip',
