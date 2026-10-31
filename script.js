@@ -1,4 +1,4 @@
-    const GROQ_API_KEY = "__GROQ_API_KEY__";
+﻿    const GROQ_API_KEY = "__GROQ_API_KEY__";
     const OPENROUTER_API_KEY = "__OPENROUTER_API_KEY__";
 
     const bgVideo = document.querySelector(".bg-video");
@@ -600,6 +600,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
 
       const models = [
         { url: 'https://api.groq.com/openai/v1/chat/completions', model: 'openai/gpt-oss-120b', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_API_KEY}` } },
+        { url: 'https://api.groq.com/openai/v1/chat/completions', model: 'llama-3.3-70b-versatile', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_API_KEY}` } },
         { url: 'https://openrouter.ai/api/v1/chat/completions', model: 'nvidia/nemotron-3-ultra-550b-a55b:free', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENROUTER_API_KEY}`, 'HTTP-Referer': 'https://pacguy-mtk.github.io/', 'X-Title': 'ZiJun Hub' } }
       ];
 
