@@ -1734,13 +1734,13 @@ var BENTO_ITEMS = [
           category: 'ai-generated',
           date: '2026-09'
         },
-        {
-          title: 'Not So AI',
-          context: 'AI generated image',
-          src: 'post/notsoai1.jpg',
+{
+          title: 'Multmodel Combination Steps Magazine Cover',
+          context: 'Magazine cover design',
+          src: 'post/Multmodel combination steps magazine cover.webp',
           type: 'image',
-          category: 'ai-generated',
-          date: '2026-09'
+          category: 'mockups',
+          date: '2026-10'
         },
         {
           title: '202609150053',
