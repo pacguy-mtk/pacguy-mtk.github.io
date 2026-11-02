@@ -1495,6 +1495,30 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
 
 var BENTO_ITEMS = [
         {
+          title: 'Multimodel Combination Invitation 1',
+          context: 'Invitation card design',
+          src: 'post/Multimodel combination invitation1.webp',
+          type: 'image',
+          category: 'mockups',
+          date: '2026-11'
+        },
+        {
+          title: 'Multimodel Combination Invitation 2',
+          context: 'Invitation card design',
+          src: 'post/Multimodel combination invitation2.webp',
+          type: 'image',
+          category: 'mockups',
+          date: '2026-11'
+        },
+        {
+          title: 'Multimodel Combination Invitation 3',
+          context: 'Invitation card design',
+          src: 'post/Multimodel combination invitation3.webp',
+          type: 'image',
+          category: 'mockups',
+          date: '2026-11'
+        },
+        {
           title: '202610312125',
           context: 'Video clip',
           src: 'post/202610312125.webm',
