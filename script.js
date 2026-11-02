@@ -1495,6 +1495,22 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
 
 var BENTO_ITEMS = [
         {
+          title: 'Multmodel Combination Steps Hiring',
+          context: 'Hiring poster design',
+          src: 'post/Multmodel combination steps hiring.png',
+          type: 'image',
+          category: 'mockups',
+          date: '2026-11'
+        },
+        {
+          title: 'Multmodel Combination Steps Hiring 2',
+          context: 'Hiring poster design 2',
+          src: 'post/Multmodel combination steps hiring2.webp',
+          type: 'image',
+          category: 'mockups',
+          date: '2026-11'
+        },
+        {
           title: 'Multimodel Combination Invitation 1',
           context: 'Invitation card design',
           src: 'post/Multimodel combination invitation1.webp',
