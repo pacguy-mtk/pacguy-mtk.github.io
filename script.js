@@ -1751,6 +1751,22 @@ var BENTO_ITEMS = [
           date: '2026-09'
         },
         {
+          title: 'Multmodel Combination Steps Infographic',
+          context: 'Model combination workflow diagram',
+          src: 'post/Multmodel combination steps infographic.png',
+          type: 'image',
+          category: 'mockups',
+          date: '2026-10'
+        },
+        {
+          title: 'Multmodel Combination Steps Infographic2',
+          context: 'Model combination workflow diagram 2',
+          src: 'post/Multmodel combination steps infographic2.webp',
+          type: 'image',
+          category: 'mockups',
+          date: '2026-10'
+        },
+        {
           title: 'One min',
           context: 'One minute video clip',
           src: 'post/onemin.webm',
