@@ -1,4 +1,4 @@
-﻿    const GROQ_API_KEY = "__GROQ_API_KEY__";
+    const GROQ_API_KEY = "__GROQ_API_KEY__";
     const OPENROUTER_API_KEY = "__OPENROUTER_API_KEY__";
 
     const bgVideo = document.querySelector(".bg-video");
@@ -1526,6 +1526,8 @@ var BENTO_ITEMS = [
           category: 'ai-generated',
           date: '2026-10'
         },
+        {
+          title: 'Multmodel Combination Steps Hiring',
           context: 'Hiring poster design',
           src: 'post/Multmodel combination steps hiring.png',
           type: 'image',
