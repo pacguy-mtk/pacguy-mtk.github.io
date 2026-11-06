@@ -1495,7 +1495,37 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
 
 var BENTO_ITEMS = [
         {
-          title: 'Multmodel Combination Steps Hiring',
+          title: 'vgart-test1',
+          context: 'Video generation test',
+          src: 'post/vgart-test1.webp',
+          type: 'image',
+          category: 'ai-generated',
+          date: '2026-10'
+        },
+        {
+          title: 'vgart-test2',
+          context: 'Video generation test 2',
+          src: 'post/vgart-test2.webp',
+          type: 'image',
+          category: 'ai-generated',
+          date: '2026-10'
+        },
+        {
+          title: 'gcart-test3',
+          context: 'Test 3',
+          src: 'post/gcart-test3.webp',
+          type: 'image',
+          category: 'ai-generated',
+          date: '2026-10'
+        },
+        {
+          title: 'infog-test4',
+          context: 'Test 4',
+          src: 'post/infog-test4.webp',
+          type: 'image',
+          category: 'ai-generated',
+          date: '2026-10'
+        },
           context: 'Hiring poster design',
           src: 'post/Multmodel combination steps hiring.png',
           type: 'image',
