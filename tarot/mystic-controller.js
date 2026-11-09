@@ -58,7 +58,30 @@
     osc.stop(start + dur);
   }
 
+  // Real SFX files (temporary set). If a file is missing or blocked, the synth below plays instead.
+  const SFX_FILES = { flip: 'assets/sfx/card-flip.mp3', dock: 'assets/sfx/card-place.mp3' };
+  const sfxBase = {};
+  function playFile(type) {
+    const url = SFX_FILES[type];
+    if (!url) return false;
+    try {
+      if (!sfxBase[type]) {
+        const a = new Audio(url);
+        a.preload = 'auto';
+        a.addEventListener('error', () => { sfxBase[type] = 'failed'; });
+        sfxBase[type] = a;
+      }
+      if (sfxBase[type] === 'failed') return false;
+      const a = sfxBase[type].cloneNode();       // clone so quick repeats can overlap
+      a.volume = 0.8;
+      const p = a.play();
+      if (p && p.catch) p.catch(() => { });
+      return true;
+    } catch (e) { return false; }
+  }
+
   function playSound(type) {
+    if (playFile(type)) return;
     try {
       const ctx = getAudioContext();
       if (!ctx) return;

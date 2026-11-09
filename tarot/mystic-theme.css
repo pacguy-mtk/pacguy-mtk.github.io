@@ -1300,3 +1300,19 @@ body.modal-open .app-viewport { pointer-events: none; }
   .revelation-overlay, .revelation-inner, .revelation-hint { transition: none; }
   .revelation-text.is-loading, .revelation-hint.show { animation: none; }
 }
+
+
+/* beta mark: reads like a small trademark symbol next to the title */
+.beta-tm {
+  display: inline-block;
+  margin-left: .35em;
+  vertical-align: super;
+  font-family: var(--font-tech, inherit);
+  font-size: .42em;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--gold-light, #f6e3b4);
+  opacity: .85;
+}

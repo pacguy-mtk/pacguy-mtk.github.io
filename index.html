@@ -100,12 +100,12 @@
           </button>
         </form>
         <div class="hub-ask-chips" id="hubAskChips">
-          <button type="button" class="hub-chip" data-q="Show me the gallery">Gallery</button>
-          <button type="button" class="hub-chip" data-q="Show me Tarot">Tarot</button>
-          <button type="button" class="hub-chip" data-q="Chat with Lumie">Chat with Lumie</button>
-          <button type="button" class="hub-chip" data-q="Show me misc tools and projects">Misc.</button>
-          <button type="button" class="hub-chip" data-q="How do I contact ZiJun?">Contact</button>
-          <button type="button" class="hub-chip" data-q="Show me the history of this site">History</button>
+          <button type="button" class="hub-chip" data-dest="gallery">Gallery</button>
+          <button type="button" class="hub-chip" data-dest="tarot">Tarot</button>
+          <button type="button" class="hub-chip" data-dest="lumie">Chat with Lumie</button>
+          <button type="button" class="hub-chip" data-dest="misc">Misc.</button>
+          <button type="button" class="hub-chip" data-dest="contact">Contact</button>
+          <button type="button" class="hub-chip" data-dest="history">History</button>
         </div>
         <div class="hub-answer" id="hubAnswer" hidden aria-live="polite">
           <div class="hub-answer-head">
@@ -124,8 +124,8 @@
     <section class="tarot-section" id="tarot">
       <div class="section-head reveal">
         <span class="eyebrow"><i class="fas fa-moon" style="margin-right: 6px;"></i>Tarot</span>
-        <h2>Tarot Divination (beta)</h2>
-        <p>Let me do you a revelation. You may trust your Gemini or just press "SKIP".</p>
+        <h2>Tarot Divination<sup class="beta-tm" title="Beta version">beta</sup></h2>
+        <p>Let the house do you a revelation. You may trust your Gemini or just press "SKIP".<br><strong class="tarot-chances">You only have 3 chances.</strong></p>
       </div>
       <div class="tarot-stage reveal" id="tarotStage">
         <div class="tarot-launch-wrap" id="tarotLaunchWrap">
@@ -137,11 +137,11 @@
           <button class="tarot-launch" id="tarotLaunch" type="button">
             <i class="fas fa-moon"></i> Draw your cards
           </button>
-          <small class="tarot-note">Opens inside this page &middot; v0.5 beta</small>
+          <small class="tarot-note">Opens inside this page &middot; v0.9 beta</small>
         </div>
         <div class="tarot-frame-wrap" id="tarotFrameWrap" hidden>
           <div class="tarot-toolbar">
-            <span class="tarot-toolbar-title"><i class="fas fa-moon"></i> Tarot Divination</span>
+            <span class="tarot-toolbar-title"><i class="fas fa-moon"></i> Tarot Divination<sup class="beta-tm">beta</sup></span>
             <span class="tarot-toolbar-actions">
               <button type="button" id="tarotFull" class="tarot-tool" title="Fullscreen"><i class="fas fa-expand"></i><span>Fullscreen</span></button>
               <a class="tarot-tool" href="tarot/index.html" target="_blank" rel="noopener" title="Open in a new tab"><i class="fas fa-up-right-from-square"></i><span>New tab</span></a>
@@ -212,16 +212,16 @@
 
   <footer class="footer">
     <div class="footer-version-timeline" id="versionTimeline">
-      <div class="ver-card active" data-ver="3.0">
+      <div class="ver-card active" data-ver="2.1">
         <div class="ver-preview ver-text-only">
           <span>Online</span>
         </div>
-        <span class="ver-label">v3.0</span>
+        <span class="ver-label">v2.1</span>
       </div>
       <span class="ver-line"></span>
-      <div class="ver-card" data-ver="2.0">
-        <div class="ver-preview ver-text-only">
-          <span>Archive</span>
+      <div class="ver-card clickable" data-ver="2.0" data-src="version/v2.0.png">
+        <div class="ver-preview">
+          <img src="version/v2.0.png" alt="v2.0 preview" loading="lazy">
         </div>
         <span class="ver-label">v2.0</span>
       </div>
@@ -263,7 +263,7 @@
     </div>
     <p>Malaysia. Built with design, code, and AI.</p>
     <p>Last updated: <span id="currentDate"></span></p>
-    <p>Current ver: 3.0. <a href="https://drive.google.com/file/d/17umrl0Ip0qNCMbniMmGeU9yqf0PLbG8p/view?usp=drive_link" target="_blank" rel="noopener">Resume</a></p>
+    <p>Current ver: 2.1. <a href="https://drive.google.com/file/d/17umrl0Ip0qNCMbniMmGeU9yqf0PLbG8p/view?usp=drive_link" target="_blank" rel="noopener">Resume</a></p>
   </footer>
 
   <!-- Version Preview Modal -->

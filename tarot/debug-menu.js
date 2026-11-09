@@ -182,7 +182,7 @@
   function refresh() {
     if (!open) return;
     const t = B.getTokens();
-    const owner = C.OWNER_PROXY_URL ? 'proxy' : C.OWNER_API_KEY ? 'key in config.js (visible to visitors!)' : 'NOT configured';
+    const owner = C.OWNER_PROXY_URL ? 'proxy' : (B.ownerConfigured && B.ownerConfigured()) ? 'keys in config.js (visible to visitors!)' : 'NOT configured';
     $('dbg-status').innerHTML = [
       ['Mode', B.getMode() || '(none chosen yet)'],
       ['Tokens', `${t.left}/${t.max}  ·  refill in ${fmtMs(B.msUntilReset())}`],

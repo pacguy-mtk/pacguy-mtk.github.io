@@ -28,6 +28,13 @@ window.TAROT_CONFIG = Object.freeze({
   // Option B (testing only): paste your key here. Anyone who opens
   //   "View source" can read and copy it, and can bypass the 3/3 counter.
   OWNER_API_KEY: '',
+  // Option C (used by the live site): TWO keys, tried in order like Lumie's provider chain
+  // (key 1 first; if it fails or hits quota, key 2). The GitHub Actions workflow replaces
+  // these two placeholders with the repo secrets TAROT_API_KEY_1 / TAROT_API_KEY_2 at deploy
+  // time (see .github/workflows/build.yml). Never type a real key here.
+  // The keys end up readable in the published file, so restrict them to
+  // https://pacguy-mtk.github.io/* (HTTP referrer) and set a quota cap in Google AI Studio.
+  OWNER_API_KEYS: ['__TAROT_API_KEY_1__', '__TAROT_API_KEY_2__'],
 
   // --- The Seeker's question (asked once, after the first card is turned) -
   // Every question is routed into one of these lenses. Rename, reword or swap
@@ -62,7 +69,14 @@ window.TAROT_CONFIG = Object.freeze({
   REVEAL_SPEED: 0.7,
 
   // --- Debug menu --------------------------------------------------------
-  // To remove the debug menu later: delete the <script src="debug-menu.js">
-  // line in index.html (and the file). Or just set this to false.
-  DEBUG_MENU: true
+  // HIDDEN for visitors (the files are kept for backend editing).
+  // Shown only on localhost, or in your own browser after you run this once in
+  // the DevTools console of the tarot page:  localStorage.tarot_debug = '1'
+  // (turn off again with: localStorage.removeItem('tarot_debug')).
+  DEBUG_MENU: (function () {
+    try {
+      return ['localhost', '127.0.0.1'].indexOf(location.hostname) !== -1 ||
+             localStorage.getItem('tarot_debug') === '1';
+    } catch (e) { return false; }
+  })()
 });

@@ -1,4 +1,5 @@
-name: Build HTML with API Key
+name: Build HTML with API Keys
+
 on:
   push:
     branches: [main]
@@ -9,6 +10,10 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,31 +21,46 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Debug - Check secrets
-        run: |
-          if [ -z "${{ secrets.GROQ_API_KEY }}" ]; then
-            echo "GROQ_API_KEY IS EMPTY OR MISSING"
-            exit 1
-          else
-            echo "GROQ_API_KEY FOUND (length: ${#GROQ_API_KEY} chars)"
-          fi
-          if [ -z "${{ secrets.OPENROUTER_API_KEY }}" ]; then
-            echo "OPENROUTER_API_KEY IS EMPTY OR MISSING"
-            exit 1
-          else
-            echo "OPENROUTER_API_KEY FOUND (length: ${#OPENROUTER_API_KEY} chars)"
-          fi
+      # Replaces the placeholders in the published copy only (never committed back).
+      #   script.js        : __GROQ_API_KEY__, __OPENROUTER_API_KEY__   (Lumie chatbot)
+      #   tarot/config.js  : __TAROT_API_KEY_1__, __TAROT_API_KEY_2__   (tarot house Oracle, tried in order)
+      # A missing secret does not stop the deploy: the site falls back to free canned answers
+      # (Lumie) or the basic reading (Tarot). The log below tells you exactly which are missing.
+      - name: Inject API keys
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-
-      - name: Inject API keys into script.js
+          TAROT_API_KEY_1: ${{ secrets.TAROT_API_KEY_1 }}
+          TAROT_API_KEY_2: ${{ secrets.TAROT_API_KEY_2 }}
         run: |
-          sed -i "s|__GROQ_API_KEY__|${{ secrets.GROQ_API_KEY }}|g" script.js
-          sed -i "s|__OPENROUTER_API_KEY__|${{ secrets.OPENROUTER_API_KEY }}|g" script.js
-          echo "Placeholders replaced. Checking result..."
-          grep -o "GROQ_API_KEY = \".*\"" script.js | head -c 40
-          grep -o "OPENROUTER_API_KEY = \".*\"" script.js | head -c 40
+          python3 - <<'PY'
+          import os, sys
+          jobs = {
+            'script.js': ['GROQ_API_KEY', 'OPENROUTER_API_KEY'],
+            'tarot/config.js': ['TAROT_API_KEY_1', 'TAROT_API_KEY_2'],
+          }
+          for path, names in jobs.items():
+              text = open(path, encoding='utf-8').read()
+              for n in names:
+                  val = os.environ.get(n, '').strip()
+                  token = '__' + n + '__'
+                  if token not in text:
+                      print(f'::error file={path}::placeholder {token} not found in {path}')
+                      sys.exit(1)
+                  text = text.replace(token, val)
+                  if val:
+                      print(f'OK       {n}: injected into {path} (length {len(val)})')
+                  else:
+                      print(f'::warning::{n} secret is EMPTY or missing - {path} will run without it')
+              open(path, 'w', encoding='utf-8').write(text)
+          PY
+
+      - name: Verify no placeholder is left in the published files
+        run: |
+          if grep -n "__GROQ_API_KEY__\|__OPENROUTER_API_KEY__\|__TAROT_API_KEY_[12]__" script.js tarot/config.js; then
+            echo "::error::A placeholder is still present"; exit 1
+          fi
+          echo "No placeholders left."
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

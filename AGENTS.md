@@ -66,3 +66,10 @@ Order in `index.html`: `#hub` (ask bar) -> `#tarot` -> `#gallery` -> `#contact` 
 - **Systems rack**: edit the `SYSTEMS` array near the top of `script.js` to add/rename drawer options. Lumie's `get_projects` / `search_site` tools read the same array.
 - **Gallery rules above are unchanged.**
 - Do not touch or clone `post/` unless adding media (it is ~800 MB). Code-only clone: `git clone --depth 1 --filter=blob:none --no-checkout <repo>; git sparse-checkout set '/*' '!/post/'; git checkout main`.
+
+
+## v2.1 notes
+- **Secrets** (GitHub repo > Settings > Secrets and variables > Actions): `GROQ_API_KEY`, `OPENROUTER_API_KEY` (Lumie, injected into `script.js`) and `TAROT_API_KEY_1`, `TAROT_API_KEY_2` (tarot house Oracle, injected into `tarot/config.js`, tried in order). Placeholders in the files: `__GROQ_API_KEY__`, `__OPENROUTER_API_KEY__`, `__TAROT_API_KEY_1__`, `__TAROT_API_KEY_2__`. Never commit a real key. Pages must be deployed with **Source: GitHub Actions**.
+- **Credits:** the hero chips and short keyword questions never call the AI. Only longer free-text questions, the welcome popup "Ask AI" row and the chat panel do.
+- **Tarot debug menu** is hidden for visitors (kept in `tarot/debug-menu.js`). Show it on your own browser with `localStorage.tarot_debug='1'` in the tarot page console, or on localhost.
+- **Version history:** v2.1 online (text card), v2.0 screenshot at `version/v2.0.png`. For the next version add `version/vX.Y.png` and a clickable `.ver-card`.

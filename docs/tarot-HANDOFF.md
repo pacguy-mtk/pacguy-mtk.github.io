@@ -404,3 +404,7 @@ The app looks for card images at `assets/{id}.png` (0.png through 77.png).
 ### Update 2026-11-09 — revelation overlay + reading language
 - After the 3rd card the full reading is written across the middle of the screen (`#revelation-overlay`) at 70% of the side-dialogue typing speed (`REVEAL_SPEED` in `config.js`; Chinese is a further 1.6x slower per character). "Click to go back" appears only after the text is fully revealed. A click while it is still typing reveals everything at once. The text is kept in the side panel and "Read the Revelation Again" reopens it.
 - Reading language is chosen in the question pop-up (English / 中文（简体） / Bahasa Malaysia / "More languages — coming soon"), remembered in `tarot_lang`. The system prompt stays one fixed English text; each request adds a line `Reply language: <name>.` to the message. Edit the list in `LANGUAGES` in `config.js`. Basic (no-AI) readings are English only.
+
+### Update 2026-11-09 (b) — temporary assets
+- **Art:** `assets/0,1,6,7,8,9,10,11,12,13,14,15.webp` are finished framed tarot cards (Fool sample style: number, gold-framed art, title, keyword line), 520 px wide. Ids 2-5 and 16-21 are still the old placeholder .png. Card subtitles (keyword lines) other than the Fool's are temporary wording.
+- **SFX:** `assets/sfx/card-flip.mp3` (card reveal flip) and `assets/sfx/card-place.mp3` (card lands in its dock slot). `playSound()` in `mystic-controller.js` plays the file and falls back to the old synth if it fails. The final chime is still synthesized; the "reveal all 3 cards" SFX is still to come.

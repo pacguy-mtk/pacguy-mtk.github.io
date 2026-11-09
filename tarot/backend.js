@@ -92,7 +92,7 @@ OUTPUT
     migrateLegacy();
     logEvent('SYSTEM', 'Backend initialized', { mode: getMode(), tokens: getTokens() });
     if (!ownerConfigured()) {
-      logEvent('CONFIG', 'House Oracle is not configured (set OWNER_PROXY_URL or OWNER_API_KEY in config.js)');
+      logEvent('CONFIG', 'House Oracle is not configured (set OWNER_PROXY_URL or the TAROT_API_KEY_1/2 secrets; see config.js)');
     }
   }
 
@@ -218,7 +218,21 @@ OUTPUT
     logEvent('TOKEN', `Tokens set to ${left}/${C.DAILY_TOKENS}`);
   }
 
-  function ownerConfigured() { return Boolean(C.OWNER_PROXY_URL || C.OWNER_API_KEY); }
+  // House keys: OWNER_API_KEYS (+ legacy OWNER_API_KEY). Unreplaced placeholders such as
+  // '__TAROT_API_KEY_1__' (deploy did not inject the secret) are ignored.
+  function ownerKeys() {
+    const all = [].concat(C.OWNER_API_KEYS || [], C.OWNER_API_KEY || []);
+    const seen = new Set();
+    return all.filter((k) => {
+      if (typeof k !== 'string') return false;
+      k = k.trim();
+      if (k.length < 20 || k.indexOf('__') === 0 || seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    }).map((k) => k.trim());
+  }
+
+  function ownerConfigured() { return Boolean(C.OWNER_PROXY_URL || ownerKeys().length); }
 
   /** Can a new reading start right now? */
   function canStartReading() {
@@ -360,8 +374,23 @@ OUTPUT
       if (Number.isFinite(data.remaining)) setTokensLeft(data.remaining);   // server is the source of truth
       return { text: data.text, serverCounted: true };
     }
-    if (C.OWNER_API_KEY) return { text: await callGemini(C.OWNER_API_KEY, promptText), serverCounted: false };
-    throw new OracleError('owner_unconfigured', 'The house Oracle is not set up yet.');
+    const keys = ownerKeys();
+    if (!keys.length) throw new OracleError('owner_unconfigured', 'The house Oracle is not set up yet.');
+    // Provider chain (same idea as Lumie): key 1, then key 2 if it fails / is out of quota.
+    let lastErr = null;
+    for (let i = 0; i < keys.length; i++) {
+      try {
+        const text = await callGemini(keys[i], promptText);
+        if (i > 0) logEvent('API_FALLBACK', `House key ${i + 1} answered (earlier key failed: ${lastErr && lastErr.kind})`);
+        return { text, serverCounted: false };
+      } catch (e) {
+        lastErr = classify(e);
+        logEvent('API_ERROR', `House key ${i + 1}/${keys.length}: ${lastErr.kind}`);
+        console.warn(`House key ${i + 1}/${keys.length} failed:`, lastErr.kind, lastErr.message);
+        if (lastErr.kind === 'blocked') break;   // content was refused; another key will not help
+      }
+    }
+    throw lastErr;
   }
 
   // =========================================================================

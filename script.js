@@ -1,5 +1,6 @@
     const GROQ_API_KEY = "__GROQ_API_KEY__";
     const OPENROUTER_API_KEY = "__OPENROUTER_API_KEY__";
+    function isRealKey(k) { return typeof k === 'string' && k.length >= 10 && k.indexOf('__') !== 0; }
 
     const bgVideo = document.querySelector(".bg-video");
     const videoToggle = document.getElementById("videoToggle");
@@ -620,7 +621,12 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
       chatInput.value = '';
       chatSend.disabled = true;
 
-      if ((!GROQ_API_KEY || GROQ_API_KEY.length < 10) && (!OPENROUTER_API_KEY || OPENROUTER_API_KEY.length < 10)) {
+      // A key counts only if it is real: the build step swaps the key placeholders (top of this file) for the repo secrets.
+      // If the placeholder is still there (injection did not run), skip every network call and use the free canned answers.
+      const hasGroq = isRealKey(GROQ_API_KEY);
+      const hasOR = isRealKey(OPENROUTER_API_KEY);
+      if (!hasGroq && !hasOR) {
+        console.warn('[Lumie] No API key was injected at build time. Check the GROQ_API_KEY / OPENROUTER_API_KEY repo secrets and that Settings > Pages > Source is "GitHub Actions". Using the free canned answers.');
         const cardKeys = extractCards(text);
         const responses = {
           projects: '*buzz* Lumie can light the way to ZiJun\'s projects. Take a look!',
@@ -643,11 +649,13 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
 
       if (!opts.silent) addTypingIndicator();
 
-      const models = [
+      const allModels = [
         { url: 'https://api.groq.com/openai/v1/chat/completions', model: 'openai/gpt-oss-120b', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_API_KEY}` } },
         { url: 'https://api.groq.com/openai/v1/chat/completions', model: 'llama-3.3-70b-versatile', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_API_KEY}` } },
         { url: 'https://openrouter.ai/api/v1/chat/completions', model: 'nvidia/nemotron-3-ultra-550b-a55b:free', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENROUTER_API_KEY}`, 'HTTP-Referer': 'https://pacguy-mtk.github.io/', 'X-Title': 'ZiJun Hub' } }
       ];
+      // Only call providers that actually have a key (no wasted failing requests).
+      const models = allModels.filter(m => m.url.includes('groq') ? hasGroq : hasOR);
 
       try {
         let aiText = null;
@@ -663,7 +671,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
               body: JSON.stringify({ model: srv.model, messages: apiMessages, tools: TOOL_DEFS, max_tokens: 300 })
             });
             const data = await response.json();
-            if (!response.ok) continue;
+            if (!response.ok) { console.warn('[Lumie] ' + srv.model + ' -> HTTP ' + response.status, (data && data.error && (data.error.message || data.error)) || ''); continue; }
             const msg = data?.choices?.[0]?.message;
             if (msg?.tool_calls?.length) {
               apiMessages.push({ role: 'assistant', tool_calls: msg.tool_calls });
@@ -683,7 +691,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
               aiText = msg?.content?.trim();
               if (aiText) break;
             }
-          } catch (e) { continue; }
+          } catch (e) { console.warn('[Lumie] ' + srv.model + ' failed:', e && e.message); continue; }
         }
 
         if (!opts.silent) removeTypingIndicator();
@@ -2626,6 +2634,23 @@ var BENTO_ITEMS = [
       window.hubGoTo = goTo;
       window.hubAsk = ask;
 
+      // Go straight to a destination: no AI call, no tokens.
+      function goDestination(d, q) {
+        if (!d) return;
+        if (d.action === 'chat') { if (!chatOpen) toggleChat(); return; }
+        if (d.target) {
+          goTo(d.target);
+          if (d.openSystem && typeof window.openSystem === 'function') {
+            const t = (q || '').toLowerCase();
+            let srvId = 'srv-drive';
+            if (/calc/.test(t)) srvId = 'srv-calc';
+            else if (/web|parallax|brand|landing|travel/.test(t)) srvId = 'srv-web';
+            else if (/\bai\b|lab/.test(t)) srvId = 'srv-ai';
+            window.openSystem(srvId);
+          }
+        }
+      }
+
       function matchDestinations(q) {
         const matched = DESTINATIONS.filter(d => d.kw.test((q || '').toLowerCase()));
         return { list: matched.length ? matched : DESTINATIONS, isFallback: matched.length === 0 };
@@ -2653,23 +2678,7 @@ var BENTO_ITEMS = [
         cardsEl.addEventListener('click', (e) => {
           const btn = e.target.closest('.hub-answer-card');
           if (!btn) return;
-          const action = btn.dataset.action;
-          const target = btn.dataset.target;
-          const isSystem = btn.dataset.system === 'true';
-
-          if (action === 'chat') {
-            if (!chatOpen) toggleChat();
-          } else if (target) {
-            goTo(target);
-            if (isSystem && typeof window.openSystem === 'function') {
-              const q = (currentQ || '').toLowerCase();
-              let srvId = 'srv-ai';
-              if (/calc/.test(q)) srvId = 'srv-calc';
-              else if (/drive|resume|cv/.test(q)) srvId = 'srv-drive';
-              else if (/web|parallax|brand|landing|travel/.test(q)) srvId = 'srv-web';
-              window.openSystem(srvId);
-            }
-          }
+          goDestination(DESTINATIONS.find(d => d.id === btn.dataset.id), currentQ);
         });
       }
 
@@ -2698,8 +2707,9 @@ var BENTO_ITEMS = [
         if (!text) return;
         currentQ = text;
         if (qEl) qEl.textContent = text;
-        if (body) body.innerHTML = '<span class="typing-dots"><span></span><span></span><span></span></span> Lumie is thinking…';
         const match = matchDestinations(text);
+        const quick = !match.isFallback && text.split(/\s+/).filter(Boolean).length <= 4;
+        if (body) body.innerHTML = quick ? 'Here is where to look:' : '<span class="typing-dots"><span></span><span></span><span></span></span> Lumie is thinking…';
         renderCards(match.list);
         panel.hidden = false;
         input.value = '';
@@ -2714,6 +2724,15 @@ var BENTO_ITEMS = [
               : 'Lumie is quiet right now, but here is where to look:';
           }
         }, 6000);
+
+        // Save credits: a short keyword question ("gallery", "show tarot", "contact") is answered
+        // instantly from the destination list. The AI is only called for real questions.
+        const words = text.split(/\s+/).filter(Boolean).length;
+        if (!match.isFallback && words <= 4) {
+          clearTimeout(replyTimer);
+          if (body) body.textContent = 'Here is where to look:';
+          return;
+        }
 
         sendChatMessage(text, {
           silent: true,
@@ -2734,7 +2753,9 @@ var BENTO_ITEMS = [
       if (chips) {
         chips.addEventListener('click', (e) => {
           const b = e.target.closest('.hub-chip');
-          if (b) ask(b.dataset.q);
+          if (!b) return;
+          if (b.dataset.dest) goDestination(DESTINATIONS.find(d => d.id === b.dataset.dest));
+          else if (b.dataset.q) ask(b.dataset.q);
         });
       }
     })();

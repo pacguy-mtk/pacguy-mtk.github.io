@@ -3619,3 +3619,14 @@
       .scroll-nav { display: none; }
     }
     @media (max-width: 560px) { .scroll-cue { display: none; } }
+
+
+    /* ═══ v2.1: beta mark (reads like a small trademark symbol) ═══ */
+    .beta-tm {
+      display: inline-block; margin-left: .3em; vertical-align: super;
+      font-family: "Inter", sans-serif; font-size: .3em; font-weight: 800;
+      letter-spacing: .14em; text-transform: uppercase; line-height: 1;
+      color: #f6e3b4; opacity: .9;
+    }
+    .tarot-toolbar-title .beta-tm { font-size: .7em; margin-left: .4em; }
+    .tarot-chances { color: #f6e3b4; font-weight: 800; letter-spacing: .02em; }
