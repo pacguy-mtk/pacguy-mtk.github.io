@@ -24,18 +24,37 @@
 
   <!-- Welcome Popup -->
   <div class="welcome-overlay" id="welcomeOverlay">
-    <div class="welcome-modal">
-      <h2>Welcome to ZiJun Hub</h2>
-      <p>What would you like to see first?</p>
-      <div class="welcome-actions">
-        <a href="#hub" class="welcome-btn" onclick="dismissWelcome()">HUB</a>
-        <a href="#tarot" class="welcome-btn" onclick="dismissWelcome()">Tarot</a>
-        <a href="#gallery" class="welcome-btn" onclick="dismissWelcome()">Gallery</a>
-        <a href="#contact" class="welcome-btn" onclick="dismissWelcome()">Contact</a>
+    <div class="wl-container" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+      <div class="wl-head">
+        <h2 id="welcomeTitle">Welcome to ZiJun's System</h2>
+        <p>Ask me anything, or jump straight to what you came for.</p>
       </div>
-      <label class="welcome-check">
-        <input type="checkbox" id="welcomeDontAsk"> Don't ask again
-      </label>
+      <div class="wl-palette">
+        <div class="wl-search">
+          <i class="fas fa-wand-magic-sparkles wl-icon" aria-hidden="true"></i>
+          <div class="wl-field">
+            <input type="text" id="welcomeInput" class="wl-input" role="combobox" aria-expanded="true" aria-controls="welcomeList" aria-autocomplete="list" placeholder="Ask AI or search the site…" enterkeyhint="go" autocomplete="off" spellcheck="false">
+            <span class="wl-ghost" id="welcomeGhost" aria-hidden="true"></span>
+          </div>
+          <button type="button" class="wl-esc" id="welcomeEscBtn" aria-label="Close dialog"><span class="wl-keycap">esc</span></button>
+        </div>
+        <div class="wl-section-label">Jump to</div>
+        <div class="wl-list" id="welcomeList" role="listbox">
+          <!-- Populated by JS -->
+        </div>
+        <div class="wl-foot">
+          <div class="wl-hints">
+            <span><span class="wl-keycap">↑</span><span class="wl-keycap">↓</span> navigate</span>
+            <span><span class="wl-keycap">↵</span> open</span>
+            <span><span class="wl-keycap">esc</span> skip</span>
+          </div>
+          <label class="wl-switch-wrap">
+            <input type="checkbox" id="welcomeDontAsk" class="wl-switch-input">
+            <span class="wl-switch-slider"></span>
+            <span class="wl-switch-label">Don't show this again</span>
+          </label>
+        </div>
+      </div>
     </div>
   </div>
 

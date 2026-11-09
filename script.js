@@ -1479,33 +1479,230 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
     // Initialize Gallery on page load
     initGallery();
 
-    /* ══════ WELCOME POPUP ══════ */
+    /* ══════ WELCOME POPUP (Command Palette) ══════ */
     (function initWelcome() {
       const overlay = document.getElementById('welcomeOverlay');
       const dontAsk = document.getElementById('welcomeDontAsk');
-      if (!overlay) return;
+      const input = document.getElementById('welcomeInput');
+      const ghost = document.getElementById('welcomeGhost');
+      const listEl = document.getElementById('welcomeList');
+      const escBtn = document.getElementById('welcomeEscBtn');
+      if (!overlay || !input || !listEl) return;
 
       const dismissed = localStorage.getItem('zijun_welcome_dismissed');
-      if (dismissed) {
+      const hasHash = Boolean(window.location.hash && window.location.hash.length > 1);
+      const prefersReducedData = Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-data: reduce)').matches);
+
+      if (dismissed || hasHash || prefersReducedData) {
         overlay.style.display = 'none';
         return;
       }
 
-      overlay.classList.add('active');
+      let currentRows = [];
+      let activeIdx = 0;
+
+      // Typing ghost
+      const PROMPTS = [
+        'Ask AI or search the site…',
+        'Try “tarot”',
+        'Try “show me videos”',
+        'Try “contact”'
+      ];
+      const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let pi = 0, ci = 0, erasing = false, timer = null;
+
+      function ghostActive() {
+        return !input.value && document.activeElement !== input;
+      }
+      function syncGhost() {
+        if (!ghost) return;
+        ghost.style.opacity = ghostActive() ? '1' : '0';
+      }
+      function tickGhost() {
+        clearTimeout(timer);
+        if (!overlay.classList.contains('active') || !ghostActive()) {
+          timer = setTimeout(tickGhost, 400);
+          return;
+        }
+        const full = PROMPTS[pi];
+        let delay;
+        if (!erasing) {
+          ci++;
+          ghost.textContent = full.slice(0, ci);
+          if (ci >= full.length) { erasing = true; delay = 1700; } else { delay = 55; }
+        } else {
+          ci--;
+          ghost.textContent = full.slice(0, ci);
+          if (ci <= 0) { erasing = false; pi = (pi + 1) % PROMPTS.length; delay = 380; } else { delay = 28; }
+        }
+        timer = setTimeout(tickGhost, delay);
+      }
+
+      if (ghost) {
+        if (reduceMotion) {
+          ghost.textContent = PROMPTS[0];
+          ghost.classList.add('static');
+        } else {
+          ghost.classList.add('typing');
+          tickGhost();
+        }
+        input.addEventListener('focus', syncGhost);
+        input.addEventListener('blur', syncGhost);
+        input.addEventListener('input', syncGhost);
+        syncGhost();
+      }
+
+      function updateRows() {
+        const q = (input.value || '').trim();
+        const qLower = q.toLowerCase();
+        let matched = (typeof DESTINATIONS !== 'undefined' ? DESTINATIONS : []).filter((d) => {
+          if (!qLower) return true;
+          return d.label.toLowerCase().includes(qLower) ||
+                 d.desc.toLowerCase().includes(qLower) ||
+                 (d.kw && d.kw.test(qLower));
+        });
+
+        const rows = matched.map((d) => ({ ...d }));
+
+        if (q) {
+          rows.push({
+            id: '__ask_ai__',
+            isAskAi: true,
+            query: q,
+            icon: 'fas fa-wand-magic-sparkles',
+            label: `Ask AI: "${q}"`,
+            desc: 'Let Lumie answer under the search bar'
+          });
+        }
+
+        currentRows = rows;
+        if (activeIdx >= currentRows.length) activeIdx = Math.max(0, currentRows.length - 1);
+        renderList();
+      }
+
+      function renderList() {
+        listEl.innerHTML = currentRows.map((item, idx) => {
+          const isActive = idx === activeIdx;
+          return `
+            <button type="button" class="wl-row ${isActive ? 'active' : ''} ${item.isAskAi ? 'ask-row' : ''}" role="option" id="wl-opt-${idx}" aria-selected="${isActive ? 'true' : 'false'}" data-idx="${idx}">
+              <span class="wl-row-icon"><i class="${item.icon}"></i></span>
+              <span class="wl-row-content">
+                <span class="wl-row-label">${escapeHtml(item.label)}</span>
+                <span class="wl-row-desc">${escapeHtml(item.desc)}</span>
+              </span>
+              <span class="wl-row-enter">↵</span>
+            </button>
+          `;
+        }).join('');
+
+        input.setAttribute('aria-activedescendant', currentRows.length ? 'wl-opt-' + activeIdx : '');
+        const activeBtn = listEl.querySelector(`.wl-row[data-idx="${activeIdx}"]`);
+        if (activeBtn) activeBtn.scrollIntoView({ block: 'nearest' });
+      }
+
+      function selectItem(item) {
+        if (!item) return;
+        window.dismissWelcome();
+
+        if (item.isAskAi) {
+          const hub = document.getElementById('hub');
+          if (hub) hub.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          setTimeout(() => {
+            if (typeof window.hubAsk === 'function') {
+              window.hubAsk(item.query);
+            }
+          }, 280);
+          return;
+        }
+
+        if (item.action === 'chat') {
+          if (!chatOpen) toggleChat();
+        } else if (item.target) {
+          const el = document.querySelector(item.target);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          if (item.openSystem && typeof window.openSystem === 'function') {
+            window.openSystem('srv-ai');
+          }
+        }
+      }
 
       window.dismissWelcome = function() {
         if (dontAsk && dontAsk.checked) {
           localStorage.setItem('zijun_welcome_dismissed', '1');
         }
         overlay.classList.remove('active');
-        setTimeout(function() { overlay.style.display = 'none'; }, 350);
+        clearTimeout(timer);
+        setTimeout(function() {
+          overlay.style.display = 'none';
+          const heroInput = document.getElementById('hubAskInput');
+          if (heroInput && !('ontouchstart' in window)) heroInput.focus();
+        }, 260);
       };
 
-      overlay.addEventListener('click', function(e) {
+      input.addEventListener('input', () => {
+        updateRows();
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (!currentRows.length) return;
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          activeIdx = (activeIdx + 1) % currentRows.length;
+          renderList();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          activeIdx = (activeIdx - 1 + currentRows.length) % currentRows.length;
+          renderList();
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          selectItem(currentRows[activeIdx]);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          window.dismissWelcome();
+        } else if (e.key === 'Tab') {
+          // Focus trap between input and checkbox
+          if (e.shiftKey && document.activeElement === input) {
+            e.preventDefault();
+            if (dontAsk) dontAsk.focus();
+          } else if (!e.shiftKey && document.activeElement === dontAsk) {
+            e.preventDefault();
+            input.focus();
+          }
+        }
+      });
+
+      listEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('.wl-row');
+        if (!btn) return;
+        const idx = parseInt(btn.dataset.idx, 10);
+        activeIdx = idx;
+        selectItem(currentRows[idx]);
+      });
+
+      if (escBtn) {
+        escBtn.addEventListener('click', () => window.dismissWelcome());
+      }
+
+      overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
           window.dismissWelcome();
         }
       });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && overlay.classList.contains('active')) {
+          window.dismissWelcome();
+        }
+      });
+
+      // Show overlay
+      updateRows();
+      overlay.classList.add('active');
+
+      const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 560);
+      if (!isTouch) {
+        setTimeout(() => input.focus(), 80);
+      }
     })();
 
     /* ══════ SCROLL NAV ══════ */
@@ -2427,6 +2624,7 @@ var BENTO_ITEMS = [
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
       window.hubGoTo = goTo;
+      window.hubAsk = ask;
 
       function matchDestinations(q) {
         const matched = DESTINATIONS.filter(d => d.kw.test((q || '').toLowerCase()));
