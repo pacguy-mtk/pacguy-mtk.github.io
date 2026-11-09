@@ -2928,3 +2928,277 @@
       user-select: none;
       -webkit-user-select: none;
     }
+
+
+    /* ═══════════════════════════════════════════════════════════
+       v3.0  ASK BAR · TAROT · SYSTEMS RACK
+       ═══════════════════════════════════════════════════════════ */
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+    }
+
+    /* ---------- 01 · Ask bar ---------- */
+    .hub-ask {
+      position: relative;
+      z-index: 2;
+      width: min(720px, 100%);
+      height: 68px;
+      margin: 54px auto 0;
+      padding: 0 10px 0 22px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border: 1px solid rgba(66, 232, 212, 0.34);
+      border-radius: 999px;
+      background: rgba(9, 13, 25, 0.78);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 22px 70px rgba(0, 0, 0, 0.45), 0 0 44px rgba(66, 232, 212, 0.1);
+      transition: border-color 200ms ease, box-shadow 200ms ease;
+    }
+    .hub-ask:focus-within {
+      border-color: var(--cyan);
+      box-shadow: 0 22px 70px rgba(0, 0, 0, 0.45), 0 0 0 4px rgba(66, 232, 212, 0.14), 0 0 60px rgba(66, 232, 212, 0.22);
+    }
+    .hub-ask-icon { color: var(--cyan); font-size: 18px; flex: none; }
+    .hub-ask-field { position: relative; flex: 1; min-width: 0; height: 100%; }
+    .hub-ask-input {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      border: 0; outline: 0; background: transparent;
+      color: var(--text); font: inherit; font-size: 17px; font-weight: 500;
+    }
+    .hub-ask-input::placeholder { color: transparent; }
+    .hub-ask-ghost {
+      position: absolute; left: 0; right: 0; top: 50%;
+      transform: translateY(-50%);
+      color: var(--faint); font-size: 17px; font-weight: 500; text-align: left;
+      white-space: nowrap; overflow: hidden; text-overflow: clip;
+      pointer-events: none; transition: opacity 160ms ease;
+    }
+    .hub-ask-ghost.typing::after {
+      content: ""; display: inline-block; width: 2px; height: 1.1em;
+      margin-left: 3px; vertical-align: text-bottom; background: var(--cyan);
+      animation: hubCaret 1s steps(1) infinite;
+    }
+    @keyframes hubCaret { 50% { opacity: 0; } }
+    .hub-ask-send {
+      flex: none; width: 48px; height: 48px; border: 0; border-radius: 50%;
+      display: grid; place-items: center; cursor: pointer;
+      color: #04121a; font-size: 16px;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+    .hub-ask-send:hover { transform: scale(1.07); box-shadow: 0 0 26px rgba(66, 232, 212, 0.55); }
+
+    .hub-ask-chips {
+      position: relative; z-index: 2;
+      margin: 18px auto 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+    }
+    .hub-chip {
+      min-height: 34px; border: 1px solid var(--line); border-radius: 999px; padding: 0 16px;
+      background: rgba(8, 11, 20, 0.55); color: var(--muted);
+      font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+      transition: border-color 160ms ease, color 160ms ease, transform 160ms ease;
+    }
+    .hub-chip:hover { border-color: rgba(66, 232, 212, 0.55); color: var(--text); transform: translateY(-2px); }
+
+    .hub-ask-results {
+      position: relative; z-index: 2;
+      min-height: 0; margin: 16px auto 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+    }
+    .hub-result {
+      min-height: 40px; border: 1px solid rgba(66, 232, 212, 0.4); border-radius: 12px; padding: 0 16px;
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(66, 232, 212, 0.08); color: var(--text); text-decoration: none;
+      font: inherit; font-size: 13px; font-weight: 800; cursor: pointer;
+      animation: hubResultIn 260ms ease both;
+    }
+    .hub-result i { color: var(--cyan); }
+    .hub-result:hover { background: rgba(66, 232, 212, 0.18); }
+    @keyframes hubResultIn { from { opacity: 0; transform: translateY(8px); } }
+
+    /* ---------- 02 · Tarot ---------- */
+    .tarot-section {
+      padding: 110px max(20px, calc((100vw - 1120px) / 2));
+      background:
+        radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.2), transparent 32rem),
+        radial-gradient(circle at 12% 80%, rgba(223, 177, 91, 0.08), transparent 24rem),
+        rgba(6, 8, 17, 0.9);
+      border-top: 1px solid var(--line);
+    }
+    .tarot-stage {
+      position: relative;
+      margin-top: 40px;
+      border: 1px solid rgba(223, 177, 91, 0.3);
+      border-radius: 22px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 40%, rgba(139, 92, 246, 0.16), transparent 22rem),
+        rgba(9, 11, 20, 0.86);
+      box-shadow: var(--shadow);
+    }
+    .tarot-launch-wrap {
+      min-height: 440px; padding: 40px 20px 34px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
+    }
+    .tarot-fan { position: relative; width: 300px; height: 210px; }
+    .tarot-card {
+      position: absolute; left: 50%; top: 0;
+      width: 112px; height: 186px; margin-left: -56px;
+      border: 1px solid rgba(223, 177, 91, 0.75); border-radius: 12px;
+      background:
+        url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23dfb15b' stroke-width='1.2'%3E%3Ccircle cx='50' cy='50' r='38'/%3E%3Cpolygon points='50,15 80,75 20,75'/%3E%3Cpolygon points='50,85 80,25 20,25'/%3E%3Ccircle cx='50' cy='50' r='12'/%3E%3C/svg%3E") center / 76% no-repeat,
+        linear-gradient(160deg, #1b1830, #0d0f1c);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 0 0 5px rgba(9, 11, 20, 0.9), inset 0 0 0 6px rgba(223, 177, 91, 0.35);
+      transition: transform 420ms cubic-bezier(.2, .8, .2, 1);
+      transform-origin: 50% 120%;
+    }
+    .tarot-card.c1 { transform: rotate(-16deg) translateX(-62px); }
+    .tarot-card.c2 { transform: rotate(0deg); z-index: 1; }
+    .tarot-card.c3 { transform: rotate(16deg) translateX(62px); }
+    .tarot-launch-wrap:hover .tarot-card.c1 { transform: rotate(-22deg) translateX(-86px); }
+    .tarot-launch-wrap:hover .tarot-card.c3 { transform: rotate(22deg) translateX(86px); }
+    .tarot-launch-wrap:hover .tarot-card.c2 { transform: translateY(-10px); }
+    .tarot-launch {
+      min-height: 52px; border: 1px solid rgba(223, 177, 91, 0.7); border-radius: 999px; padding: 0 30px;
+      display: inline-flex; align-items: center; gap: 10px; cursor: pointer;
+      background: linear-gradient(135deg, rgba(223, 177, 91, 0.22), rgba(139, 92, 246, 0.22));
+      color: #f6e3b4; font: inherit; font-size: 15px; font-weight: 800; letter-spacing: 0.04em;
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+    .tarot-launch:hover { transform: translateY(-2px); box-shadow: 0 0 34px rgba(223, 177, 91, 0.3); }
+    .tarot-note { color: var(--faint); font-size: 12px; letter-spacing: 0.06em; }
+
+    .tarot-frame-wrap { display: flex; flex-direction: column; background: #080a10; }
+    .tarot-frame-wrap[hidden], .tarot-launch-wrap[hidden] { display: none; }
+    .tarot-toolbar {
+      min-height: 46px; padding: 0 12px 0 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      border-bottom: 1px solid var(--line); background: rgba(9, 11, 20, 0.95);
+    }
+    .tarot-toolbar-title { color: #f6e3b4; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+    .tarot-toolbar-title i { margin-right: 8px; color: var(--violet); }
+    .tarot-toolbar-actions { display: flex; gap: 6px; }
+    .tarot-tool {
+      min-height: 32px; border: 1px solid var(--line); border-radius: 8px; padding: 0 10px;
+      display: inline-flex; align-items: center; gap: 7px;
+      background: transparent; color: var(--muted); text-decoration: none;
+      font: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .tarot-tool:hover { color: var(--text); border-color: rgba(66, 232, 212, 0.5); }
+    #tarotFrame { display: block; width: 100%; height: min(84vh, 820px); border: 0; background: #080a10; }
+    .tarot-frame-wrap:fullscreen { width: 100vw; height: 100vh; }
+    .tarot-frame-wrap:fullscreen #tarotFrame { height: calc(100vh - 46px); }
+    .tarot-frame-wrap.fake-full { position: fixed; inset: 0; z-index: 200; }
+    .tarot-frame-wrap.fake-full #tarotFrame { height: calc(100vh - 46px); }
+
+    /* ---------- 04 · Systems rack + contact ---------- */
+    .contact.systems { min-height: 0; padding-top: 100px; padding-bottom: 90px; }
+    .systems-shell { width: min(980px, 100%); margin: 0 auto; }
+    .systems-head { text-align: center; margin-bottom: 36px; }
+    .systems-head h2 { margin: 14px 0 10px; font-size: clamp(34px, 5vw, 56px); line-height: 1; text-shadow: 0 0 40px rgba(66, 232, 212, 0.2); }
+    .systems-head p { margin: 0 auto; max-width: 420px; color: var(--muted); line-height: 1.7; font-size: 15px; }
+    .systems-grid { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); gap: 26px; align-items: start; }
+    .systems .contact-board { gap: 10px; }
+    .systems .contact-link { min-height: 66px; padding: 12px 18px 12px 54px; }
+    .systems .contact-link strong { font-size: 16px; }
+
+    .rack {
+      position: relative;
+      padding: 14px 14px 14px 30px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(14, 18, 32, 0.92), rgba(8, 10, 19, 0.96));
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      display: grid; gap: 8px;
+    }
+    .rack-rail {
+      position: absolute; left: 8px; top: 12px; bottom: 12px; width: 10px; border-radius: 3px;
+      background:
+        radial-gradient(circle, rgba(255, 255, 255, 0.35) 1.5px, transparent 2px) 50% 0 / 10px 22px repeat-y,
+        rgba(255, 255, 255, 0.05);
+    }
+    .srv {
+      border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 8px; overflow: hidden;
+      background: linear-gradient(180deg, #161b2e, #0d111f);
+      transition: border-color 200ms ease, box-shadow 200ms ease;
+    }
+    .srv:hover, .srv.open { border-color: rgba(66, 232, 212, 0.45); }
+    .srv.open { box-shadow: 0 0 30px rgba(66, 232, 212, 0.12); }
+    .srv-head {
+      width: 100%; min-height: 66px; padding: 0 16px 0 14px;
+      display: flex; align-items: center; gap: 12px;
+      border: 0; background: transparent; color: var(--text);
+      font: inherit; text-align: left; cursor: pointer;
+    }
+    .srv-head:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+    .srv-led {
+      flex: none; width: 9px; height: 9px; border-radius: 50%;
+      background: #3ee38b; box-shadow: 0 0 10px #3ee38b;
+      animation: srvBlink 2.6s ease-in-out infinite;
+    }
+    .srv:nth-child(3) .srv-led { animation-delay: .5s; }
+    .srv:nth-child(4) .srv-led { animation-delay: 1.1s; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+    .srv:nth-child(5) .srv-led { animation-delay: 1.7s; }
+    @keyframes srvBlink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+    .srv-code { flex: none; font-family: "VT323", monospace; font-size: 18px; color: var(--faint); letter-spacing: 0.06em; }
+    .srv-title { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .srv-title strong { display: flex; align-items: center; gap: 8px; font-size: 16px; }
+    .srv-title strong i { color: var(--cyan); }
+    .srv-title small { color: var(--muted); font-size: 12px; }
+    .srv-vents {
+      flex: none; width: 44px; height: 26px; opacity: .55;
+      background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.35) 0 2px, transparent 2px 6px);
+      mask-image: linear-gradient(180deg, #000 60%, transparent); -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent);
+    }
+    .srv-chev { flex: none; color: var(--faint); transition: transform 260ms ease, color 200ms ease; }
+    .srv.open .srv-chev { transform: rotate(180deg); color: var(--cyan); }
+    .srv-drawer { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 300ms ease; }
+    .srv.open .srv-drawer { grid-template-rows: 1fr; }
+    .srv-drawer-inner {
+      min-height: 0; overflow: hidden; display: grid; gap: 6px;
+      padding: 0 12px; background: rgba(4, 6, 12, 0.6);
+      box-shadow: inset 0 8px 14px -8px rgba(0, 0, 0, 0.8);
+      transition: padding 300ms ease;
+    }
+    .srv.open .srv-drawer-inner { padding: 12px; }
+    .srv-link {
+      min-height: 42px; padding: 0 14px; display: flex; align-items: center; gap: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px;
+      color: var(--text); text-decoration: none; font-size: 14px; font-weight: 650;
+      background: rgba(255, 255, 255, 0.03);
+      transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+    .srv-link i:first-child { color: var(--cyan); width: 18px; text-align: center; }
+    .srv-link span { flex: 1; }
+    .srv-ext { font-size: 11px; color: var(--faint); }
+    .srv-link:hover { border-color: rgba(66, 232, 212, 0.55); background: rgba(66, 232, 212, 0.08); transform: translateX(4px); }
+    .srv:not(.open) .srv-link { visibility: hidden; }
+
+    @media (max-width: 860px) {
+      .systems-grid { grid-template-columns: 1fr; }
+      .tarot-fan { transform: scale(.85); }
+    }
+    @media (max-width: 560px) {
+      .hub-ask { height: 58px; padding-left: 16px; margin-top: 40px; }
+      .hub-ask-input, .hub-ask-ghost { font-size: 15px; }
+      .hub-ask-send { width: 42px; height: 42px; }
+      .srv-vents { display: none; }
+      .srv-code { display: none; }
+      .tarot-launch-wrap { min-height: 380px; }
+      .tarot-tool span { display: none; }
+      #tarotFrame { height: 78vh; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .srv-led, .hub-ask-ghost.typing::after { animation: none; }
+      .tarot-card, .srv-drawer, .srv-drawer-inner { transition: none; }
+    }
+    .welcome-actions { flex-wrap: wrap; }
+    .welcome-actions .welcome-btn { min-width: 120px; }
+    @media (max-width: 860px) {
+      .scroll-cue { top: auto; bottom: 22px; }
+      .hero { padding-bottom: 90px; }
+    }
+    @media (max-width: 560px) {
+      .scroll-nav { display: none; }
+    }
+    @media (max-width: 560px) { .scroll-cue { display: none; } }

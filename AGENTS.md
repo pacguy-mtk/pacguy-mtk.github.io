@@ -12,7 +12,7 @@ description: >
 Maintain the bento gallery on https://pacguy-mtk.github.io/
 
 ## Architecture
-- **Gallery data**: `BENTO_ITEMS` array in `script.js` (line ~1492)
+- **Gallery data**: `BENTO_ITEMS` array in `script.js` (search for `var BENTO_ITEMS`)
 - **Media files**: `post/` folder (images + videos)
 - **Deploy**: `git push` to `main` branch → GitHub Pages auto-deploys
 
@@ -57,3 +57,12 @@ ls post/
 # Deploy changes
 git add -A && git commit -m "gallery: update items" && git push
 ```
+
+
+## Layout v3.0 (sections)
+Order in `index.html`: `#hub` (ask bar) -> `#tarot` -> `#gallery` -> `#contact` (Systems rack + Contact) -> footer.
+- **Ask bar**: `initHubAsk()` at the end of `script.js`. Typing ghost prompts live in the `PROMPTS` array. Submits go to Lumie via `sendChatMessage(text)`.
+- **Tarot**: lives in `tarot/` and is embedded as a lazy iframe (`initTarot()`); it only loads after the user clicks "Draw your cards". To upgrade the tarot, replace the contents of `tarot/` (keep `tarot/index.html` as the entry). Never paste tarot HTML/JS into the hub files.
+- **Systems rack**: edit the `SYSTEMS` array near the top of `script.js` to add/rename drawer options. Lumie's `get_projects` / `search_site` tools read the same array.
+- **Gallery rules above are unchanged.**
+- Do not touch or clone `post/` unless adding media (it is ~800 MB). Code-only clone: `git clone --depth 1 --filter=blob:none --no-checkout <repo>; git sparse-checkout set '/*' '!/post/'; git checkout main`.

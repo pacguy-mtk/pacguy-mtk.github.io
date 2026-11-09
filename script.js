@@ -3,30 +3,6 @@
 
     const bgVideo = document.querySelector(".bg-video");
     const videoToggle = document.getElementById("videoToggle");
-    const pageMenu = document.querySelector(".page-menu");
-    const pageToggle = document.getElementById("pageToggle");
-    const pageParallaxMenu = document.querySelector(".page-dropdown-group");
-    const pageParallaxToggle = document.getElementById("pageParallaxToggle");
-    const webParallaxMenu = document.querySelector(".page-card-menu");
-    const webParallaxToggle = document.getElementById("webParallaxToggle");
-
-    function setPageMenuOpen(isOpen) {
-      pageMenu.classList.toggle("open", isOpen);
-      pageToggle.setAttribute("aria-expanded", String(isOpen));
-      if (!isOpen) {
-        setPageParallaxMenuOpen(false);
-      }
-    }
-
-    function setPageParallaxMenuOpen(isOpen) {
-      pageParallaxMenu.classList.toggle("open", isOpen);
-      pageParallaxToggle.setAttribute("aria-expanded", String(isOpen));
-    }
-
-    function setWebParallaxMenuOpen(isOpen) {
-      webParallaxMenu.classList.toggle("open", isOpen);
-      webParallaxToggle.setAttribute("aria-expanded", String(isOpen));
-    }
 
     document.addEventListener("pointermove", (event) => {
       document.body.style.setProperty("--cursor-x", `${event.clientX}px`);
@@ -59,41 +35,73 @@
     }, { threshold: 0.1 });
     if (heroSection) videoObserver.observe(heroSection);
 
-    pageToggle.addEventListener("click", (event) => {
-      const isOpen = !pageMenu.classList.contains("open");
-      setPageMenuOpen(isOpen);
-    });
 
-    pageParallaxToggle.addEventListener("click", (event) => {
-      event.stopPropagation();
-      const isOpen = !pageParallaxMenu.classList.contains("open");
-      setPageParallaxMenuOpen(isOpen);
-    });
+    /* ══════ SYSTEMS (server rack data: add or edit drawer options here) ══════ */
+    const SYSTEMS = [
+      { id: 'srv-ai', code: 'SRV-01', icon: 'fas fa-robot', title: 'AI Tools', sub: 'Assistants and AI shortcuts.',
+        links: [
+          { label: 'Open AI Lab', icon: 'fas fa-robot', url: 'https://pacguy-mtk.github.io/ai-lab/' }
+        ] },
+      { id: 'srv-calc', code: 'SRV-02', icon: 'fas fa-calculator', title: 'Tool / Calculator', sub: 'Practical quote system.',
+        links: [
+          { label: 'Open Calculator', icon: 'fas fa-calculator', url: 'https://pacguy-mtk.github.io/calculator/' }
+        ] },
+      { id: 'srv-web', code: 'SRV-03', icon: 'fas fa-layer-group', title: 'Web / Parallax', sub: 'HTML5 motion experiment.',
+        links: [
+          { label: 'Parallax site', icon: 'fas fa-layer-group', url: 'https://pacguy-mtk.github.io/magic-redirect/' },
+          { label: 'Brand site', icon: 'fas fa-seedling', url: 'https://pacguy-mtk.github.io/rainforest-brand-mockup/' },
+          { label: 'Landing site', icon: 'fas fa-globe', url: 'https://pacguy-mtk.github.io/landing/' },
+          { label: 'Travel Agency', icon: 'fas fa-luggage-cart', url: 'http://pacguy-mtk.github.io/test-travelagency' }
+        ] },
+      { id: 'srv-drive', code: 'SRV-04', icon: 'fab fa-google-drive', title: 'GDrive / Resume', sub: 'Files and resources.',
+        links: [
+          { label: 'Resume (file)', icon: 'fas fa-file-lines', url: 'https://drive.google.com/file/d/17umrl0Ip0qNCMbniMmGeU9yqf0PLbG8p/view?usp=drive_link' },
+          { label: 'Drive folder', icon: 'fab fa-google-drive', url: 'https://drive.google.com/drive/folders/1TuHiogcZ9p08ol-aS3qd7Wcj0U0NhDtS' }
+        ] }
+    ];
 
-    webParallaxToggle.addEventListener("click", () => {
-      const isOpen = !webParallaxMenu.classList.contains("open");
-      setWebParallaxMenuOpen(isOpen);
-    });
+    (function initRack() {
+      const rack = document.getElementById('rack');
+      if (!rack) return;
+      const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      rack.innerHTML = '<div class="rack-rail" aria-hidden="true"></div>' + SYSTEMS.map((sv) => `
+        <div class="srv" data-id="${sv.id}">
+          <button class="srv-head" type="button" aria-expanded="false" aria-controls="${sv.id}-drawer" id="${sv.id}-btn">
+            <span class="srv-led" aria-hidden="true"></span>
+            <span class="srv-code">${esc(sv.code)}</span>
+            <span class="srv-title"><strong><i class="${sv.icon}"></i>${esc(sv.title)}</strong><small>${esc(sv.sub)}</small></span>
+            <span class="srv-vents" aria-hidden="true"></span>
+            <i class="fas fa-chevron-down srv-chev" aria-hidden="true"></i>
+          </button>
+          <div class="srv-drawer" id="${sv.id}-drawer" role="region" aria-labelledby="${sv.id}-btn">
+            <div class="srv-drawer-inner">
+              ${sv.links.map((l) => `<a class="srv-link" href="${esc(l.url)}" target="_blank" rel="noopener"><i class="${l.icon}"></i><span>${esc(l.label)}</span><i class="fas fa-arrow-up-right-from-square srv-ext"></i></a>`).join('')}
+            </div>
+          </div>
+        </div>`).join('');
 
-    document.addEventListener("click", (event) => {
-      if (!pageMenu.contains(event.target)) {
-        setPageMenuOpen(false);
-      } else if (!pageParallaxMenu.contains(event.target)) {
-        setPageParallaxMenuOpen(false);
+      function setOpen(unit, open) {
+        unit.classList.toggle('open', open);
+        unit.querySelector('.srv-head').setAttribute('aria-expanded', String(open));
       }
-
-      if (!webParallaxMenu.contains(event.target)) {
-        setWebParallaxMenuOpen(false);
-      }
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        setPageMenuOpen(false);
-        setPageParallaxMenuOpen(false);
-        setWebParallaxMenuOpen(false);
-      }
-    });
+      rack.addEventListener('click', (e) => {
+        const btn = e.target.closest('.srv-head');
+        if (!btn) return;
+        const unit = btn.parentElement;
+        const willOpen = !unit.classList.contains('open');
+        rack.querySelectorAll('.srv.open').forEach((u) => setOpen(u, false));
+        if (willOpen) setOpen(unit, true);
+      });
+      rack.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') rack.querySelectorAll('.srv.open').forEach((u) => setOpen(u, false));
+      });
+      window.openSystem = function (id) {
+        const unit = rack.querySelector(`.srv[data-id="${id}"]`);
+        if (!unit) return;
+        rack.querySelectorAll('.srv.open').forEach((u) => setOpen(u, false));
+        setOpen(unit, true);
+      };
+    })();
 
     document.querySelectorAll(".reel-card").forEach((card) => {
       const video = card.querySelector("video");
@@ -415,7 +423,10 @@ SPEECH: Gentle, warm, and short (1-3 lines). Roleplay in Lumie's style: begin or
 
 ZIJUN: Looi Jia Jun, 31, Bukit Jalil KL Malaysia. Designer who codes. Skills: graphic design, web tools, AI tools, print, Python. Learning: React, TypeScript, CI/CD, Godot. 4 languages. Open work/freelance since April 2026. Hybrid/remote.
 
+SITE SECTIONS: 01 The Hub (ask bar), 02 Tarot (AI tarot reading, v0.5 beta, at /tarot/), 03 Gallery (AI art and work), 04 Systems & Contact (AI Tools, Calculator, Web/Parallax, GDrive/Resume, plus LinkedIn/Email/WhatsApp).
+
 PROJECTS:
+- Tarot Divination: https://pacguy-mtk.github.io/tarot/
 - Hub: https://pacguy-mtk.github.io/
 - Job Tracker: https://pacguy-mtk.github.io/applyfollow/
 - Brand Mockup: https://pacguy-mtk.github.io/rainforest-brand-mockup/
@@ -431,8 +442,16 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
     const NAV_CARDS = {
       'main-menu': [
         { icon: 'fas fa-user', label: 'About ZiJun', action: 'scroll', target: '#hub' },
-        { icon: 'fas fa-layer-group', label: 'Projects', action: 'scroll', target: '#gallery' },
-        { icon: 'fas fa-envelope', label: 'Contact', action: 'scroll', target: '#contact' }
+        { icon: 'fas fa-moon', label: 'Tarot', action: 'scroll', target: '#tarot' },
+        { icon: 'fas fa-layer-group', label: 'Gallery', action: 'scroll', target: '#gallery' },
+        { icon: 'fas fa-envelope', label: 'Systems & Contact', action: 'scroll', target: '#contact' }
+      ],
+      'tarot': [
+        { icon: 'fas fa-moon', label: 'Go to Tarot', action: 'scroll', target: '#tarot' },
+        { icon: 'fas fa-up-right-from-square', label: 'Open Tarot in new tab', url: 'tarot/index.html' }
+      ],
+      'systems': [
+        { icon: 'fas fa-server', label: 'Go to Systems', action: 'scroll', target: '#contact' }
       ],
       'projects': [
         { icon: 'fas fa-seedling', label: 'Brand Mockup', url: 'https://pacguy-mtk.github.io/rainforest-brand-mockup/' },
@@ -462,6 +481,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
       { type: "function", function: { name: "get_projects", description: "List all projects with names and URLs.", parameters: { type: "object", properties: {} } } },
       { type: "function", function: { name: "get_skills", description: "Get ZiJun's skills with proficiency levels.", parameters: { type: "object", properties: {} } } },
       { type: "function", function: { name: "get_contact", description: "Get LinkedIn, email, WhatsApp, resume.", parameters: { type: "object", properties: {} } } },
+      { type: "function", function: { name: "search_site", description: "Search the whole site (systems, gallery items, tarot) by keyword.", parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } } },
       { type: "function", function: { name: "search_projects", description: "Search projects by keyword.", parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } } },
       { type: "function", function: { name: "get_feed", description: "Get latest feed posts from the Hub. Returns post titles, text, categories, and dates.", parameters: { type: "object", properties: { limit: { type: "number", description: "Max posts to return (default 5)" } } } } }
     ];
@@ -469,25 +489,24 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
     function runTool(name, args) {
       if (name === "get_projects") {
         const p = [];
-        document.querySelectorAll('.page-card[href]').forEach(c => {
-          const t = c.querySelector('strong')?.textContent?.trim();
-          if (t && c.href) p.push({ name: t, url: c.href });
-        });
-        document.querySelectorAll('.page-card-dropdown a').forEach(a => {
-          const s = a.querySelector('span')?.textContent?.trim();
-          if (s && a.href) p.push({ name: s, url: a.href });
-        });
+        SYSTEMS.forEach(sv => sv.links.forEach(l => p.push({ name: l.label + ' (' + sv.title + ')', url: l.url })));
+        p.push({ name: 'Tarot Divination', url: new URL('tarot/index.html', location.href).href });
         return { projects: p };
       }
       if (name === "get_skills") return { skills: ["Graphic Design 85%", "HTML/CSS 80%", "JavaScript 78%", "UI/UX 86%", "AI Workflow 88%", "Business Tools 82%"] };
       if (name === "get_contact") return { linkedin: "linkedin.com/in/looi-jia-jun-b734133b2", email: "juniorlooi95@gmail.com", whatsapp: "wa.me/60173588931", resume: "drive.google.com/drive/folders/1TuHiogcZ9p08ol-aS3qd7Wcj0U0NhDtS" };
-      if (name === "search_projects") {
+      if (name === "search_projects" || name === "search_site") {
         const q = (args.query || '').toLowerCase();
         const r = [];
-        document.querySelectorAll('.page-card[href], .page-card-dropdown a').forEach(el => {
-          const t = (el.querySelector('strong')?.textContent || el.querySelector('span')?.textContent || '').trim();
-          if (t.toLowerCase().includes(q)) r.push({ name: t, url: el.href });
+        SYSTEMS.forEach(sv => {
+          if ((sv.title + ' ' + sv.sub).toLowerCase().includes(q)) r.push({ name: sv.title, url: sv.links[0].url });
+          sv.links.forEach(l => { if (l.label.toLowerCase().includes(q)) r.push({ name: l.label, url: l.url }); });
         });
+        if (/tarot|card|fortune|reading|divin/.test(q)) r.push({ name: 'Tarot Divination', url: new URL('tarot/index.html', location.href).href });
+        if (name === "search_site" && typeof BENTO_ITEMS !== 'undefined') {
+          BENTO_ITEMS.filter(b => (b.title + ' ' + b.context + ' ' + b.category).toLowerCase().includes(q))
+            .slice(0, 8).forEach(b => r.push({ name: b.title + ' (gallery)', url: new URL(b.src, location.href).href }));
+        }
         return { results: r };
       }
       if (name === "get_feed") {
@@ -555,13 +574,15 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
       const el = document.querySelector(target);
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        toggleChat();
+        if (chatOpen) toggleChat();
       }
     }
 
     function extractCards(text) {
       const lower = text.toLowerCase();
       const found = [];
+      if (/tarot|fortune|divin|oracle|card reading|horoscope/.test(lower)) found.push('tarot');
+      if (/system|rack|calculator|parallax|drive|resume|cv/.test(lower)) found.push('systems');
       if (/project|built|work|portfolio|site|page|tool|demo/.test(lower)) found.push('projects');
       if (/hire|job|recruit|freelance|collaborate|salary|work with|employ/.test(lower)) found.push('hire');
       if (/contact|reach|email|linkedin|whatsapp|message|call|talk/.test(lower)) found.push('contact');
@@ -572,8 +593,8 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
       return found;
     }
 
-    async function sendChatMessage() {
-      const text = chatInput.value.trim();
+    async function sendChatMessage(textArg) {
+      const text = (typeof textArg === 'string' ? textArg : chatInput.value).trim();
       if (!text) return;
 
       addUserMessage(text);
@@ -587,6 +608,8 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
           hire: '*buzz* ZiJun is open to work. Lumie will show you how to reach him.',
           contact: '*buzz* Here are the ways to get in touch with ZiJun.',
           gallery: '*buzz* The gallery has AI art and project work to explore!',
+          tarot: '*buzz* Lumie senses a reading coming. The Tarot is waiting for you!',
+          systems: '*buzz* Here is the rack with ZiJun\'s tools and pages.',
           'main-menu': '*buzz* Lumie is here. What would you like to know?'
         };
         const resp = cardKeys[0] || 'main-menu';
@@ -660,7 +683,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
       }
     }
 
-    chatSend.addEventListener('click', sendChatMessage);
+    chatSend.addEventListener('click', () => sendChatMessage());
     chatInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -1467,6 +1490,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
 
       const sectionMap = {
         'hub': document.getElementById('hub'),
+        'tarot': document.getElementById('tarot'),
         'gallery': document.getElementById('gallery'),
         'contact': document.getElementById('contact')
       };
@@ -2305,4 +2329,143 @@ var BENTO_ITEMS = [
           devtoolsOpen = false;
         }
       }, 1000);
+    })();
+
+
+    /* ══════ HUB ASK BAR (typing ghost + Lumie) ══════ */
+    (function initHubAsk() {
+      const form = document.getElementById('hubAsk');
+      const input = document.getElementById('hubAskInput');
+      const ghost = document.getElementById('hubAskGhost');
+      const results = document.getElementById('hubAskResults');
+      const chips = document.getElementById('hubAskChips');
+      const hero = document.getElementById('hub');
+      if (!form || !input || !ghost) return;
+
+      const PROMPTS = [
+        'Ask AI anything about ZiJun…',
+        'Search his projects, tools or gallery…',
+        'Try: “What AI tools has he built?”',
+        'Try: “Show me the latest video clips”',
+        'Try: “How do I contact him?”'
+      ];
+      const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let pi = 0, ci = 0, erasing = false, timer = null, visible = true;
+
+      function ghostActive() {
+        return !input.value && document.activeElement !== input;
+      }
+      function syncGhost() {
+        ghost.style.opacity = ghostActive() ? '1' : '0';
+      }
+      function tick() {
+        clearTimeout(timer);
+        if (!visible || !ghostActive()) { timer = setTimeout(tick, 400); return; }
+        const full = PROMPTS[pi];
+        let delay;
+        if (!erasing) {
+          ci++;
+          ghost.textContent = full.slice(0, ci);
+          if (ci >= full.length) { erasing = true; delay = 1700; } else { delay = 55; }
+        } else {
+          ci--;
+          ghost.textContent = full.slice(0, ci);
+          if (ci <= 0) { erasing = false; pi = (pi + 1) % PROMPTS.length; delay = 380; } else { delay = 28; }
+        }
+        timer = setTimeout(tick, delay);
+      }
+
+      if (reduce) {
+        ghost.textContent = PROMPTS[0];
+        ghost.classList.add('static');
+      } else {
+        ghost.classList.add('typing');
+        tick();
+        if (hero && 'IntersectionObserver' in window) {
+          new IntersectionObserver((en) => { visible = en[0].isIntersecting; }, { threshold: 0.05 }).observe(hero);
+        }
+      }
+      input.addEventListener('focus', syncGhost);
+      input.addEventListener('blur', syncGhost);
+      input.addEventListener('input', syncGhost);
+      syncGhost();
+
+      function goTo(target) {
+        const el = document.querySelector(target);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      window.hubGoTo = goTo;
+
+      function showResults(keys) {
+        const seen = new Set();
+        const html = [];
+        keys.forEach((k) => (NAV_CARDS[k] || []).forEach((c) => {
+          const id = c.label;
+          if (seen.has(id)) return;
+          seen.add(id);
+          html.push(c.action === 'scroll'
+            ? `<button type="button" class="hub-result" data-target="${c.target}"><i class="${c.icon}"></i>${c.label}</button>`
+            : `<a class="hub-result" href="${c.url}" target="_blank" rel="noopener"><i class="${c.icon}"></i>${c.label}</a>`);
+        }));
+        results.innerHTML = html.join('');
+      }
+      results.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-target]');
+        if (b) goTo(b.dataset.target);
+      });
+
+      function ask(text) {
+        text = (text || '').trim();
+        if (!text) return;
+        showResults(extractCards(text));
+        if (!chatOpen) toggleChat();
+        sendChatMessage(text);
+        input.value = '';
+        input.blur();
+        syncGhost();
+      }
+      form.addEventListener('submit', (e) => { e.preventDefault(); ask(input.value); });
+      chips.addEventListener('click', (e) => {
+        const b = e.target.closest('.hub-chip');
+        if (b) ask(b.dataset.q);
+      });
+    })();
+
+    /* ══════ TAROT LAUNCHER (lazy iframe) ══════ */
+    (function initTarot() {
+      const stage = document.getElementById('tarotStage');
+      const launch = document.getElementById('tarotLaunch');
+      const launchWrap = document.getElementById('tarotLaunchWrap');
+      const frameWrap = document.getElementById('tarotFrameWrap');
+      const frame = document.getElementById('tarotFrame');
+      const fullBtn = document.getElementById('tarotFull');
+      const closeBtn = document.getElementById('tarotClose');
+      if (!stage || !launch || !frame) return;
+
+      function open() {
+        if (!frame.getAttribute('src')) frame.setAttribute('src', frame.dataset.src);
+        launchWrap.hidden = true;
+        frameWrap.hidden = false;
+      }
+      function close() {
+        frame.removeAttribute('src');
+        frame.src = 'about:blank';
+        frame.removeAttribute('src');
+        frameWrap.hidden = true;
+        launchWrap.hidden = false;
+      }
+      launch.addEventListener('click', open);
+      closeBtn.addEventListener('click', close);
+      fullBtn.addEventListener('click', () => {
+        const el = frameWrap;
+        if (el.requestFullscreen) {
+          el.requestFullscreen().catch(() => el.classList.toggle('fake-full'));
+        } else {
+          el.classList.toggle('fake-full');
+        }
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') frameWrap.classList.remove('fake-full');
+      });
+      window.openTarot = open;
     })();

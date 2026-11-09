@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tarot Divination</title>
+  <meta name="description" content="A visual-first, cinematic single-player tarot reading web application with 3D card flips and live LLM oracle narration.">
+
+  <!-- Fonts: loaded without blocking first paint (the old CSS @import chained behind the stylesheet) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" media="print" onload="this.media='all'"
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;600;700&display=swap">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;600;700&display=swap"></noscript>
+
+  <link rel="stylesheet" href="mystic-theme.css">
+</head>
+<body>
+
+  <div class="app-viewport">
+
+    <!-- ===================================================================
+         Top Navigation Header
+         (the debug menu button is injected here by debug-menu.js)
+         =================================================================== -->
+    <header class="top-header">
+      <div class="brand-container">
+        <img id="header-icon" class="brand-icon" src="assets/icon-tarot.png" alt="" width="28" height="28"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="brand-icon" style="display:none;">🔮</div>
+        <h1 class="brand-title">Tarot Divination</h1>
+      </div>
+
+      <div id="header-controls" class="header-controls">
+        <button id="access-badge" class="chance-badge" type="button" title="Oracle access settings">
+          <span id="access-badge-icon" aria-hidden="true">♦</span>
+          <span id="access-badge-text">Choose your Oracle</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ===================================================================
+         Main Split View: Game Stage & Oracle Dialogue Desk
+         =================================================================== -->
+    <main class="main-layout">
+
+      <!-- Left Column: Interactive Altar & Game Stage -->
+      <section id="game-stage-container" class="game-stage-container">
+
+        <!-- Deck Reservoir -->
+        <div class="deck-reservoir-section">
+          <div id="deck-section-title" class="deck-section-title">DRAW 3 CARDS</div>
+          <div id="deck-reservoir-grid" class="deck-reservoir-grid">
+            <!-- Rendered dynamically by mystic-controller.js -->
+          </div>
+        </div>
+
+        <!-- Center Playground (Stage Focus) -->
+        <div id="playground-stage" class="playground-stage">
+          <div class="playground-aura-ring"></div>
+
+          <!-- Local Instant Description Bubble ($0 API Cost) -->
+          <div id="card-desc-bubble" class="card-desc-bubble">
+            <div id="bubble-card-name" class="bubble-card-name">The Magician</div>
+            <div id="bubble-orientation" class="bubble-orientation">Upright</div>
+            <div id="bubble-meaning" class="bubble-meaning">"Manifestation, willpower, mastery."</div>
+          </div>
+        </div>
+
+        <!-- Timeline Dock (Past, Present, Future) -->
+        <div class="timeline-dock-section">
+          <div class="dock-slots-container">
+
+            <div id="slot-past" class="dock-slot" data-label="Past">
+              <div class="slot-label">Past</div>
+            </div>
+
+            <div id="slot-present" class="dock-slot" data-label="Present">
+              <div class="slot-label">Present</div>
+            </div>
+
+            <div id="slot-future" class="dock-slot" data-label="Future">
+              <div class="slot-label">Future</div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Right Column: Oracle Dialogue Desk (Visual Novel Side Panel) -->
+      <aside class="oracle-sidebar">
+
+        <div class="oracle-header">
+          <img id="oracle-icon" class="oracle-avatar" src="assets/icon-oracle.png" alt="" width="38" height="38"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="oracle-avatar" style="display:none;">👁️</div>
+          <div class="oracle-speaker-info">
+            <div class="oracle-name">The Oracle</div>
+            <div class="oracle-status">
+              <span class="status-dot"></span> Divination Matrix Active
+            </div>
+          </div>
+        </div>
+
+        <!-- Visual Novel Dialogue Window -->
+        <div class="dialogue-box-container" title="Click to skip the typing">
+          <div id="dialogue-text" class="dialogue-text" aria-live="polite">
+            Welcome Seeker. Draw three cards to reveal your Past, Present, and Future timeline.
+          </div>
+
+          <div id="dialogue-loading-spinner" class="dialogue-loading-spinner" style="display: none;">
+            <div class="spinner-icon"></div>
+            <span>The Oracle is weaving your timeline...</span>
+          </div>
+        </div>
+
+        <!-- 3-Card Reveal Status -->
+        <div class="reveal-status-section">
+          <div class="reveal-status-title">Card Reveal Status</div>
+          <div id="reveal-status-list" class="reveal-status-list">
+            <div class="reveal-status-item">
+              <span class="reveal-label">1st Card:</span>
+              <span id="reveal-1-status" class="reveal-value">Awaiting...</span>
+              <span id="reveal-1-state" class="reveal-state">Unknown</span>
+            </div>
+            <div class="reveal-status-item">
+              <span class="reveal-label">2nd Card:</span>
+              <span id="reveal-2-status" class="reveal-value">Awaiting...</span>
+              <span id="reveal-2-state" class="reveal-state">Unknown</span>
+            </div>
+            <div class="reveal-status-item">
+              <span class="reveal-label">3rd Card:</span>
+              <span id="reveal-3-status" class="reveal-value">Awaiting...</span>
+              <span id="reveal-3-state" class="reveal-state">Unknown</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Action Buttons -->
+        <div class="sidebar-footer-controls">
+          <button id="reread-btn" class="footer-action-btn" hidden>
+            Read the Revelation Again
+          </button>
+          <button id="copy-revelation-btn" class="footer-action-btn">
+            Copy Current Revelation
+          </button>
+        </div>
+
+      </aside>
+
+    </main>
+
+  </div>
+
+  <!-- ===================================================================
+       Oracle Access prompt (own Google key, or skip to daily tokens)
+       =================================================================== -->
+  <div id="access-modal" class="access-modal" hidden role="dialog" aria-modal="true" aria-labelledby="access-title">
+    <div class="access-card">
+      <button id="access-close-btn" class="access-close" type="button" aria-label="Close" hidden>×</button>
+
+      <h2 id="access-title" class="access-title">Awaken the Oracle</h2>
+      <p id="access-reason" class="access-reason" hidden></p>
+      <p class="access-lead">
+        Paste your own <strong>Google Gemini API key</strong> for unlimited readings,
+        or skip and let the house Oracle read for you — a few free readings every day.
+      </p>
+
+      <div id="access-saved-row" class="access-saved" hidden>
+        <span id="access-saved-text"></span>
+        <button id="access-forget-btn" class="access-link" type="button">Remove key</button>
+      </div>
+
+      <label class="access-label" for="access-key-input">Your Google API key</label>
+      <input id="access-key-input" class="access-input" type="password" autocomplete="off"
+             spellcheck="false" placeholder="AIza… or AQ.…" aria-describedby="access-key-msg">
+      <div id="access-key-msg" class="access-msg" role="status"></div>
+
+      <button id="access-save-btn" class="access-btn primary" type="button">Save key &amp; continue</button>
+
+      <div class="access-or"><span>or</span></div>
+
+      <button id="access-skip-btn" class="access-btn" type="button">
+        <span id="access-skip-label">Skip — use the house Oracle</span>
+      </button>
+      <button id="access-local-btn" class="access-link center" type="button" hidden>Play without the AI Oracle (basic readings)</button>
+
+      <p class="access-fine">
+        Only Google keys work. Your key stays in this browser and is sent only to Google.
+        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Get a free key</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- The Seeker's question: pops up in the middle of the screen after the first card, then withdraws -->
+  <div id="ask-overlay" class="ask-overlay" hidden>
+  <section id="ask-panel" class="ask-panel" hidden aria-labelledby="ask-title">
+    <div id="ask-title" class="ask-title">Whisper your question</div>
+    <div id="ask-chips" class="ask-chips" role="radiogroup" aria-label="What is your question about?"></div>
+    <div id="ask-hint" class="ask-hint">Choose the path your question follows.</div>
+    <input id="ask-input" class="ask-input" type="text" autocomplete="off" spellcheck="false"
+           placeholder="Optional: ask in your own words (any language)">
+    <label class="ask-lang-row" for="ask-lang">
+        <span>Reading language</span>
+        <select id="ask-lang" class="ask-select"></select>
+      </label>
+      <div class="ask-actions">
+      <span id="ask-count" class="ask-count" aria-hidden="true"></span>
+      <button id="ask-skip" class="access-link" type="button">Skip: general reading</button>
+      <button id="ask-submit" class="ask-submit" type="button" disabled>Ask the Oracle</button>
+    </div>
+  </section>
+  </div>
+
+  <!-- The full revelation: written across the middle of the screen; click to go back once it has been fully revealed -->
+  <div id="revelation-overlay" class="revelation-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="revelation-title" tabindex="-1">
+    <div class="revelation-inner">
+      <div id="revelation-title" class="revelation-title">The Oracle Speaks</div>
+      <div id="revelation-cards" class="revelation-cards"></div>
+      <div class="revelation-ornament" aria-hidden="true"><span></span><i>✦</i><span></span></div>
+      <div id="revelation-scroll" class="revelation-scroll">
+        <p id="revelation-text" class="revelation-text"></p>
+      </div>
+      <div id="revelation-note" class="revelation-note"></div>
+      <div id="revelation-hint" class="revelation-hint" aria-live="polite">Click to go back</div>
+    </div>
+  </div>
+
+  <!-- Load Module Scripts in Architectural Sequence -->
+  <script src="config.js"></script>
+  <script src="tarot-data.js"></script>
+  <script src="backend.js"></script>
+  <script src="oracle-access.js"></script>
+  <script src="mystic-controller.js"></script>
+  <!-- Debug menu: delete this line (and debug-menu.js) to remove it -->
+  <script src="debug-menu.js"></script>
+</body>
+</html>
