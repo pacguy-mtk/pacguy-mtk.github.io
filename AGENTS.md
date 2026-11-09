@@ -23,15 +23,15 @@ Maintain the bento gallery on https://pacguy-mtk.github.io/
   context: 'Short description',
   src: 'post/filename.jpg',     // or .mp4 for videos
   type: 'image',                 // or 'video'
-  category: 'ai-generated',     // ai-generated | mockups | case-study
+  category: 'ai-generated',     // ai-generated | mockups | open-source
   date: '2026-09'               // YYYY-MM for sorting
 }
 ```
 
 ## Categories
-- `ai-generated` - AI art, ComfyUI, video generation
 - `mockups` - Website mockups, brand designs, flyers
-- `case-study` - Tools, extensions, project breakdowns
+- `open-source` - Tools, extensions, project breakdowns
+- Image / Video chips are automatic from `type: 'image' | 'video'`. No `ai-generated` category any more (leave existing values in data; they show under All/Image/Video).
 
 ## Rules
 1. Items sorted by `date` descending (newest first)

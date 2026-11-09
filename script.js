@@ -1915,7 +1915,7 @@ var BENTO_ITEMS = [
           context: 'Chrome extension auto-scoring job listings',
           src: 'post/jobscorer_480p.mp4',
           type: 'video',
-          category: 'case-study',
+          category: 'open-source',
           date: '2026-09'
         },
         {
@@ -2028,7 +2028,7 @@ var BENTO_ITEMS = [
         filter = filter || 'all';
 
         var filtered = BENTO_ITEMS.filter(function(item) {
-          return filter === 'all' || item.category === filter;
+          return filter === 'all' || item.type === filter || item.category === filter;
         });
 
         filtered.forEach(function(item) {
