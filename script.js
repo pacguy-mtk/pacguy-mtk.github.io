@@ -423,7 +423,7 @@ SPEECH: Gentle, warm, and short (1-3 lines). Roleplay in Lumie's style: begin or
 
 ZIJUN: Looi Jia Jun, 31, Bukit Jalil KL Malaysia. Designer who codes. Skills: graphic design, web tools, AI tools, print, Python. Learning: React, TypeScript, CI/CD, Godot. 4 languages. Open work/freelance since April 2026. Hybrid/remote.
 
-SITE SECTIONS: 01 The Hub (ask bar), 02 Tarot (AI tarot reading, v0.5 beta, at /tarot/), 03 Gallery (AI art and work), 04 Systems & Contact (AI Tools, Calculator, Web/Parallax, GDrive/Resume, plus LinkedIn/Email/WhatsApp).
+SITE SECTIONS: 01 The Hub (ask bar), 02 Tarot (AI tarot reading, v0.5 beta, at /tarot/), 03 Gallery (images and videos), 04 Systems / Misc (AI Tools, Calculator, Web/Parallax, GDrive/Resume), 05 Contact (LinkedIn/Email/WhatsApp), 06 History of Dev (version timeline in footer). Answer in max 2 short sentences, then stop; the page shows buttons for the places you mention.
 
 PROJECTS:
 - Tarot Divination: https://pacguy-mtk.github.io/tarot/
@@ -439,6 +439,21 @@ CONTACT: LinkedIn: linkedin.com/in/looi-jia-jun-b734133b2 | Email: juniorlooi95@
 
 RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fast. Point contact for hire questions. Off-topic: "Not my thing — I'm here for portfolio stuff!" Max 3 sentences. Answer first, personality second. Cards when relevant. Helpful not pushy.`;
 
+    const DESTINATIONS = [
+      { id: 'gallery', icon: 'fas fa-images',   label: 'Gallery',      desc: 'Images and videos',            target: '#gallery',
+        kw: /gallery|image|photo|picture|video|clip|art|ai work|comfyui|mockup|open.?source/ },
+      { id: 'tarot',   icon: 'fas fa-moon',     label: 'Tarot',        desc: 'Play the HTML tarot game',     target: '#tarot',
+        kw: /tarot|game|play|fortune|divin|oracle|reading|card/ },
+      { id: 'lumie',   icon: 'fas fa-comments', label: 'Chat with Lumie', desc: 'Chatbot (LLM)',             action: 'chat',
+        kw: /lumie|chat|bot|assistant|talk to|ask ai|llm/ },
+      { id: 'misc',    icon: 'fas fa-server',   label: 'Misc.',        desc: 'GDrive and other classics',    target: '#contact', openSystem: true,
+        kw: /misc|drive|gdrive|resume|cv|calculator|tool|parallax|landing|brand site|travel|ai lab|system|rack/ },
+      { id: 'contact', icon: 'fas fa-envelope', label: 'Contact',      desc: 'LinkedIn, email, WhatsApp',    target: '#contact',
+        kw: /contact|reach|email|mail|linkedin|whatsapp|hire|job|freelance|work with|message/ },
+      { id: 'history', icon: 'fas fa-clock-rotate-left', label: 'History of Dev', desc: 'Version timeline (footer)', target: '#versionTimeline',
+        kw: /history|version|changelog|timeline|update|v1|v2|v3|how.*built|evolution/ }
+    ];
+
     const NAV_CARDS = {
       'main-menu': [
         { icon: 'fas fa-user', label: 'About ZiJun', action: 'scroll', target: '#hub' },
@@ -452,6 +467,9 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
       ],
       'systems': [
         { icon: 'fas fa-server', label: 'Go to Systems', action: 'scroll', target: '#contact' }
+      ],
+      'history': [
+        { icon: 'fas fa-clock-rotate-left', label: 'History of Dev', action: 'scroll', target: '#versionTimeline' }
       ],
       'projects': [
         { icon: 'fas fa-seedling', label: 'Brand Mockup', url: 'https://pacguy-mtk.github.io/rainforest-brand-mockup/' },
@@ -587,13 +605,14 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
       if (/hire|job|recruit|freelance|collaborate|salary|work with|employ/.test(lower)) found.push('hire');
       if (/contact|reach|email|linkedin|whatsapp|message|call|talk/.test(lower)) found.push('contact');
       if (/gallery|image|photo|art|ai work|comfyui/.test(lower)) found.push('gallery');
+      if (/history|version|changelog|timeline|evolution/.test(lower)) found.push('history');
       if (/skill|can do|ability|experience|know/.test(lower)) found.push('main-menu');
       if (/who|about|zijun|introduce|tell me/.test(lower)) found.push('main-menu');
       if (found.length === 0) found.push('main-menu');
       return found;
     }
 
-    async function sendChatMessage(textArg) {
+    async function sendChatMessage(textArg, opts = {}) {
       const text = (typeof textArg === 'string' ? textArg : chatInput.value).trim();
       if (!text) return;
 
@@ -610,16 +629,19 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
           gallery: '*buzz* The gallery has AI art and project work to explore!',
           tarot: '*buzz* Lumie senses a reading coming. The Tarot is waiting for you!',
           systems: '*buzz* Here is the rack with ZiJun\'s tools and pages.',
+          history: '*buzz* ZiJun\'s dev history and version evolution are in the footer timeline.',
           'main-menu': '*buzz* Lumie is here. What would you like to know?'
         };
         const resp = cardKeys[0] || 'main-menu';
-        addBotMessage(responses[resp] || 'What would you like to see?', cardKeys);
-        setPetState('jump');
+        const reply = responses[resp] || 'What would you like to see?';
+        addBotMessage(reply, cardKeys);
+        if (!opts.silent) setPetState('jump');
+        if (opts.onReply) opts.onReply(reply);
         chatSend.disabled = false;
         return;
       }
 
-      addTypingIndicator();
+      if (!opts.silent) addTypingIndicator();
 
       const models = [
         { url: 'https://api.groq.com/openai/v1/chat/completions', model: 'openai/gpt-oss-120b', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_API_KEY}` } },
@@ -664,22 +686,25 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
           } catch (e) { continue; }
         }
 
-        removeTypingIndicator();
+        if (!opts.silent) removeTypingIndicator();
 
         if (!aiText) throw new Error('All providers failed');
 
         const cardKeys = extractCards(aiText);
         addBotMessage(aiText, cardKeys);
-        setPetState('jump');
+        if (!opts.silent) setPetState('jump');
+        if (opts.onReply) opts.onReply(aiText);
       } catch (err) {
-        removeTypingIndicator();
+        if (!opts.silent) removeTypingIndicator();
         console.error('Chatbot API error:', err.message, err);
         const cardKeys = extractCards(text);
-        addBotMessage('⚠️ *buzz* Lumie\'s connection is flickering, but the backup answers are ready. What do you need?', cardKeys);
-        setPetState('failed');
+        const failText = '⚠️ *buzz* Lumie\'s connection is flickering, but the backup answers are ready. What do you need?';
+        addBotMessage(failText, cardKeys);
+        if (!opts.silent) setPetState('failed');
+        if (opts.onReply) opts.onReply(failText);
       } finally {
         chatSend.disabled = false;
-        chatInput.focus();
+        if (!opts.silent) chatInput.focus();
       }
     }
 
@@ -2337,20 +2362,27 @@ var BENTO_ITEMS = [
       const form = document.getElementById('hubAsk');
       const input = document.getElementById('hubAskInput');
       const ghost = document.getElementById('hubAskGhost');
-      const results = document.getElementById('hubAskResults');
+      const panel = document.getElementById('hubAnswer');
+      const qEl = document.getElementById('hubAnswerQ');
+      const closeBtn = document.getElementById('hubAnswerClose');
+      const body = document.getElementById('hubAnswerBody');
+      const cardsEl = document.getElementById('hubAnswerCards');
+      const chatBtn = document.getElementById('hubAnswerChat');
       const chips = document.getElementById('hubAskChips');
       const hero = document.getElementById('hub');
-      if (!form || !input || !ghost) return;
+      if (!form || !input || !ghost || !panel) return;
 
       const PROMPTS = [
         'Ask AI anything about ZiJun…',
         'Search his projects, tools or gallery…',
         'Try: “What AI tools has he built?”',
         'Try: “Show me the latest video clips”',
-        'Try: “How do I contact him?”'
+        'Try: “How do I contact him?”',
+        'Try: “Show me the history of this site”'
       ];
       const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       let pi = 0, ci = 0, erasing = false, timer = null, visible = true;
+      let replyTimer = null, currentQ = '';
 
       function ghostActive() {
         return !input.value && document.activeElement !== input;
@@ -2396,39 +2428,117 @@ var BENTO_ITEMS = [
       }
       window.hubGoTo = goTo;
 
-      function showResults(keys) {
-        const seen = new Set();
-        const html = [];
-        keys.forEach((k) => (NAV_CARDS[k] || []).forEach((c) => {
-          const id = c.label;
-          if (seen.has(id)) return;
-          seen.add(id);
-          html.push(c.action === 'scroll'
-            ? `<button type="button" class="hub-result" data-target="${c.target}"><i class="${c.icon}"></i>${c.label}</button>`
-            : `<a class="hub-result" href="${c.url}" target="_blank" rel="noopener"><i class="${c.icon}"></i>${c.label}</a>`);
-        }));
-        results.innerHTML = html.join('');
+      function matchDestinations(q) {
+        const matched = DESTINATIONS.filter(d => d.kw.test((q || '').toLowerCase()));
+        return { list: matched.length ? matched : DESTINATIONS, isFallback: matched.length === 0 };
       }
-      results.addEventListener('click', (e) => {
-        const b = e.target.closest('[data-target]');
-        if (b) goTo(b.dataset.target);
+
+      function cleanAnswer(t) {
+        if (!t) return '';
+        return t.replace(/\*\([^*)]+\)\*/g, '').trim();
+      }
+
+      function renderCards(list) {
+        if (!cardsEl) return;
+        cardsEl.innerHTML = list.map(d => `
+          <button type="button" class="hub-answer-card" data-id="${d.id}" data-action="${d.action || ''}" data-target="${d.target || ''}" data-system="${d.openSystem ? 'true' : 'false'}">
+            <i class="${d.icon}"></i>
+            <span class="hub-answer-card-text">
+              <strong>${d.label}</strong>
+              <small>${d.desc}</small>
+            </span>
+          </button>
+        `).join('');
+      }
+
+      if (cardsEl) {
+        cardsEl.addEventListener('click', (e) => {
+          const btn = e.target.closest('.hub-answer-card');
+          if (!btn) return;
+          const action = btn.dataset.action;
+          const target = btn.dataset.target;
+          const isSystem = btn.dataset.system === 'true';
+
+          if (action === 'chat') {
+            if (!chatOpen) toggleChat();
+          } else if (target) {
+            goTo(target);
+            if (isSystem && typeof window.openSystem === 'function') {
+              const q = (currentQ || '').toLowerCase();
+              let srvId = 'srv-ai';
+              if (/calc/.test(q)) srvId = 'srv-calc';
+              else if (/drive|resume|cv/.test(q)) srvId = 'srv-drive';
+              else if (/web|parallax|brand|landing|travel/.test(q)) srvId = 'srv-web';
+              window.openSystem(srvId);
+            }
+          }
+        });
+      }
+
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          panel.hidden = true;
+          clearTimeout(replyTimer);
+        });
+      }
+
+      if (chatBtn) {
+        chatBtn.addEventListener('click', () => {
+          if (!chatOpen) toggleChat();
+        });
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && panel && !panel.hidden) {
+          panel.hidden = true;
+          clearTimeout(replyTimer);
+        }
       });
 
       function ask(text) {
         text = (text || '').trim();
         if (!text) return;
-        showResults(extractCards(text));
-        if (!chatOpen) toggleChat();
-        sendChatMessage(text);
+        currentQ = text;
+        if (qEl) qEl.textContent = text;
+        if (body) body.innerHTML = '<span class="typing-dots"><span></span><span></span><span></span></span> Lumie is thinking…';
+        const match = matchDestinations(text);
+        renderCards(match.list);
+        panel.hidden = false;
         input.value = '';
         input.blur();
         syncGhost();
+
+        clearTimeout(replyTimer);
+        replyTimer = setTimeout(() => {
+          if (body && body.querySelector('.typing-dots')) {
+            body.textContent = match.isFallback
+              ? 'Here is what I can show you:'
+              : 'Lumie is quiet right now, but here is where to look:';
+          }
+        }, 6000);
+
+        sendChatMessage(text, {
+          silent: true,
+          onReply: (t) => {
+            clearTimeout(replyTimer);
+            if (!body) return;
+            const cleaned = cleanAnswer(t);
+            if (match.isFallback && (!cleaned || cleaned.includes('What would you like'))) {
+              body.textContent = 'Here is what I can show you:';
+            } else {
+              body.textContent = cleaned;
+            }
+          }
+        });
       }
+
       form.addEventListener('submit', (e) => { e.preventDefault(); ask(input.value); });
-      chips.addEventListener('click', (e) => {
-        const b = e.target.closest('.hub-chip');
-        if (b) ask(b.dataset.q);
-      });
+      if (chips) {
+        chips.addEventListener('click', (e) => {
+          const b = e.target.closest('.hub-chip');
+          if (b) ask(b.dataset.q);
+        });
+      }
     })();
 
     /* ══════ TAROT LAUNCHER (lazy iframe) ══════ */

@@ -81,12 +81,22 @@
           </button>
         </form>
         <div class="hub-ask-chips" id="hubAskChips">
-          <button type="button" class="hub-chip" data-q="What AI tools has ZiJun built?">AI tools</button>
-          <button type="button" class="hub-chip" data-q="Show me the Tarot reading">Tarot</button>
           <button type="button" class="hub-chip" data-q="Show me the gallery">Gallery</button>
+          <button type="button" class="hub-chip" data-q="Show me Tarot">Tarot</button>
+          <button type="button" class="hub-chip" data-q="Chat with Lumie">Chat with Lumie</button>
+          <button type="button" class="hub-chip" data-q="Show me misc tools and projects">Misc.</button>
           <button type="button" class="hub-chip" data-q="How do I contact ZiJun?">Contact</button>
+          <button type="button" class="hub-chip" data-q="Show me the history of this site">History</button>
         </div>
-        <div class="hub-ask-results" id="hubAskResults" aria-live="polite"></div>
+        <div class="hub-answer" id="hubAnswer" hidden aria-live="polite">
+          <div class="hub-answer-head">
+            <span class="hub-answer-q" id="hubAnswerQ"></span>
+            <button type="button" class="hub-answer-close" id="hubAnswerClose" aria-label="Close answer"><i class="fas fa-xmark"></i></button>
+          </div>
+          <div class="hub-answer-body" id="hubAnswerBody"></div>
+          <div class="hub-answer-cards" id="hubAnswerCards"></div>
+          <button type="button" class="hub-answer-chat" id="hubAnswerChat"><i class="fas fa-comments"></i> Open in chat</button>
+        </div>
       </div>
       <div class="scroll-cue">Scroll for Tarot</div>
     </section>

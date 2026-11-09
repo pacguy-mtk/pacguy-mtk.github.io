@@ -3002,20 +3002,163 @@
     }
     .hub-chip:hover { border-color: rgba(66, 232, 212, 0.55); color: var(--text); transform: translateY(-2px); }
 
-    .hub-ask-results {
-      position: relative; z-index: 2;
-      min-height: 0; margin: 16px auto 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+    /* ---------- 01 • Ask Bar: Inline Answer Panel ---------- */
+    .hub-answer {
+      position: relative;
+      z-index: 2;
+      width: min(720px, 100%);
+      margin: 18px auto 0;
+      background: rgba(9, 13, 25, 0.82);
+      border: 1px solid rgba(66, 232, 212, 0.3);
+      border-radius: 18px;
+      padding: 18px 20px;
+      text-align: left;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+      animation: hubAnswerIn 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
     }
-    .hub-result {
-      min-height: 40px; border: 1px solid rgba(66, 232, 212, 0.4); border-radius: 12px; padding: 0 16px;
-      display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(66, 232, 212, 0.08); color: var(--text); text-decoration: none;
-      font: inherit; font-size: 13px; font-weight: 800; cursor: pointer;
-      animation: hubResultIn 260ms ease both;
+    .hub-answer[hidden] { display: none !important; }
+    @keyframes hubAnswerIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    .hub-result i { color: var(--cyan); }
-    .hub-result:hover { background: rgba(66, 232, 212, 0.18); }
-    @keyframes hubResultIn { from { opacity: 0; transform: translateY(8px); } }
+
+    .hub-answer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .hub-answer-q {
+      font-size: 13px;
+      color: var(--faint, rgba(255, 255, 255, 0.5));
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .hub-answer-close {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text, #fff);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 160ms, border-color 160ms;
+      flex-shrink: 0;
+    }
+    .hub-answer-close:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(66, 232, 212, 0.5);
+    }
+
+    .hub-answer-body {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text, #fff);
+      margin-bottom: 14px;
+    }
+    .hub-answer-body .typing-dots {
+      display: inline-flex;
+      gap: 4px;
+      margin-right: 6px;
+    }
+    .hub-answer-body .typing-dots span {
+      width: 5px;
+      height: 5px;
+      background: var(--cyan, #42e8d4);
+      border-radius: 50%;
+      display: inline-block;
+      animation: dotPulse 1.2s infinite ease-in-out;
+    }
+    .hub-answer-body .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .hub-answer-body .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    .hub-answer-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .hub-answer-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+      border-radius: 12px;
+      color: var(--text, #fff);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 180ms, transform 180ms, background 180ms;
+    }
+    .hub-answer-card i {
+      color: var(--cyan, #42e8d4);
+      font-size: 16px;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+    .hub-answer-card-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .hub-answer-card-text strong {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text, #fff);
+    }
+    .hub-answer-card-text small {
+      font-size: 12px;
+      color: var(--faint, rgba(255, 255, 255, 0.6));
+      line-height: 1.35;
+    }
+    .hub-answer-card:hover {
+      border-color: rgba(66, 232, 212, 0.6);
+      background: rgba(66, 232, 212, 0.06);
+      transform: translateY(-2px);
+    }
+
+    .hub-answer-chat {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+      width: fit-content;
+      background: transparent;
+      border: 1px solid rgba(66, 232, 212, 0.35);
+      border-radius: 10px;
+      color: var(--cyan, #42e8d4);
+      padding: 6px 14px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 160ms, border-color 160ms;
+    }
+    .hub-answer-chat:hover {
+      background: rgba(66, 232, 212, 0.12);
+      border-color: var(--cyan, #42e8d4);
+    }
+
+    @media (max-width: 560px) {
+      .hub-answer-cards {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hub-answer { animation: none; }
+      .hub-answer-card:hover { transform: none; }
+    }
 
     /* ---------- 02 · Tarot ---------- */
     .tarot-section {
