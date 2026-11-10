@@ -16,6 +16,16 @@
 
   const CHANGELOG = [
     {
+      version: '0.9.2', title: 'Layout update', date: 'Nov 11, 2026',
+      summary: 'Steady layout on every screen.',
+      groups: [
+        { type: 'fixes', items: [
+          '<strong>Fixed positions.</strong> Deck, dock and Reset button no longer move.',
+          '<strong>Phone layout.</strong> The whole game fits small screens.'
+        ]}
+      ]
+    },
+    {
       version: '0.9.1', title: 'Visual update', date: 'Nov 11, 2026',
       summary: 'Major Arcana get their moment, and the screen gets cleaner.',
       groups: [

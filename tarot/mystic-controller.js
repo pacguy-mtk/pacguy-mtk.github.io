@@ -194,6 +194,7 @@
     setupAskPanel();
     renderDeckReservoir();
     resetRevealStatus();
+    hideResetButton();
     if (window.OracleAccess) window.OracleAccess.init();
     typewriterDialogue('Welcome Seeker to Tarot Divination. Draw three cards to uncover your Past, Present, and Future timeline.');
   }
@@ -414,6 +415,9 @@
     const artReady = loadArt(cardData.id);
 
     // STEP 1: card leaves the deck and flies to the centre of the stage
+    if (window.innerWidth <= 1024 && el.gameStageContainer) {
+      el.gameStageContainer.scrollIntoView({ block: 'start', behavior: 'instant' });
+    }
     const deckRect = clickedWrapper.getBoundingClientRect();
     clickedWrapper.classList.add('used');
     el.gameStageContainer.classList.add('active-focus');       // STEP 2: spotlight (dims deck + dock)
@@ -705,18 +709,31 @@
   }
 
   function showResetButton() {
-    hideResetButton();
-    const btn = document.createElement('button');
-    btn.id = 'reset-spread-btn';
-    btn.className = 'reset-spread-btn';
-    btn.textContent = 'Reset';
-    btn.addEventListener('click', handleReset);
-    el.playgroundStage.appendChild(btn);
+    let btn = document.getElementById('reset-spread-btn');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.id = 'reset-spread-btn';
+      btn.className = 'reset-spread-btn';
+      btn.textContent = 'Reset';
+      btn.addEventListener('click', handleReset);
+      const dock = document.querySelector('.timeline-dock-section');
+      if (dock) dock.appendChild(btn);
+    }
+    btn.style.visibility = 'visible';
   }
 
   function hideResetButton() {
-    const existing = document.getElementById('reset-spread-btn');
-    if (existing) existing.remove();
+    let btn = document.getElementById('reset-spread-btn');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.id = 'reset-spread-btn';
+      btn.className = 'reset-spread-btn';
+      btn.textContent = 'Reset';
+      btn.addEventListener('click', handleReset);
+      const dock = document.querySelector('.timeline-dock-section');
+      if (dock) dock.appendChild(btn);
+    }
+    if (btn) btn.style.visibility = 'hidden';
   }
 
   function disableDeckCards() {

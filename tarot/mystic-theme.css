@@ -32,6 +32,7 @@
   --card-height: 180px;
   --card-radius: 10px;
   --header-height: 52px;
+  --deck-zone-h: 118px;
 
   /* Card sizes: hero = the card being revealed, dock = card resting in its slot */
   --hero-h: clamp(220px, 34vh, 340px);
@@ -221,25 +222,50 @@ body.modal-open .app-viewport { pointer-events: none; }
 @media (max-width: 1024px) {
   .main-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr auto;
+    grid-template-rows: auto auto;
     height: auto;
-    overflow-y: auto;
+    overflow: visible;
   }
+  .game-stage-container {
+    height: min(calc(100svh - var(--header-height)), 760px);
+    min-height: 600px;
+  }
+}
+
+@media (max-width: 700px) {
+  :root {
+    --card-width: 78px;
+    --card-height: 128px;
+    --deck-zone-h: 100px;
+    --dock-w: 80px;
+    --dock-h: 130px;
+    --hero-h: clamp(200px, 30svh, 260px);
+  }
+  .dock-slots-container { gap: 0.6rem; }
+  .dock-slot { width: calc((100vw - 2.2rem) / 3); max-width: 112px; height: auto; aspect-ratio: 1 / 1.6; }
+  .dock-slot .tarot-card-3d.docked { width: 100%; height: 100%; }
+  .game-stage-container { height: auto; min-height: 560px; grid-template-rows: var(--deck-zone-h) minmax(260px, 1fr) auto; }
+  .brand-title { font-size: .8rem; letter-spacing: 1px; white-space: nowrap; }
+  #header-controls #access-badge-text { font-size: .72rem; }
+  #debug-menu-btn, .debug-btn, .dbg-toggle { display: none; }
 }
 
 /* Left Column: Game Canvas & Altar */
 .game-stage-container {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: var(--deck-zone-h) minmax(0, 1fr) auto;
   grid-template-areas:
     "deck"
     "playground"
     "dock";
+  height: 100%;
+  min-height: 0;
   padding: 0;
   position: relative;
   overflow: hidden;
   background: radial-gradient(circle at 50% 40%, rgba(30, 36, 64, 0.4) 0%, rgba(8, 10, 16, 0.9) 80%);
   contain: layout paint;
+  overscroll-behavior: contain;
 }
 
 /* Reveal spotlight: dim the deck + dock with opacity (compositor-only).
@@ -261,6 +287,8 @@ body.modal-open .app-viewport { pointer-events: none; }
   gap: 0.35rem;
   z-index: 10;
   padding-top: 0.5rem;
+  height: var(--deck-zone-h);
+  overflow: visible;
 }
 
 .deck-section-title {
@@ -278,17 +306,22 @@ body.modal-open .app-viewport { pointer-events: none; }
   padding: 0.35rem 0.75rem;
   width: 100%;
   max-width: 800px;
-  flex-wrap: wrap;
+  container-type: inline-size;
+  flex-wrap: nowrap;
+  height: 90px;
 }
 
 .deck-card-wrapper {
-  margin-left: -45px;
-  margin-bottom: -110px;
+  --step: clamp(14px, calc((100cqw - var(--card-width)) / 21), 65px);
+  margin-left: calc(var(--step) - var(--card-width));
+  margin-bottom: 0;
+  flex: 0 0 var(--card-width);
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
   cursor: pointer;
   position: relative;
   outline: none;
 }
+.deck-card-wrapper:first-child { margin-left: 0; }
 
 .deck-card-wrapper:hover,
 .deck-card-wrapper:focus-visible {
@@ -398,15 +431,16 @@ body.modal-open .app-viewport { pointer-events: none; }
 
 /* Timeline Dock (Past, Present, Future) */
 .timeline-dock-section {
-  position: absolute;
-  bottom: 10%;
-  left: 50%;
-  transform: translateX(-50%);
+  grid-area: dock;
+  position: static;
+  transform: none;
+  justify-self: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
   z-index: 10;
+  padding: 0 0.75rem 0.5rem;
 }
 
 .dock-slots-container {
@@ -463,10 +497,10 @@ body.modal-open .app-viewport { pointer-events: none; }
 }
 
 .reset-spread-btn {
-  position: absolute;
-  top: 35%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: static;
+  transform: none;
+  margin: 1.6rem auto 0;
+  visibility: hidden;
   background: rgba(223, 177, 91, 0.15);
   border: 1px solid var(--gold-main);
   color: var(--gold-light);
