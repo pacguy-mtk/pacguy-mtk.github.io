@@ -356,6 +356,36 @@
   }
 
   // =========================================================================
+  // Major Arcana showcase (v0.9.1)
+  // =========================================================================
+
+  function isMajorCard(cardData) {
+    return /^major/i.test(String(cardData.category || '')) || (Number.isInteger(cardData.id) && cardData.id < 22);
+  }
+
+  const FLIP_DELAY_MS = 900;   // pause after the card lands, before it flips
+  const SFX_LEAD_MS = 180;     // flip sound starts this long before the flip
+  const SHOWCASE_MS = 3000;          // keep in sync with --showcase-ms in mystic-theme.css
+
+  async function playMajorShowcase(cardEl) {
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const front = cardEl.querySelector('.card-front');
+    const holo = document.createElement('div');
+    holo.className = 'card-holo';
+    const shine = document.createElement('div');
+    shine.className = 'card-shine';
+    front.append(holo, shine);
+
+    await sleep(420);                                          // let the 3D flip settle first
+    cardEl.classList.add('showcase');
+    await sleep(reduce ? 900 : SHOWCASE_MS);
+    cardEl.classList.remove('showcase');                       // back to the original size
+    await sleep(120);
+    holo.remove();
+    shine.remove();
+  }
+
+  // =========================================================================
   // Animation pipeline: fly -> flip -> describe -> dock -> (3rd card) Oracle
   // =========================================================================
 
@@ -396,10 +426,16 @@
     await Promise.all([artReady, sleep(550)]);                 // art is decoded before the flip
     fillCardFront(flying, cardData);
 
-    // STEP 3: 3D reveal flip
-    flying.classList.add('flipped');
+    // STEP 3: 3D reveal flip. v0.9.1: let the card rest a moment, then start the sound a beat
+    // BEFORE the flip so the sfx and the visual line up (audio starts later than the picture).
+    await sleep(FLIP_DELAY_MS);
     playSound('flip');
+    await sleep(SFX_LEAD_MS);
+    flying.classList.add('flipped');
     await sleep(800);
+
+    // v0.9.1: Major Arcana get a trading-card style showcase (grow, tilt, light ray), then return
+    if (isMajorCard(cardData)) await playMajorShowcase(flying);
 
     // STEP 4: local description (no API cost)
     const meaning = cardData.isReversed ? cardData.reversed : cardData.upright;
@@ -430,13 +466,10 @@
     slotEl.querySelectorAll('.dock-orientation-label, .tarot-card-3d').forEach(n => n.remove());
     slotEl.classList.add('filled-slot');
 
-    const label = document.createElement('div');
-    label.className = 'dock-orientation-label';
-    label.textContent = cardData.isReversed ? '(Reversed)' : '(Upright)';
-
+    // v0.9.1: the blue "(Upright)" / "(Reversed)" text was removed; the golden tag on the card is the only label.
     const card = createCardDOMElement(cardData, 'docked flipped');
     card.style.visibility = 'hidden';                          // shown when the flying card lands
-    slotEl.append(label, card);
+    slotEl.append(card);
     return card;
   }
 

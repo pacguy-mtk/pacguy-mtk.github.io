@@ -441,16 +441,18 @@ CONTACT: LinkedIn: linkedin.com/in/looi-jia-jun-b734133b2 | Email: juniorlooi95@
 RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fast. Point contact for hire questions. Off-topic: "Not my thing — I'm here for portfolio stuff!" Max 3 sentences. Answer first, personality second. Cards when relevant. Helpful not pushy.`;
 
     const DESTINATIONS = [
-      { id: 'gallery', icon: 'fas fa-images',   label: 'Gallery',      desc: 'Images and videos',            target: '#gallery',
-        kw: /gallery|image|photo|picture|video|clip|art|ai work|comfyui|mockup|open.?source/ },
+      { id: 'hub',     icon: 'fas fa-house',    label: 'The Hub',      desc: 'Top, search & overview',       target: '#hub',
+        kw: /hub|home|top|start|overview|about/ },
       { id: 'tarot',   icon: 'fas fa-moon',     label: 'Tarot',        desc: 'Play the HTML tarot game',     target: '#tarot',
         kw: /tarot|game|play|fortune|divin|oracle|reading|card/ },
+      { id: 'gallery', icon: 'fas fa-images',   label: 'Gallery',      desc: 'Images and videos',            target: '#gallery',
+        kw: /gallery|image|photo|picture|video|clip|art|ai work|comfyui|mockup|open.?source/ },
+      { id: 'contact', icon: 'fas fa-envelope', label: 'Systems & Contact', desc: 'LinkedIn, email, WhatsApp, tools', target: '#contact',
+        kw: /contact|reach|email|mail|linkedin|whatsapp|hire|job|freelance|work with|message|system|rack/ },
       { id: 'lumie',   icon: 'fas fa-comments', label: 'Chat with Lumie', desc: 'Chatbot (LLM)',             action: 'chat',
         kw: /lumie|chat|bot|assistant|talk to|ask ai|llm/ },
       { id: 'misc',    icon: 'fas fa-server',   label: 'Misc.',        desc: 'GDrive and other classics',    target: '#contact', openSystem: true,
-        kw: /misc|drive|gdrive|resume|cv|calculator|tool|parallax|landing|brand site|travel|ai lab|system|rack/ },
-      { id: 'contact', icon: 'fas fa-envelope', label: 'Contact',      desc: 'LinkedIn, email, WhatsApp',    target: '#contact',
-        kw: /contact|reach|email|mail|linkedin|whatsapp|hire|job|freelance|work with|message/ },
+        kw: /misc|drive|gdrive|resume|cv|calculator|tool|parallax|landing|brand site|travel|ai lab/ },
       { id: 'history', icon: 'fas fa-clock-rotate-left', label: 'History of Dev', desc: 'Version timeline (footer)', target: '#versionTimeline',
         kw: /history|version|changelog|timeline|update|v1|v2|v3|how.*built|evolution/ }
     ];
@@ -1487,6 +1489,24 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
     // Initialize Gallery on page load
     initGallery();
 
+    /* ══════ SHARED SECTION NAVIGATION ══════ */
+    function scrollToSection(target) {
+      if (!target) return;
+      var selector = target.startsWith('#') ? target : ('#' + target);
+      var el = document.querySelector(selector);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        try {
+          history.pushState(null, '', selector);
+        } catch (_) {
+          window.location.hash = selector;
+        }
+      } else {
+        window.location.hash = selector;
+      }
+    }
+    window.scrollToSection = scrollToSection;
+
     /* ══════ WELCOME POPUP (Command Palette) ══════ */
     (function initWelcome() {
       const overlay = document.getElementById('welcomeOverlay');
@@ -1591,15 +1611,16 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
       function renderList() {
         listEl.innerHTML = currentRows.map((item, idx) => {
           const isActive = idx === activeIdx;
+          const href = item.target || '#';
           return `
-            <button type="button" class="wl-row ${isActive ? 'active' : ''} ${item.isAskAi ? 'ask-row' : ''}" role="option" id="wl-opt-${idx}" aria-selected="${isActive ? 'true' : 'false'}" data-idx="${idx}">
+            <a href="${href}" class="wl-row ${isActive ? 'active' : ''} ${item.isAskAi ? 'ask-row' : ''}" role="option" id="wl-opt-${idx}" aria-selected="${isActive ? 'true' : 'false'}" data-idx="${idx}">
               <span class="wl-row-icon"><i class="${item.icon}"></i></span>
               <span class="wl-row-content">
                 <span class="wl-row-label">${escapeHtml(item.label)}</span>
                 <span class="wl-row-desc">${escapeHtml(item.desc)}</span>
               </span>
               <span class="wl-row-enter">↵</span>
-            </button>
+            </a>
           `;
         }).join('');
 
@@ -1610,11 +1631,10 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
 
       function selectItem(item) {
         if (!item) return;
-        window.dismissWelcome();
+        window.dismissWelcome(false);
 
         if (item.isAskAi) {
-          const hub = document.getElementById('hub');
-          if (hub) hub.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          scrollToSection('#hub');
           setTimeout(() => {
             if (typeof window.hubAsk === 'function') {
               window.hubAsk(item.query);
@@ -1626,15 +1646,15 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
         if (item.action === 'chat') {
           if (!chatOpen) toggleChat();
         } else if (item.target) {
-          const el = document.querySelector(item.target);
-          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          scrollToSection(item.target);
           if (item.openSystem && typeof window.openSystem === 'function') {
             window.openSystem('srv-ai');
           }
         }
       }
 
-      window.dismissWelcome = function() {
+      window.dismissWelcome = function(focusHero) {
+        if (typeof focusHero === 'undefined') focusHero = true;
         if (dontAsk && dontAsk.checked) {
           localStorage.setItem('zijun_welcome_dismissed', '1');
         }
@@ -1642,8 +1662,10 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
         clearTimeout(timer);
         setTimeout(function() {
           overlay.style.display = 'none';
-          const heroInput = document.getElementById('hubAskInput');
-          if (heroInput && !('ontouchstart' in window)) heroInput.focus();
+          if (focusHero) {
+            const heroInput = document.getElementById('hubAskInput');
+            if (heroInput && !('ontouchstart' in window)) heroInput.focus();
+          }
         }, 260);
       };
 
@@ -1682,6 +1704,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
       listEl.addEventListener('click', (e) => {
         const btn = e.target.closest('.wl-row');
         if (!btn) return;
+        e.preventDefault();
         const idx = parseInt(btn.dataset.idx, 10);
         activeIdx = idx;
         selectItem(currentRows[idx]);
@@ -1724,6 +1747,14 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
         'gallery': document.getElementById('gallery'),
         'contact': document.getElementById('contact')
       };
+
+      navBtns.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          var target = btn.getAttribute('href') || ('#' + btn.dataset.section);
+          scrollToSection(target);
+        });
+      });
 
       const observer = new IntersectionObserver(function(entries) {
         entries.forEach(function(entry) {
@@ -2628,8 +2659,7 @@ var BENTO_ITEMS = [
       syncGhost();
 
       function goTo(target) {
-        const el = document.querySelector(target);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        scrollToSection(target);
       }
       window.hubGoTo = goTo;
       window.hubAsk = ask;

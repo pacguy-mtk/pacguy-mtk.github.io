@@ -2629,6 +2629,7 @@
       color: var(--text, #fff);
       font: inherit;
       text-align: left;
+      text-decoration: none;
       cursor: pointer;
       position: relative;
       transition: background 120ms ease;

@@ -25,10 +25,10 @@
          =================================================================== -->
     <header class="top-header">
       <div class="brand-container">
-        <img id="header-icon" class="brand-icon" src="assets/icon-tarot.png" alt="" width="28" height="28"
+        <img id="header-icon" class="brand-icon" src="assets/icon-tarot.svg" alt="" width="28" height="28"
              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
         <div class="brand-icon" style="display:none;">🔮</div>
-        <h1 class="brand-title">Tarot Divination<sup class="beta-tm" title="Beta version">beta</sup></h1>
+        <h1 class="brand-title">Tarot Divination<button class="version-tag" id="version-tag" type="button" aria-haspopup="dialog" title="What's new">v0.9.1 beta</button></h1>
       </div>
 
       <div id="header-controls" class="header-controls">
@@ -92,7 +92,7 @@
       <aside class="oracle-sidebar">
 
         <div class="oracle-header">
-          <img id="oracle-icon" class="oracle-avatar" src="assets/icon-oracle.png" alt="" width="38" height="38"
+          <img id="oracle-icon" class="oracle-avatar" src="assets/icon-oracle.svg" alt="" width="38" height="38"
                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
           <div class="oracle-avatar" style="display:none;">👁️</div>
           <div class="oracle-speaker-info">
@@ -162,33 +162,42 @@
 
       <h2 id="access-title" class="access-title">Awaken the Oracle</h2>
       <p id="access-reason" class="access-reason" hidden></p>
-      <p class="access-lead">
-        Paste your own <strong>Google Gemini API key</strong> for unlimited readings,
-        or skip and let the house Oracle read for you — a few free readings every day.
-      </p>
+      <p class="access-lead">Choose how the Oracle reads for you.</p>
 
-      <div id="access-saved-row" class="access-saved" hidden>
-        <span id="access-saved-text"></span>
-        <button id="access-forget-btn" class="access-link" type="button">Remove key</button>
+      <div class="access-split">
+        <section class="access-col" aria-label="Use your own Google key">
+          <h3 class="access-col-title">Your own key</h3>
+          <p class="access-col-sub">Paste a <strong>Google Gemini API key</strong> for unlimited readings.</p>
+
+          <div id="access-saved-row" class="access-saved" hidden>
+            <span id="access-saved-text"></span>
+            <button id="access-forget-btn" class="access-link" type="button">Remove key</button>
+          </div>
+
+          <label class="access-label" for="access-key-input">Your Google API key</label>
+          <input id="access-key-input" class="access-input" type="password" autocomplete="off"
+                 spellcheck="false" placeholder="AIza… or AQ.…" aria-describedby="access-key-msg">
+          <div id="access-key-msg" class="access-msg" role="status"></div>
+
+          <button id="access-save-btn" class="access-btn primary" type="button">Save key &amp; continue</button>
+        </section>
+
+        <div class="access-or-v" aria-hidden="true"><span>or</span></div>
+
+        <section class="access-col" aria-label="Use the house Oracle">
+          <h3 class="access-col-title">The house Oracle</h3>
+          <p class="access-col-sub">No key needed. A few free readings every day.</p>
+          <div class="access-col-spacer"></div>
+          <button id="access-skip-btn" class="access-btn primary" type="button">
+            <span id="access-skip-label">Skip — use the house Oracle</span>
+          </button>
+          <button id="access-local-btn" class="access-link center" type="button" hidden>Play without the AI Oracle (basic readings)</button>
+        </section>
       </div>
 
-      <label class="access-label" for="access-key-input">Your Google API key</label>
-      <input id="access-key-input" class="access-input" type="password" autocomplete="off"
-             spellcheck="false" placeholder="AIza… or AQ.…" aria-describedby="access-key-msg">
-      <div id="access-key-msg" class="access-msg" role="status"></div>
-
-      <button id="access-save-btn" class="access-btn primary" type="button">Save key &amp; continue</button>
-
-      <div class="access-or"><span>or</span></div>
-
-      <button id="access-skip-btn" class="access-btn" type="button">
-        <span id="access-skip-label">Skip — use the house Oracle</span>
-      </button>
-      <button id="access-local-btn" class="access-link center" type="button" hidden>Play without the AI Oracle (basic readings)</button>
-
       <p class="access-fine">
-        Only Google keys work. Your key stays in this browser and is sent only to Google.
-        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Get a free key</a>
+        Only Google keys work. Your key, your privacy: it stays with Google, without house involvement.
+        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Get a Google key here.</a>
       </p>
     </div>
   </div>
@@ -233,6 +242,7 @@
   <script src="backend.js"></script>
   <script src="oracle-access.js"></script>
   <script src="mystic-controller.js"></script>
+  <script src="whats-new.js"></script>
   <!-- Debug menu: delete this line (and debug-menu.js) to remove it -->
   <script src="debug-menu.js"></script>
 </body>
