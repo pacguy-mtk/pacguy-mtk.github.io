@@ -17,12 +17,14 @@
   const CHANGELOG = [
     {
       version: '0.9.2', title: 'Layout update', date: 'Nov 11, 2026',
-      summary: 'Steady layout on every screen.',
+      summary: 'A steady layout that fits every screen.',
       groups: [
         { type: 'fixes', items: [
-          '<strong>Fixed positions.</strong> Deck, dock and Reset button no longer move.',
-          '<strong>Phone layout.</strong> The whole game fits small screens.'
-        ]}
+          '<strong>Nothing jumps while you play.</strong> The deck, the Past / Present / Future slots and the Reset button stay in fixed places.',
+          '<strong>Reset is in the middle</strong> of the table, between the deck and your cards.',
+          '<strong>Phone and small screens.</strong> The whole game now fits, with no clipped slots.'
+        ]},
+        { type: 'visual', items: ['The Oracle icon lost its purple background.'] }
       ]
     },
     {

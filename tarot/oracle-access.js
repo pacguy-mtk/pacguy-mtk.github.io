@@ -18,7 +18,7 @@
     el = {
       modal: $('access-modal'), reason: $('access-reason'),
       input: $('access-key-input'), msg: $('access-key-msg'),
-      save: $('access-save-btn'), skip: $('access-skip-btn'), skipLabel: $('access-skip-label'),
+      save: $('access-save-btn'), skip: $('access-skip-btn'), skipInfo: $('access-skip-info'),
       local: $('access-local-btn'), forget: $('access-forget-btn'), close: $('access-close-btn'),
       saved: $('access-saved-row'), savedText: $('access-saved-text'),
       badge: $('access-badge'), badgeIcon: $('access-badge-icon'), badgeText: $('access-badge-text')
@@ -102,9 +102,9 @@
 
     // house Oracle button
     el.skip.disabled = t.left === 0;
-    el.skipLabel.textContent = t.left === 0
-      ? `Skip — no tokens left (refill in ${fmtReset()})`
-      : `Skip — use the house Oracle (${t.left}/${t.max} today)`;
+    el.skipInfo.textContent = t.left === 0
+      ? `No tokens left (refill in ${fmtReset()})`
+      : `Use the house Oracle (${t.left}/${t.max} today)`;
 
     // basic (no-AI) mode is offered when the house tokens can't be used
     el.local.hidden = !(outOfTokens || mode === 'local');
