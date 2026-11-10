@@ -1316,3 +1316,13 @@ body.modal-open .app-viewport { pointer-events: none; }
   color: var(--gold-light, #f6e3b4);
   opacity: .85;
 }
+
+
+/* Cards with finished art already have the title and keywords printed on them:
+   hide the duplicate name, keep a small orientation tag (Upright / Reversed). */
+.has-art .card-title-text { display: none; }
+.has-art .card-title-overlay { background: none; padding: 0.3rem 0.35rem 0 0; top: 0; bottom: auto; text-align: right; pointer-events: none; }
+.has-art .orientation-tag {
+  display: inline-block; padding: 1px 7px; border-radius: 6px;
+  background: rgba(8, 10, 16, 0.82); border: 1px solid rgba(223, 177, 91, 0.35);
+}

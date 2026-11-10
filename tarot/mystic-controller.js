@@ -59,7 +59,7 @@
   }
 
   // Real SFX files (temporary set). If a file is missing or blocked, the synth below plays instead.
-  const SFX_FILES = { flip: 'assets/sfx/card-flip.mp3', dock: 'assets/sfx/card-place.mp3' };
+  const SFX_FILES = { flip: 'assets/sfx/card-flip.mp3', dock: 'assets/sfx/card-place.mp3', chime: 'assets/sfx/reveal.mp3' };
   const sfxBase = {};
   function playFile(type) {
     const url = SFX_FILES[type];
@@ -295,6 +295,7 @@
       img.decoding = 'async';
       img.draggable = false;
       imageContainer.appendChild(img);
+      content.classList.add('has-art');               // the art already prints the title: hide the duplicate name
     } else {
       imageContainer.appendChild(createVectorCardFallback(cardData));
       content.classList.add('has-fallback');          // placeholder already prints the name

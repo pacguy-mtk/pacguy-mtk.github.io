@@ -17,6 +17,13 @@ Not a plan, just a parking lot. Ordered roughly from "do soon" to "dream". Effor
 - **Contact (S):** a tiny "available for work?" status that you flip in one place.
 - **Resume (S):** one-click PDF in the rack with the latest version date.
 
+## 2b. Tarot voice: sound while the revelation is read (asked 10 Nov)
+Three ways, from cheapest to richest:
+1. **Typing ticks (S, free):** a very soft tick every few letters as the revelation text writes itself, plus the existing `reveal.mp3` at the start. No new files needed (can be synthesized).
+2. **Read aloud with the browser voice (M, free):** the Web Speech API (`speechSynthesis`) reads the revelation out loud. A small "Read aloud" toggle (off by default), voice chosen from the reading language the game already has, text split into sentences so long readings do not cut off, stops when the reading is closed. Voice quality depends on the visitor's device (good on Edge/Chrome/Android/iOS, robotic on some Linux).
+3. **A real "Oracle" voice (L, costs tokens):** a neural text-to-speech API (e.g. Gemini TTS) called through the Cloudflare Worker proxy so the key stays hidden, cached per reading. Best quality, but every reading costs extra; keep it for a "Listen" button with its own daily limit.
+Suggested order: 1, then 2; do 3 only after the key proxy exists.
+
 ## 3. UI/UX optimizer
 - **Hick's law check (S):** the welcome popup, the chips and the rack all offer the same 6 places; keep that list identical everywhere.
 - **Mobile pass (M):** thumb-reach test on a real phone: tarot inside the page is cramped, so offer "Play full screen" as the default on small screens.
