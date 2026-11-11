@@ -36,8 +36,8 @@
   /* Card sizes: hero = the card being revealed, dock = card resting in its slot */
   --hero-h: clamp(220px, 34vh, 340px);
   --hero-w: calc(var(--hero-h) * 0.611);
-  --dock-w: 94px;
-  --dock-h: 153px;
+  --dock-w: 116px;
+  --dock-h: 189px;
 
   /* Card-back ornament as one shared image (was an inline <svg> + drop-shadow per card) */
   --card-back-art: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23dfb15b' stroke-width='1.2'%3E%3Ccircle cx='50' cy='50' r='38'/%3E%3Cpolygon points='50,15 80,75 20,75'/%3E%3Cpolygon points='50,85 80,25 20,25'/%3E%3Ccircle cx='50' cy='50' r='12'/%3E%3C/svg%3E");
@@ -424,8 +424,8 @@ body.modal-open .app-viewport { pointer-events: none; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  padding-top: 0.5rem;
+  justify-content: center;
+  padding: 0;
   position: relative;
   transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
   overflow: visible;
@@ -1337,24 +1337,7 @@ body.modal-open .app-viewport { pointer-events: none; }
 
 .tarot-card-3d.hero { --showcase-ms: 3000ms; --showcase-scale: 1.45; }
 
-/* Light rays behind the card */
-.tarot-card-3d.hero::before {
-  content: "";
-  position: absolute;
-  inset: -70%;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0;
-  background: repeating-conic-gradient(from 0deg,
-    rgba(246, 227, 180, 0) 0deg 9deg,
-    rgba(246, 227, 180, 0.34) 11deg,
-    rgba(246, 227, 180, 0) 14deg);
-  -webkit-mask-image: radial-gradient(circle, #000 14%, transparent 62%);
-          mask-image: radial-gradient(circle, #000 14%, transparent 62%);
-}
-
 .tarot-card-3d.hero.showcase { animation: showcasePop var(--showcase-ms) cubic-bezier(.22, 1, .36, 1) both; z-index: 600; }
-.tarot-card-3d.hero.showcase::before { animation: showcaseRays var(--showcase-ms) ease-in-out both; }
 .tarot-card-3d.hero.showcase .card-inner { animation: showcaseTilt var(--showcase-ms) ease-in-out both; }
 
 /* grow -> hold -> return to the original size */
@@ -1369,21 +1352,14 @@ body.modal-open .app-viewport { pointer-events: none; }
   0%   { transform: rotateY(180deg) rotateX(0deg);
          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.55); }
   20%  { transform: rotateY(180deg) rotateX(0deg);
-         box-shadow: 0 0 46px rgba(246, 227, 180, 0.75), 0 0 110px rgba(139, 92, 246, 0.45); }
+         box-shadow: 0 0 26px rgba(246, 227, 180, 0.35); }
   38%  { transform: rotateY(166deg) rotateX(5deg); }
   62%  { transform: rotateY(194deg) rotateX(-4deg);
-         box-shadow: 0 0 46px rgba(246, 227, 180, 0.75), 0 0 110px rgba(139, 92, 246, 0.45); }
+         box-shadow: 0 0 26px rgba(246, 227, 180, 0.35); }
   82%  { transform: rotateY(180deg) rotateX(0deg); }
   100% { transform: rotateY(180deg) rotateX(0deg);
          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.55); }
 }
-@keyframes showcaseRays {
-  0%   { opacity: 0; transform: rotate(0deg) scale(.7); }
-  22%  { opacity: .9; }
-  78%  { opacity: .75; }
-  100% { opacity: 0; transform: rotate(40deg) scale(1.1); }
-}
-
 /* Reflective light ray that sweeps across the art, twice */
 .card-shine, .card-holo {
   position: absolute;
@@ -1706,3 +1682,9 @@ img.oracle-avatar { background: #0b0f1d; }
 .access-split { align-items: stretch; }
 .access-card > .access-link.center { margin: 1rem auto 0; }
 @media (max-width: 640px) { .access-skip-info { text-align: left; } }
+
+/* v0.9.2: Upright / Reversed lives under the slot name (PAST / PRESENT / FUTURE), not on the card */
+.orientation-tag, .has-art .orientation-tag { display: none !important; }
+.slot-label { display: flex; flex-direction: column; align-items: center; gap: 2px; white-space: nowrap; }
+.slot-orient { font-family: var(--font-tech); font-size: 0.62rem; letter-spacing: 1.2px; color: var(--text-muted); font-weight: 600; }
+:root { --dock-zone-h: calc(210px * var(--ds) + 56px); }

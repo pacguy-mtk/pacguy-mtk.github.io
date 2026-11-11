@@ -17,14 +17,22 @@
   const CHANGELOG = [
     {
       version: '0.9.2', title: 'Layout update', date: 'Nov 11, 2026',
-      summary: 'A steady layout that fits every screen.',
+      summary: 'A tidier table, cleaner cards and a simpler key window.',
       groups: [
-        { type: 'fixes', items: [
-          '<strong>Nothing jumps while you play.</strong> The deck, the Past / Present / Future slots and the Reset button stay in fixed places.',
-          '<strong>Reset is in the middle</strong> of the table, between the deck and your cards.',
-          '<strong>Phone and small screens.</strong> The whole game now fits, with no clipped slots.'
+        { type: 'visual', items: [
+          '<strong>Upright / Reversed</strong> moved off the card and now sits under Past / Present / Future.',
+          '<strong>Major Arcana showcase:</strong> light rays removed, the reflective shine stays.',
+          '<strong>Cards fit their slots</strong> and are centred.',
+          '<strong>Oracle icon</strong> changed: dark disc, gold ring, no purple.'
         ]},
-        { type: 'visual', items: ['The Oracle icon lost its purple background.'] }
+        { type: 'upgrades', items: [
+          '<strong>Key window:</strong> your key and the house Oracle split by a line with OR. The button now just says Skip, with the daily count above it.',
+          '<strong>Reset</strong> button centred between the deck and your cards.',
+          '<strong>Layout:</strong> the deck, slots and Reset keep fixed positions on desktop, tablet and phone.'
+        ]},
+        { type: 'fixes', items: [
+          'Phone and tablet UI placement corrected: no clipped slots, no jumping page, header fits one row.'
+        ]}
       ]
     },
     {

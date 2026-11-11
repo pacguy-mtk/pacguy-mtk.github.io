@@ -466,10 +466,20 @@
     slotEl.querySelectorAll('.dock-orientation-label, .tarot-card-3d').forEach(n => n.remove());
     slotEl.classList.add('filled-slot');
 
-    // v0.9.1: the blue "(Upright)" / "(Reversed)" text was removed; the golden tag on the card is the only label.
+    // v0.9.2: no orientation text on the card; it is shown under the slot name instead.
     const card = createCardDOMElement(cardData, 'docked flipped');
     card.style.visibility = 'hidden';                          // shown when the flying card lands
     slotEl.append(card);
+    // v0.9.2: orientation is printed under the slot name, like PAST / PRESENT / FUTURE
+    const lbl = slotEl.querySelector('.slot-label');
+    if (lbl) {
+      lbl.textContent = '';
+      lbl.append(slotEl.dataset.label || '');
+      const o = document.createElement('span');
+      o.className = 'slot-orient';
+      o.textContent = cardData.isReversed ? 'Reversed' : 'Upright';
+      lbl.append(o);
+    }
     return card;
   }
 
