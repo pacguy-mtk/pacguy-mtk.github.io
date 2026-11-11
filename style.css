@@ -3511,6 +3511,92 @@
     .tarot-frame-wrap.fake-full { position: fixed; inset: 0; z-index: 200; }
     .tarot-frame-wrap.fake-full #tarotFrame { height: calc(100vh - 46px); }
 
+    /* ---------- Tarot Ko-fi Banner ---------- */
+    .tarot-kofi-banner {
+      margin: 36px auto 0;
+      max-width: 680px;
+      padding: 24px 28px;
+      background: linear-gradient(145deg, rgba(223, 177, 91, 0.09), rgba(139, 92, 246, 0.12), rgba(9, 11, 20, 0.92));
+      border: 1px solid rgba(223, 177, 91, 0.32);
+      border-radius: 18px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .tarot-kofi-banner:hover {
+      border-color: rgba(223, 177, 91, 0.55);
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5), 0 0 24px rgba(223, 177, 91, 0.15);
+    }
+    .kofi-banner-badge {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: #f6e3b4;
+      background: rgba(223, 177, 91, 0.16);
+      padding: 4px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(223, 177, 91, 0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .kofi-banner-text {
+      color: #d8deea;
+      font-size: 14.5px;
+      line-height: 1.7;
+      margin: 0;
+      max-width: 540px;
+      font-weight: 450;
+    }
+    .kofi-banner-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 10px 24px;
+      min-height: 44px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #dfb15b, #c99839);
+      color: #0b0e17;
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 0.03em;
+      text-decoration: none;
+      border: 1px solid #f6e3b4;
+      box-shadow: 0 6px 20px rgba(223, 177, 91, 0.32);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      cursor: pointer;
+    }
+    .kofi-banner-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(223, 177, 91, 0.5);
+      filter: brightness(1.08);
+      color: #05070d;
+    }
+    .kofi-banner-btn i {
+      font-size: 15px;
+    }
+    @media (max-width: 640px) {
+      .tarot-kofi-banner {
+        margin: 24px 12px 0;
+        padding: 20px 16px;
+        border-radius: 14px;
+      }
+      .kofi-banner-text {
+        font-size: 13.5px;
+        line-height: 1.6;
+      }
+      .kofi-banner-btn {
+        width: 100%;
+        max-width: 280px;
+      }
+    }
+
     /* ---------- 04 · Systems rack + contact ---------- */
     .contact.systems { min-height: 0; padding-top: 100px; padding-bottom: 90px; }
     .systems-shell { width: min(980px, 100%); margin: 0 auto; }
