@@ -1170,14 +1170,15 @@ room.add(reg(tarot, 'tarot', 'Tarot · Play'));
 
 /* ===================== HOVER GLOW AURAS ===================== */
 // Vibrant breathing aura sprites for all selectable 3D objects
+// Soft, cozy ambient halo configs hugging each selectable object
 const HOVER_CONFIG = {
-  gallery: { color: 0x5ce6e6, size: 5.2, pos: [0, 2.3, -.2] },
-  radio:   { color: 0xffb050, size: 3.4, pos: [0, .75, 0] },
-  server:  { color: 0x50f0b0, size: 2.8, pos: [0, .45, 0] },
-  lumie:   { color: 0xffea78, size: 2.5, pos: [0, .35, 0] },
-  mug:     { color: 0xffa044, size: 2.0, pos: [0, .45, 0] },
-  phone:   { color: 0x7aa7ff, size: 2.2, pos: [0, .1, 0] },
-  tarot:   { color: 0xc49cff, size: 4.6, pos: [0, .35, 0] }
+  gallery: { color: 0x40b8c8, size: 3.6, pos: [0, 2.3, -.2] },
+  radio:   { color: 0xd4883e, size: 2.2, pos: [0, .75, 0] },
+  server:  { color: 0x38b888, size: 1.8, pos: [0, .35, 0] },
+  lumie:   { color: 0xe0b850, size: 1.6, pos: [0, .35, 0] },
+  mug:     { color: 0xd07c36, size: 1.2, pos: [0, .45, 0] },
+  phone:   { color: 0x5b7ec8, size: 1.3, pos: [0, .1, 0] },
+  tarot:   { color: 0x9874c8, size: 2.6, pos: [0, .35, 0] }
 };
 const hoverGlows = {};
 interactive.forEach(grp => {
@@ -1350,13 +1351,13 @@ function tick(){
     const g = hoverGlows[o.userData.id];
     if(g){
       const cfg = HOVER_CONFIG[o.userData.id];
-      // Dynamic glowing aura with soft breathing pulse when hovered
-      g.material.opacity = h * (.55 + Math.sin(t * 3.8) * .12);
-      g.scale.setScalar(cfg.size * (.92 + h * .16 + Math.sin(t * 3.8) * .04));
+      // Subtle, natural ambient halo with calm, gentle breathing ease
+      g.material.opacity = h * (.18 + Math.sin(t * 1.8) * .04);
+      g.scale.setScalar(cfg.size * (.95 + h * .08 + Math.sin(t * 1.8) * .02));
     }
   });
   const hv = id => interactive.find(o => o.userData.id === id).userData.hv;
-  screenMat.color.setRGB(.8 + hv('gallery') * .25, .8 + hv('gallery') * .25, .84 + hv('gallery') * .3);
+  screenMat.color.setRGB(.8 + hv('gallery') * .08, .8 + hv('gallery') * .08, .84 + hv('gallery') * .08);
   radio.position.y = hv('radio') * .05; server.position.y = hv('server') * .05; mug.position.y = hv('mug') * .06; phoneGroup.position.y = hv('phone') * .08;
   tarot.position.y = hv('tarot') * .03; cards.forEach((c, i) => { c.position.y = .07 + hv('tarot') * (.07 + Math.sin(t * 2 + i) * .02); });
   dialLevel += ((musicOn ? 1 : 0) - dialLevel) * (1 - Math.pow(.25, dt));
@@ -1382,15 +1383,15 @@ function tick(){
   if(sayUntil && now > sayUntil){ bubbleEl.classList.remove('on'); sayUntil = 0; }
   if(sayUntil){ tmpV.set(0, 1.9, 0); imp.localToWorld(tmpV); tmpV.project(camera); const sx = (tmpV.x * .5 + .5) * W, sy = (-tmpV.y * .5 + .5) * H; bubbleEl.style.left = Math.max(110, Math.min(W - 110, sx)) + 'px'; bubbleEl.style.top = Math.max(60, sy - 6) + 'px'; }
 
-  /* hotspots with hover bloom */
+  /* hotspots with gentle hover accent */
   Object.keys(hotspots).forEach(id => {
     const s = hotspots[id];
     const isHov = hovered && hovered.userData.id === id;
     const on = hotspotsVisible && entered && !isHov;
-    const target = isHov ? 1.0 : (on ? .55 + Math.sin(t * 2.2 + s.userData.ph) * .25 : 0);
-    s.material.opacity += (target - s.material.opacity) * .15;
-    s.scale.setScalar(isHov ? .68 + Math.sin(t * 4.5) * .08 : .4 + Math.sin(t * 2.2 + s.userData.ph) * .06);
-    if(isHov){ s.material.color.setHex(0xffffff); } else { s.material.color.setHex(0xffd9a0); }
+    const target = isHov ? .85 : (on ? .55 + Math.sin(t * 2.2 + s.userData.ph) * .25 : 0);
+    s.material.opacity += (target - s.material.opacity) * .12;
+    s.scale.setScalar(isHov ? .52 + Math.sin(t * 2.2) * .04 : .4 + Math.sin(t * 2.2 + s.userData.ph) * .06);
+    if(isHov){ s.material.color.setHex(0xfff0d0); } else { s.material.color.setHex(0xffd9a0); }
   });
 
   try{ comp.c ? comp.c.render() : renderer.render(scene, camera); }
