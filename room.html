@@ -224,6 +224,22 @@ body[data-panel="radio"] #sec-radio{display:flex}
   .hint{top:64px;font-size:11.5px}
   #dock button{min-width:52px}
 }
+/* v3.1: quality button, rotate prompt, tune panel, short landscape phones */
+#qBtn b{color:var(--text);font-weight:650}
+#rotate{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:rgba(5,7,13,.95);padding:24px}
+#rotate[hidden]{display:none}
+#rotate .box{max-width:360px;text-align:center;display:grid;gap:14px;justify-items:center}
+#rotate h2{margin:0;font-size:22px}#rotate p{margin:0;color:var(--muted);line-height:1.6;font-size:14px}
+.rot-ico{font-size:46px;display:inline-block;animation:rotph 2.6s ease-in-out infinite}
+@keyframes rotph{0%,30%{transform:rotate(0)}65%,100%{transform:rotate(-90deg)}}
+#tune{position:fixed;left:12px;bottom:12px;z-index:90;background:rgba(8,12,22,.92);border:1px solid var(--line);border-radius:14px;padding:12px;width:270px;font-size:12px;display:grid;gap:6px}
+#tune label{display:grid;grid-template-columns:86px 1fr 40px;gap:6px;align-items:center;color:var(--muted)}
+@media (orientation:landscape) and (max-height:480px){
+  .hint{display:none}
+  #hud{padding:8px 14px}
+  .brand span span{display:none}
+  #drawer{top:58px;bottom:74px}
+}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
@@ -241,6 +257,7 @@ body[data-panel="radio"] #sec-radio{display:flex}
 <header id="hud">
   <a class="brand" href="room.html" aria-label="ZiJun Room"><div class="brand-mark">ZJ</div><span><strong>ZiJun Room</strong><span>Design / AI / Tools</span></span></a>
   <div class="hud-right">
+    <button class="pill" id="qBtn" type="button" title="Graphics quality (click to change)">Graphics: <b id="qLbl">Auto</b></button>
     <button class="pill" id="npPill" type="button" hidden aria-label="Toggle music"><span class="eq"><i></i><i></i><i></i></span><span class="np-title" id="npTitle">OST</span></button>
     <a class="pill" href="index.html?mode=classic"><i class="fas fa-arrow-up-right-from-square"></i> Classic site</a>
   </div>
@@ -248,6 +265,14 @@ body[data-panel="radio"] #sec-radio{display:flex}
 <div class="hint" id="hint">Click the glowing things on the desk, or use the buttons below</div>
 <div id="label"></div>
 <div id="bubble"></div>
+<div id="rotate" hidden><div class="box">
+  <div class="rot-ico">&#128241;</div>
+  <h2>Best in landscape</h2>
+  <p>The room is a wide desk scene. Turn your phone sideways for the full view.</p>
+  <p id="rotNote"></p>
+  <button class="btn primary" id="rotLock" type="button">Lock landscape</button>
+  <button class="btn small" id="rotSkip" type="button">Continue in portrait</button>
+</div></div>
 
 <nav id="dock" aria-label="Sections">
   <button type="button" data-open="gallery" style="--c:#42e8d4"><i class="fas fa-images"></i>Gallery</button>
@@ -653,6 +678,27 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 const $ = s => document.querySelector(s);
 const V3 = THREE.Vector3;
 const LITE = /[?&]lite\b/.test(location.search);
+
+/* ---------- quality tiers: keep the GPU (and the laptop fan) calm ---------- */
+const TIERS = {
+  high:   { dpr: 1.5,  fps: 60, shadow: 2048, soft: true,  bloom: true,  msaa: 4, extra: true  },
+  medium: { dpr: 1.25, fps: 40, shadow: 1024, soft: false, bloom: true,  msaa: 2, extra: false },
+  low:    { dpr: 1,    fps: 30, shadow: 1024, soft: false, bloom: false, msaa: 0, extra: false }
+};
+const COARSE = matchMedia('(pointer: coarse)').matches;
+let TIER = (function(){
+  const m = /[?&]quality=(high|medium|low)\b/.exec(location.search); if(m) return m[1];
+  if(LITE) return 'low';
+  let s = null; try{ s = localStorage.getItem('zj_quality'); }catch(e){}
+  if(TIERS[s]) return s;
+  const weak = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
+  return (COARSE || weak) ? 'medium' : 'high';
+})();
+let Q = TIERS[TIER];
+/* lighting look: tweak live with room.html?tune, then paste the copied values here */
+const LOOK = { exposure: .92, hemi: 1.25, fill: .25, moon: 1.15, lamp: 56, monitor: 11, monitorBack: 8, bloom: .42 };
+const extraLights = [];
+let lastInput = performance.now(), lastFrame = 0, shadowT = 0;
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 window.__fatal = function(msg){ try{ localStorage.setItem('zj_mode', 'classic'); }catch(e){} const f = $('#fatal'); $('#fatalMsg').textContent = msg; f.hidden = false; $('#loader').classList.add('done'); };
 
@@ -663,14 +709,15 @@ const R = rng(20261115);
 /* ---------- renderer ---------- */
 let renderer;
 try{
-  renderer = new THREE.WebGLRenderer({ canvas: $('#scene'), antialias: true, powerPreference: 'high-performance' });
+  renderer = new THREE.WebGLRenderer({ canvas: $('#scene'), antialias: true, powerPreference: 'default' });
 }catch(e){ window.__fatal('WebGL is not available in this browser.'); throw e; }
-const DPR = Math.min(window.devicePixelRatio || 1, LITE ? 1 : 2);
+let DPR = Math.min(window.devicePixelRatio || 1, Q.dpr);
 renderer.setPixelRatio(DPR);
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = Q.soft ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
+renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true; /* shadows are redrawn a few times a second, not every frame */
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = .9;
+renderer.toneMappingExposure = LOOK.exposure;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x05070d);
@@ -1137,10 +1184,10 @@ lamp.rotation.y = -.12;
 room.add(lamp);
 
 const bulbWorld = new V3(); bulb.getWorldPosition(bulbWorld);
-const lampSpot = new THREE.SpotLight(0xffb465, 52, 18, .85, .95, 1.6);
+const lampSpot = new THREE.SpotLight(0xffb465, LOOK.lamp, 18, .8, .9, 1.6);
 lampSpot.position.copy(bulbWorld);
 lampSpot.target.position.set(3.2, 0, 1.4);
-lampSpot.castShadow = true; lampSpot.shadow.mapSize.set(LITE ? 1024 : 2048, LITE ? 1024 : 2048); lampSpot.shadow.bias = -.0004; lampSpot.shadow.normalBias = .03; lampSpot.shadow.radius = 5; lampSpot.shadow.camera.near = .4; lampSpot.shadow.camera.far = 18;
+lampSpot.castShadow = true; lampSpot.shadow.mapSize.set(Q.shadow, Q.shadow); lampSpot.shadow.bias = -.0004; lampSpot.shadow.normalBias = .03; lampSpot.shadow.radius = 5; lampSpot.shadow.camera.near = .4; lampSpot.shadow.camera.far = 18;
 room.add(lampSpot, lampSpot.target);
 const lampGlow = sprite(0xffa850, 1.5, .2); lampGlow.position.copy(bulbWorld); room.add(lampGlow);
 const lampFill = new THREE.PointLight(0xffa860, 4.5, 10, 1.8); lampFill.position.copy(bulbWorld).add(new V3(-.5, -.2, -.4)); room.add(lampFill);
@@ -1199,12 +1246,13 @@ interactive.forEach(grp => {
 }
 
 /* ===================== LIGHTING ===================== */
-scene.add(new THREE.HemisphereLight(0x4f62b0, 0x2c1d3d, 1.7));
-const fill = new THREE.DirectionalLight(0x93a8e6, .5); fill.position.set(-4, 5, 10); fill.target.position.set(0, 1, 0); scene.add(fill, fill.target);
-const moon = new THREE.DirectionalLight(0x7ea3ff, 1.1); moon.position.set(6, 6, -7); moon.target.position.set(0, 1, 1); scene.add(moon, moon.target);
-const monitorLight = new THREE.PointLight(0xdfe9ff, 11, 9, 1.7); monitorLight.position.set(-2.0, 2.2, 1.2); scene.add(monitorLight);
-const monitorBack = new THREE.PointLight(0x8fb2ff, 8, 5, 2); monitorBack.position.set(-2.0, 2.4, -1.6); scene.add(monitorBack);
-[[-3.3, SHELF_Y - .4, -.9], [3.0, 2.8, -.4], [-6.3, 2.3, -.7]].forEach(p => { const l = new THREE.PointLight(0xffb464, 4.5, 6.5, 2); l.position.set(p[0], p[1], p[2]); scene.add(l); });
+const hemi = new THREE.HemisphereLight(0x4f62b0, 0x2c1d3d, LOOK.hemi); scene.add(hemi);
+const fill = new THREE.DirectionalLight(0x93a8e6, LOOK.fill); fill.position.set(-4, 5, 10); fill.target.position.set(0, 1, 0); scene.add(fill, fill.target);
+const moon = new THREE.DirectionalLight(0x7ea3ff, LOOK.moon); moon.position.set(6, 6, -7); moon.target.position.set(0, 1, 1); scene.add(moon, moon.target);
+const monitorLight = new THREE.PointLight(0xdfe9ff, LOOK.monitor, 9, 1.7); monitorLight.position.set(-2.0, 2.2, 1.2); scene.add(monitorLight);
+const monitorBack = new THREE.PointLight(0x8fb2ff, LOOK.monitorBack, 5, 2); monitorBack.position.set(-2.0, 2.4, -1.6); scene.add(monitorBack);
+[[-3.3, SHELF_Y - .4, -.9], [3.0, 2.8, -.4], [-6.3, 2.3, -.7]].forEach(p => { const l = new THREE.PointLight(0xffb464, 4.5, 6.5, 2); l.position.set(p[0], p[1], p[2]); scene.add(l); extraLights.push(l); });
+extraLights.push(fill, monitorBack); extraLights.forEach(l => { l.visible = Q.extra; });
 { const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromScene(new RoomEnvironment(), .04).texture; scene.traverse(o => { if(o.material && o.material.isMeshStandardMaterial && !o.material.userData.noEnv) o.material.envMapIntensity = .22; }); }
 
 /* ===================== PARTICLES ===================== */
@@ -1239,6 +1287,7 @@ let panelShift = 0, panelShiftWant = 0, W = 1, H = 1;
 const comp = { c: null, bloom: null };
 
 function onFocus(id){
+  lastInput = performance.now();
   view = id || 'home';
   const v = VIEWS[view] || VIEWS.home;
   wantPos.fromArray(v.p); wantLook.fromArray(v.l);
@@ -1254,7 +1303,7 @@ function resize(){
   const baseFov = 42, a = W / H;
   camera.fov = a >= 1.55 ? baseFov : Math.min(70, 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(baseFov / 2)) * 1.55 / a) * 180 / Math.PI);
   camera.updateProjectionMatrix();
-  if(comp.c){ comp.c.setPixelRatio(DPR); comp.c.setSize(W, H); comp.bloom.setSize(W, H); }
+  if(comp.c){ comp.c.setPixelRatio(DPR); comp.c.setSize(W, H); sizeBloom(); }
 }
 addEventListener('resize', resize);
 
@@ -1306,18 +1355,93 @@ let blinkAt = 2, blinkT = -1, nextLine = 14, frames = 0;
 const eyeBase = eyes.map(e => e.scale.y);
 resize();
 
-try{
-  if(!LITE){
-    comp.c = new EffectComposer(renderer);
+function sizeBloom(){ if(comp.bloom) comp.bloom.setSize(Math.ceil(W / 2), Math.ceil(H / 2)); } /* bloom at half resolution: about 4x cheaper, still soft glow */
+function buildComposer(){
+  if(comp.c){ try{ comp.c.dispose(); }catch(e){} comp.c = null; comp.bloom = null; }
+  if(!Q.bloom) return;
+  try{
+    const rt = new THREE.WebGLRenderTarget(Math.max(1, Math.floor(W * DPR)), Math.max(1, Math.floor(H * DPR)), { type: THREE.HalfFloatType, samples: Q.msaa });
+    comp.c = new EffectComposer(renderer, rt);
     comp.c.addPass(new RenderPass(scene, camera));
-    comp.bloom = new UnrealBloomPass(new THREE.Vector2(W, H), .4, .7, .92); comp.c.addPass(comp.bloom);
-    comp.c.addPass(new OutputPass()); comp.c.setPixelRatio(DPR); comp.c.setSize(W, H);
-  }
-}catch(err){ comp.c = null; }
+    comp.bloom = new UnrealBloomPass(new THREE.Vector2(Math.ceil(W / 2), Math.ceil(H / 2)), LOOK.bloom, .7, .92); comp.c.addPass(comp.bloom);
+    comp.c.addPass(new OutputPass()); comp.c.setPixelRatio(DPR); comp.c.setSize(W, H); sizeBloom();
+  }catch(err){ comp.c = null; comp.bloom = null; }
+}
+buildComposer();
 
-function tick(){
+let perfN = 0, perfSum = 0, perfSkip = 0, perfLast = 0;
+function setTier(name, save){
+  if(!TIERS[name]) return;
+  TIER = name; Q = TIERS[name];
+  DPR = Math.min(window.devicePixelRatio || 1, Q.dpr); renderer.setPixelRatio(DPR);
+  lampSpot.shadow.mapSize.set(Q.shadow, Q.shadow); if(lampSpot.shadow.map){ lampSpot.shadow.map.dispose(); lampSpot.shadow.map = null; }
+  extraLights.forEach(l => { l.visible = Q.extra; });
+  resize(); buildComposer(); renderer.shadowMap.needsUpdate = true;
+  perfN = 0; perfSum = 0; perfSkip = 0;
+  const lb = $('#qLbl'); if(lb) lb.textContent = name[0].toUpperCase() + name.slice(1);
+  if(save){ try{ localStorage.setItem('zj_quality', name); }catch(e){} }
+}
+/* if the machine cannot keep up, step down one tier automatically */
+function perfWatch(now){
+  const ms = now - perfLast; perfLast = now;
+  if(ms > 250 || ++perfSkip < 90) return;
+  perfSum += ms;
+  if(++perfN >= 120){
+    const avg = perfSum / perfN; perfN = 0; perfSum = 0;
+    if(avg > 1000 / Q.fps * 1.6 && TIER !== 'low') setTier(TIER === 'high' ? 'medium' : 'low', true);
+  }
+}
+{ const lb = $('#qLbl'); if(lb) lb.textContent = TIER[0].toUpperCase() + TIER.slice(1); }
+$('#qBtn').addEventListener('click', () => setTier(TIER === 'high' ? 'medium' : TIER === 'medium' ? 'low' : 'high', true));
+['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev => addEventListener(ev, () => { lastInput = performance.now(); }, { passive: true }));
+
+/* live lighting tuning: open room.html?tune, drag the sliders, press Copy, send the values */
+function applyLook(){
+  renderer.toneMappingExposure = LOOK.exposure; hemi.intensity = LOOK.hemi; fill.intensity = LOOK.fill; moon.intensity = LOOK.moon;
+  monitorLight.intensity = LOOK.monitor; monitorBack.intensity = LOOK.monitorBack; if(comp.bloom) comp.bloom.strength = LOOK.bloom;
+}
+if(/[?&]tune\b/.test(location.search)){
+  const box = document.createElement('div'); box.id = 'tune';
+  [['exposure', .3, 2, .01], ['hemi', 0, 3, .05], ['fill', 0, 2, .05], ['moon', 0, 3, .05], ['lamp', 0, 120, 1], ['monitor', 0, 30, .5], ['monitorBack', 0, 20, .5], ['bloom', 0, 1.5, .02]].forEach(d => {
+    const l = document.createElement('label'); l.innerHTML = d[0] + '<input type="range" min="' + d[1] + '" max="' + d[2] + '" step="' + d[3] + '" value="' + LOOK[d[0]] + '"><span>' + LOOK[d[0]] + '</span>';
+    l.querySelector('input').addEventListener('input', e => { LOOK[d[0]] = +e.target.value; l.querySelector('span').textContent = LOOK[d[0]]; applyLook(); });
+    box.appendChild(l);
+  });
+  const cp = document.createElement('button'); cp.className = 'btn small'; cp.textContent = 'Copy LOOK values';
+  cp.onclick = () => { const s = 'const LOOK = ' + JSON.stringify(LOOK) + ';'; (navigator.clipboard ? navigator.clipboard.writeText(s) : Promise.reject()).then(() => { cp.textContent = 'Copied!'; }).catch(() => { prompt('Copy this:', s); }); };
+  box.appendChild(cp); document.body.appendChild(box);
+}
+
+/* phones: the room is a wide scene, so ask for landscape (and try to lock it, this page only) */
+(function(){
+  const box = document.getElementById('rotate'); if(!box) return;
+  const portrait = () => innerHeight > innerWidth * 1.05;
+  let dismissed = false; try{ dismissed = sessionStorage.getItem('zj_portrait_ok') === '1'; }catch(e){}
+  const sync = () => { box.hidden = !(COARSE && portrait() && !dismissed); };
+  document.getElementById('rotLock').addEventListener('click', async () => {
+    let ok = false;
+    try{ if(!document.fullscreenElement && document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen({ navigationUI: 'hide' }); }catch(e){}
+    try{ if(screen.orientation && screen.orientation.lock){ await screen.orientation.lock('landscape'); ok = true; } }catch(e){}
+    if(ok){ box.hidden = true; } else { document.getElementById('rotNote').textContent = 'This browser cannot lock the screen. Turn off rotation lock in your phone settings, then turn the phone sideways.'; }
+  });
+  document.getElementById('rotSkip').addEventListener('click', () => { dismissed = true; try{ sessionStorage.setItem('zj_portrait_ok', '1'); }catch(e){} sync(); });
+  addEventListener('resize', sync); addEventListener('orientationchange', sync);
+  addEventListener('pagehide', () => { try{ screen.orientation.unlock(); }catch(e){} });
+  sync();
+})();
+
+const tarotEl = document.getElementById('tarotOverlay');
+function tick(ts){
   requestAnimationFrame(tick);
+  if(document.hidden) return;                                   /* tab in background: draw nothing */
+  if(tarotEl && tarotEl.classList.contains('on')) return;        /* full-screen tarot covers the room */
+  const idle = document.body.classList.contains('show-welcome') || (performance.now() - lastInput > 8000);
+  const cap = idle ? Math.min(24, Q.fps) : Q.fps;                /* calm 24 fps when nobody is interacting */
+  if(ts - lastFrame < 1000 / cap - 3) return;
+  lastFrame = ts;
+  if(!idle) perfWatch(ts);
   const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime;
+  shadowT += dt; if(shadowT > .25){ shadowT = 0; renderer.shadowMap.needsUpdate = true; }
 
   /* camera */
   const k = 1 - Math.pow(.0009, dt);
@@ -1336,7 +1460,7 @@ function tick(){
   bulbMats[0].color.setRGB(2.2 * (.85 + Math.sin(t * 1.7) * .15), 1.45 * (.85 + Math.sin(t * 1.7) * .15), .7);
   bulbMats[1].color.setRGB(2.2 * (.85 + Math.sin(t * 1.7 + 2) * .15), 1.45 * (.85 + Math.sin(t * 1.7 + 2) * .15), .7);
   bulbCount.forEach(s => { s.material.opacity = .42 + Math.sin(t * 1.7 + s.userData.tw) * .12; });
-  lampSpot.intensity = 52 + Math.sin(t * .9) * .8;
+  lampSpot.intensity = LOOK.lamp + Math.sin(t * .9) * .8;
   ledMats[0].color.setRGB(.2, 2.2 * (Math.sin(t * 5) > -.6 ? 1 : .15), .6); ledMats[1].color.setRGB(.2, 2.2 * (Math.sin(t * 2.3 + 1) > -.3 ? 1 : .2), .6);
   steam.forEach(s => { const u = s.userData; u.t = (u.t + dt * .16) % 1; const p = u.t; s.position.set(Math.sin(p * 7 + steam.indexOf(s)) * .08 * (1 + p) , .68 + p * 1.2, Math.cos(p * 5 + steam.indexOf(s)) * .05); s.scale.setScalar(.18 + p * .55); s.material.opacity = Math.sin(p * Math.PI) * .22; });
   const dp = dustGeo.attributes.position.array;

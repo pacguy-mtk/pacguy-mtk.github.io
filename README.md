@@ -6,3 +6,5 @@ Personal site on GitHub Pages with two modes:
 
 Mode switch preference is remembered via `localStorage.zj_mode`, with URL overrides `?mode=room` and `?mode=classic`.
 See `AGENTS.md` (how to edit), `docs/future-expansion.md` (ideas) and `docs/tarot-HANDOFF.md` (tarot internals).
+
+**Performance note (v3.1):** the 3D room adapts to your device (`?quality=high|medium|low`, or the Graphics button), idles at a low frame rate, and asks phones to use landscape. Details: `docs/room-HANDOFF.md`.
