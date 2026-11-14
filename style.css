@@ -158,6 +158,22 @@
       cursor: pointer;
     }
 
+    .nav-3d {
+      background: rgba(223, 177, 91, 0.12) !important;
+      border: 1px solid rgba(223, 177, 91, 0.45) !important;
+      border-radius: 999px !important;
+      padding: 0 14px !important;
+      color: #f6e3b4 !important;
+      transition: all 0.2s ease !important;
+    }
+    .nav-3d:hover {
+      background: rgba(223, 177, 91, 0.25) !important;
+      border-color: rgba(223, 177, 91, 0.8) !important;
+      color: #fff !important;
+      box-shadow: 0 0 16px rgba(223, 177, 91, 0.35) !important;
+      transform: translateY(-1px);
+    }
+
     .nav a:hover,
     .page-menu:hover .page-toggle,
     .page-menu.open .page-toggle {

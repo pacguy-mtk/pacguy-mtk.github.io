@@ -1,6 +1,25 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <script>
+  (function () {
+    var q = new URLSearchParams(location.search), m = q.get('mode'), KEY = 'zj_mode';
+    try { if (m === 'room' || m === 'classic') localStorage.setItem(KEY, m); } catch (e) {}
+    var pref = m || (function () { try { return localStorage.getItem(KEY); } catch (e) { return null; } })() || 'room';
+    if (pref !== 'room') return;                       // classic requested: stay here
+    if (!canRoom()) return;                            // cannot run the room: stay here
+    location.replace('room.html' + location.hash);     // default: go to the 3D room
+    function canRoom() {
+      try {
+        var c = document.createElement('canvas');
+        if (!(c.getContext('webgl2') || c.getContext('webgl'))) return false;
+      } catch (e) { return false; }
+      if (navigator.connection && navigator.connection.saveData) return false;
+      if (/bot|crawl|spider|lighthouse/i.test(navigator.userAgent)) return false;
+      return true;
+    }
+  })();
+  </script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ZiJun | The Hub</title>
@@ -75,6 +94,7 @@
       </span>
     </a>
     <nav class="nav" aria-label="Main navigation">
+      <a href="room.html?mode=room" class="nav-3d" title="Switch to 3D room"><i class="fas fa-cube" style="font-size: 11px; margin-right: 5px; color: #dfb15b;"></i>3D Room</a>
       <a href="#hub">Hub</a>
       <a href="#tarot"><i class="fas fa-moon" style="font-size: 11px; margin-right: 4px; color: var(--violet);"></i>Tarot</a>
       <a href="#gallery"><i class="fas fa-images" style="font-size: 11px; margin-right: 4px; color: var(--cyan);"></i>Gallery</a>

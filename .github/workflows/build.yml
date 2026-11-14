@@ -38,6 +38,7 @@ jobs:
           jobs = {
             'script.js': ['GROQ_API_KEY', 'OPENROUTER_API_KEY'],
             'tarot/config.js': ['TAROT_API_KEY_1', 'TAROT_API_KEY_2'],
+            'room.html': ['GROQ_API_KEY', 'OPENROUTER_API_KEY'],
           }
           for path, names in jobs.items():
               text = open(path, encoding='utf-8').read()
@@ -57,7 +58,7 @@ jobs:
 
       - name: Verify no placeholder is left in the published files
         run: |
-          if grep -n "__GROQ_API_KEY__\|__OPENROUTER_API_KEY__\|__TAROT_API_KEY_[12]__" script.js tarot/config.js; then
+          if grep -n "__GROQ_API_KEY__\|__OPENROUTER_API_KEY__\|__TAROT_API_KEY_[12]__" script.js tarot/config.js room.html; then
             echo "::error::A placeholder is still present"; exit 1
           fi
           echo "No placeholders left."
