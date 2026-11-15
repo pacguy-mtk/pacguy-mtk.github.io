@@ -43,11 +43,11 @@ a{color:inherit}
 .hs{position:fixed;left:0;top:0;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:2px solid rgba(255,236,205,.9);pointer-events:none;opacity:0;z-index:4;transition:opacity .4s}
 .hs.on{opacity:.8;animation:hsp 2.4s ease-in-out infinite}
 .hs.hov{opacity:1;border-color:#fff;box-shadow:0 0 22px rgba(255,214,150,.85),inset 0 0 12px rgba(255,214,150,.45)}
-/* monitor hotspot is a small green LED instead of a ring */
-.hs.led{width:14px;height:14px;margin:-7px 0 0 -7px;border:0;background:radial-gradient(circle,#9dffc0 0,#2fd65f 45%,#0f9e3c 100%);box-shadow:0 0 7px 2px rgba(61,255,122,.5),0 0 16px 5px rgba(61,255,122,.22)}
-.hs.led.on{animation:ledp 2.2s ease-in-out infinite}
-.hs.led.hov{box-shadow:0 0 10px 3px rgba(150,255,180,.7),0 0 22px 7px rgba(61,255,122,.32)}
-@keyframes ledp{0%,100%{opacity:.4}50%{opacity:.85}}
+/* monitor hotspot: the same hollow ring as the others, but green, because a white ring disappears on the white screen */
+.hs.green{border-color:#22e06a;box-shadow:0 0 0 1.5px rgba(0,50,20,.55),0 0 14px rgba(34,224,106,.9),inset 0 0 9px rgba(34,224,106,.55)}
+.hs.green.on{animation:hspg 2.4s ease-in-out infinite}
+.hs.green.hov{border-color:#5dff98;box-shadow:0 0 0 2px rgba(0,50,20,.6),0 0 26px rgba(70,255,140,1),inset 0 0 14px rgba(70,255,140,.7)}
+@keyframes hspg{0%,100%{box-shadow:0 0 0 1.5px rgba(0,50,20,.55),0 0 10px rgba(34,224,106,.6),inset 0 0 6px rgba(34,224,106,.35)}50%{box-shadow:0 0 0 1.5px rgba(0,50,20,.55),0 0 22px rgba(34,224,106,1),inset 0 0 12px rgba(34,224,106,.65)}}
 @keyframes hsp{0%,100%{box-shadow:0 0 10px rgba(255,200,120,.4),inset 0 0 6px rgba(255,200,120,.2)}50%{box-shadow:0 0 22px rgba(255,200,120,.8),inset 0 0 12px rgba(255,200,120,.4)}}
 /* loader + fatal */
 #loader{position:fixed;inset:0;z-index:60;display:grid;place-items:center;align-content:center;gap:16px;background:#060a13;transition:opacity .7s ease,visibility .7s}
@@ -702,7 +702,7 @@ const CFG = {
     tarot:   { x: 1620, y: 960, z: 1.7 }
   },
   hot: {                               /* clickable regions. rect=[x0,y0,x1,y1], poly=[[x,y]..], alpha=cut-out layer name. c=glow ring centre */
-    gallery: { label: 'Gallery', alpha: 'monitor', rect: [425, 285, 965, 680], c: [860, 641], led: true },
+    gallery: { label: 'Gallery', alpha: 'monitor', rect: [425, 285, 965, 680], c: [690, 470], green: true },
     radio:   { label: 'Radio',   alpha: 'radio', rect: [15, 670, 395, 940], c: [215, 800] },
     server:  { label: 'Systems', rect: [400, 768, 612, 868], c: [505, 818] },
     lumie:   { label: 'Lumie',   alpha: 'lumie', ell: [1065, 590, 150, 170], c: [1065, 640] },
@@ -829,7 +829,7 @@ function start([tMid, tDep, tLumie, tMug, tLamp, tMon, tRad, tSteam]){
 
   /* ---- hotspot rings (plain DOM, positioned from image coordinates) ---- */
   const rings = {};
-  Object.keys(CFG.hot).forEach(id => { const d = document.createElement('div'); d.className = 'hs' + (CFG.hot[id].led ? ' led' : ''); d.setAttribute('aria-hidden', 'true'); document.body.appendChild(d); rings[id] = d; });
+  Object.keys(CFG.hot).forEach(id => { const d = document.createElement('div'); d.className = 'hs' + (CFG.hot[id].green ? ' green' : ''); d.setAttribute('aria-hidden', 'true'); document.body.appendChild(d); rings[id] = d; });
 
   /* ---- camera / layout ---- */
   const cur = { x: 1056, y: 584, z: 1 }, want = { x: 1056, y: 584, z: 1 };
