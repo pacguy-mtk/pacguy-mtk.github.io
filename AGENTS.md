@@ -86,9 +86,10 @@ Order in `index.html`: `#hub` (ask bar) -> `#tarot` -> `#gallery` -> `#contact` 
   - Fallbacks: automatic graceful fallback to classic if WebGL is unavailable or crawler detected.
 - **Secrets**: `room.html` receives `GROQ_API_KEY` and `OPENROUTER_API_KEY` injected via GitHub Actions into `__GROQ_API_KEY__` and `__OPENROUTER_API_KEY__`.
 
-## 3D Room performance & phones (v3.1)
-- **Read `docs/room-HANDOFF.md` before touching `room.html` rendering code.**
-- Quality tiers (`TIERS` in `room.html`): `high` / `medium` / `low`. Override with `?quality=`, `?lite`, or the HUD "Graphics" pill (saved in `localStorage.zj_quality`). The room steps down automatically if frames are slow.
-- Frame loop is throttled (idle 24 fps, hidden tab and full-screen tarot draw nothing), shadows refresh 4x per second, bloom runs at half resolution. Keep these when editing `tick()`.
-- Lighting values live in the `LOOK` object. Use `room.html?tune` for live sliders, then paste the copied values back.
-- Portrait phones see a "Best in landscape" card; landscape lock works on Android Chrome only and only while `room.html` is open.
+## 3D Room (v2.2: layered picture room)
+- **Read `docs/room-HANDOFF.md` before editing `room.html`.** v2.1 was the tarot release, v2.2 is this room (a good update).
+- `room.html` shows a pre-rendered artwork split into aligned depth layers in `room-layers/` (mid, depth, monitor, radio, lumie, mug, steam, lamp). Replace the images together, never one alone.
+- Tuning lives in the `CFG` object at the top of the module (`?px=` changes the parallax strength, `?lite` the effects level). The HUD pill toggles Full / Light.
+- Phones are landscape only: Android Chrome is locked automatically, others see a "turn your phone" card. The top-left brand is only the ZJ logo.
+- `room.html` still receives `GROQ_API_KEY` / `OPENROUTER_API_KEY` from GitHub Actions. Never delete `room.html` from `build.yml`.
+- The old procedural 3D room only exists in git history. For visuals beyond the picture, Blender is required (see README).
