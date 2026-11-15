@@ -44,10 +44,10 @@ a{color:inherit}
 .hs.on{opacity:.8;animation:hsp 2.4s ease-in-out infinite}
 .hs.hov{opacity:1;border-color:#fff;box-shadow:0 0 22px rgba(255,214,150,.85),inset 0 0 12px rgba(255,214,150,.45)}
 /* monitor hotspot is a small green LED instead of a ring */
-.hs.led{width:14px;height:14px;margin:-7px 0 0 -7px;border:0;background:radial-gradient(circle,#d4ffe0 0,#3dff7a 45%,#13c24c 100%);box-shadow:0 0 10px 3px rgba(61,255,122,.75),0 0 26px 8px rgba(61,255,122,.35)}
+.hs.led{width:14px;height:14px;margin:-7px 0 0 -7px;border:0;background:radial-gradient(circle,#9dffc0 0,#2fd65f 45%,#0f9e3c 100%);box-shadow:0 0 7px 2px rgba(61,255,122,.5),0 0 16px 5px rgba(61,255,122,.22)}
 .hs.led.on{animation:ledp 2.2s ease-in-out infinite}
-.hs.led.hov{box-shadow:0 0 14px 5px rgba(150,255,180,.95),0 0 34px 12px rgba(61,255,122,.55)}
-@keyframes ledp{0%,100%{opacity:.5}50%{opacity:1}}
+.hs.led.hov{box-shadow:0 0 10px 3px rgba(150,255,180,.7),0 0 22px 7px rgba(61,255,122,.32)}
+@keyframes ledp{0%,100%{opacity:.4}50%{opacity:.85}}
 @keyframes hsp{0%,100%{box-shadow:0 0 10px rgba(255,200,120,.4),inset 0 0 6px rgba(255,200,120,.2)}50%{box-shadow:0 0 22px rgba(255,200,120,.8),inset 0 0 12px rgba(255,200,120,.4)}}
 /* loader + fatal */
 #loader{position:fixed;inset:0;z-index:60;display:grid;place-items:center;align-content:center;gap:16px;background:#060a13;transition:opacity .7s ease,visibility .7s}
