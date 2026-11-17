@@ -36,10 +36,10 @@ Replace the images **together** (same size, same alignment). Never replace one a
 - Effects (fairy-light twinkle, rain drops, bokeh shimmer, lamp glow and light pool, server LEDs, radio glow while music plays, dust) are additive sprites, each tracked at a depth so they drift with the layer they belong to.
 - Colours are untouched: linear output, no tone mapping, textures with no colour space, so pixels look exactly like the artwork.
 - Hit testing converts the pointer to image pixels and checks `CFG.hot`. Monitor, radio, Lumie and mug use their layer's alpha, shifted by the layer's current offset.
-- The gallery hotspot is a small **green LED** on the monitor's bottom bezel (CSS class `.hs.led`), the others are glowing rings. It follows the monitor layer.
+- Every hotspot is a hollow ring that follows its layer. The gallery (monitor) ring is **green** (CSS class `.hs.green`) because a white ring disappears on the white screen. Do not use the class name `led` for rings: `.led` is already the Systems drawer's LED style.
 
 ## Tuning (`CFG` at the top of the module)
-`parallax` (also `?px=90`), `focusDepth`, `depth`, `views` (camera target and zoom per section), `hot` (clickable regions, ring/LED centre `c`),
+`parallax` (also `?px=90`), `focusDepth`, `depth`, `views` (camera target and zoom per section), `hot` (clickable regions, ring centre `c`),
 `panes`, `bokeh`, `leds`, `lampGlow`, `lampPool`, `radioDial`, `steamAt`, `bubbleAt`, and `BULBS` (fairy-light positions, detected from the artwork).
 
 ## Performance and behaviour
@@ -53,6 +53,12 @@ Full / Light effects toggle (HUD pill, `localStorage.zj_fx2`, also `?lite`), aut
   iPhones cannot be locked by a web page, so they just see the card until they turn the phone.
 - The lock only lasts while `room.html` is open (fullscreen ends on navigation, and `pagehide` unlocks). The classic site is unaffected.
 - Tablets are not blocked: in portrait the picture is fitted to the screen width with dark bars.
+
+## Welcome card (v2.2.1)
+Cafe-style card (cream text on coffee brown, dashed inner border, steaming cup line-logo, serif Fraunces with Georgia fallback) on top of a **pre-blurred picture** of the room (`room-layers/welcome-bg.webp`, 10 KB).
+Text: "Welcome," / "Have a good stay." / [speaker icon] Enter with music on / [muted speaker icon] Enter with music off / "This is ZiJun System, designed by ZiJun, built by AI." / "or visit the classic site here →". No ZJ logo in the card. Button ids `enterMusic` and `enterQuiet` are used by the UI script: keep them.
+**Do not put `backdrop-filter` back on `#welcome`.** It blurred the live WebGL canvas, and Chromium browsers (Brave, Chrome) then drew a dark band across the page when the tab strip updated (hovering other tabs). It was also heavy on the GPU.
+The other `backdrop-filter` users (HUD pills, dock, hint, drawer, tarot overlay) are small and have not shown the bug. If a dark band ever appears over one of them, replace its blur with a plain translucent background.
 
 ## HUD
 The top-left brand is only the **ZJ logo** (no "ZiJun Room" or "Design / AI / Tools" text). Keep it that way.
@@ -72,5 +78,5 @@ in **Blender**, then exported (glTF with baked lighting and textures) and shown 
 ## Test checklist after any change
 1. Open `room.html`, `room.html?lite`, `room.html?px=100`.
 2. Move the mouse slowly: desk front shifts most, Lumie least, the window slightly the other way, radio and monitor stay rigid, steam stays on the mug. No black edges.
-3. Click each dock button, the green LED on the monitor, and each ring (radio: music starts/stops; Lumie: chat; tarot: overlay; Systems; Contact; Ko-fi).
+3. Click each dock button, the green ring on the monitor, and each ring (radio: music starts/stops; Lumie: chat; tarot: overlay; Systems; Contact; Ko-fi).
 4. Phone: portrait shows the blocking card, landscape works, the classic link in the card works, no console errors.

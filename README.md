@@ -1,7 +1,7 @@
 # ZiJun Hub (3D Room & Classic)
 
 Personal site on GitHub Pages with two modes:
-- **3D Room (`room.html`)**: Cozy night desk. Since v2.2 it is a pre-rendered artwork split into depth layers (parallax) with animated effects, drawn with three.js. Interactive objects: PC Gallery (green LED), Radio OST, Systems dock, Lumie chatbot, Tarot, Ko-fi mug, Contact phone. Landscape only on phones.
+- **3D Room (`room.html`)**: Cozy night desk. Since v2.2 it is a pre-rendered artwork split into depth layers (parallax) with animated effects, drawn with three.js. Interactive objects: PC Gallery (green ring), Radio OST, Systems dock, Lumie chatbot, Tarot, Ko-fi mug, Contact phone. Landscape only on phones.
 - **Classic Hub (`index.html`)**: 01 The Hub (AI ask bar) / 02 Tarot Divination beta (`tarot/`) / 03 Gallery (`post/`) / 04 Systems & Contact.
 
 Mode switch preference is remembered via `localStorage.zj_mode`, with URL overrides `?mode=room` and `?mode=classic`.
