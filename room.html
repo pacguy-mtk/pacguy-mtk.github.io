@@ -25,6 +25,8 @@
 } }
 </script>
 <style>
+body{-webkit-user-select:none;-ms-user-select:none;user-select:none}input,textarea,select{-webkit-user-select:text;user-select:text}img{-webkit-user-drag:none;user-drag:none}
+
 :root{
   color-scheme:dark;
   --bg:#07111f; --panel:rgba(10,14,26,.88); --text:#f4f7ff; --muted:#aab5ce; --faint:#6e7890;
@@ -284,6 +286,29 @@ body[data-panel="radio"] #sec-radio{display:flex}
 }
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
+<script>
+/* anti-copy: deter casual copycats — not a hard barrier */
+(function(){
+  /* block right-click */
+  document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  /* block key combos */
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    var c = e.ctrlKey || e.metaKey;
+    var s = e.shiftKey;
+    /* F12 */
+    if(k === 'F12'){ e.preventDefault(); return; }
+    /* Ctrl+U (view-source), Ctrl+S (save page) */
+    if(c && (k === 'u' || k === 'U' || k === 's' || k === 'S')){ e.preventDefault(); return; }
+    /* Ctrl+Shift+I / Ctrl+Shift+J / Ctrl+Shift+C (devtools) */
+    if(c && s && (k === 'i' || k === 'I' || k === 'j' || k === 'J' || k === 'c' || k === 'C')){ e.preventDefault(); return; }
+    /* Ctrl+A (select all) on non-input elements */
+    if(c && (k === 'a' || k === 'A') && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){ e.preventDefault(); return; }
+  });
+  /* disable drag on images */
+  document.addEventListener('dragstart', function(e){ if(e.target.tagName === 'IMG'){ e.preventDefault(); } });
+})();
+</script>
 </head>
 <body class="show-welcome">
 <canvas id="scene" tabindex="0" aria-label="Interactive desk scene. Use the buttons at the bottom to open each section."></canvas>
