@@ -60,6 +60,13 @@ Text: "Welcome," / "Have a good stay." / [speaker icon] Enter with music on / [m
 **Do not put `backdrop-filter` back on `#welcome`.** It blurred the live WebGL canvas, and Chromium browsers (Brave, Chrome) then drew a dark band across the page when the tab strip updated (hovering other tabs). It was also heavy on the GPU.
 The other `backdrop-filter` users (HUD pills, dock, hint, drawer, tarot overlay) are small and have not shown the bug. If a dark band ever appears over one of them, replace its blur with a plain translucent background.
 
+## Ko-fi card (v2.2.2)
+Opened by the mug. Drawer subtitle: "Cozy enough?". The card is a cream "postcard" inside the dark drawer (markup in `#sec-mug`, styles `.kofi`): a smiling cup with a beating heart and rising steam (inline SVG),
+the heading "Thanks for stopping by", four pastel dots, two short paragraphs (the site was dreamed up by a curious, cat-like indie dev, coded by AI, polished by a crew of AI agents: teamwork; "buy him a coffee"),
+and a Ko-fi style button labelled **Buy Me a Coffee** (blue `#72a4f2`, white-haloed Ko-fi cup logo, link `https://ko-fi.com/zijunk`), then "No pressure. Your visit already means a lot."
+The old Chinese bot-like text (the fortune-telling badge and the $1 donation line) is gone on purpose. The owner wants a warm, human voice: keep the copy short, no emoji piles.
+Keyframes are `kfsteam` / `kfbeat` (self-contained, not shared with the welcome card). The logo is a hand-drawn approximation of the Ko-fi mark.
+
 ## HUD
 The top-left brand is only the **ZJ logo** (no "ZiJun Room" or "Design / AI / Tools" text). Keep it that way.
 
