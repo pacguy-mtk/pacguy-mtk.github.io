@@ -39,12 +39,16 @@ Maintain the bento gallery on https://pacguy-mtk.github.io/
 3. Use relative paths: `post/filename.ext`
 4. Videos auto-generate first-frame thumbnails
 5. Max 3 columns desktop, 2 mobile (CSS handled)
+6. **OST Requirement**: If the user mentions that an item is an OST (or if updating an OST track):
+   - In `room.html`: prepend the item to `DATA.items`
+   - In `room.html`: append its media path (`post/<filename>.webm`) to `DATA.ost`
 
 ## Workflow
 1. Read current `BENTO_ITEMS` in `script.js`
 2. Add/edit/remove items as requested
-3. Verify media files exist in `post/`
-4. Git commit + push to deploy
+3. If item is an OST, update `DATA.items` and `DATA.ost` in `room.html`
+4. Verify media files exist in `post/`
+5. Git commit + push to deploy
 
 ## Commands
 ```bash

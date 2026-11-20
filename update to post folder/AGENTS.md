@@ -12,7 +12,10 @@ description: >
 Maintain the bento gallery on https://pacguy-mtk.github.io/
 
 ## Architecture
-- **Gallery data**: `BENTO_ITEMS` array in `script.js` (line ~1492)
+- **Gallery data**: `BENTO_ITEMS` array in `script.js` (line ~1492 / ~1781)
+- **Room 3D data**: `DATA` object in `room.html` (line ~482)
+  - `DATA.items`: mirror of gallery items for 3D room PC view
+  - `DATA.ost`: playlist of OST radio tracks (`post/<filename>.webm`)
 - **Media files**: `post/` folder (images + videos)
 - **Deploy**: `git push` to `main` branch → GitHub Pages auto-deploys
 
@@ -39,14 +42,20 @@ Maintain the bento gallery on https://pacguy-mtk.github.io/
 3. Use relative paths: `post/filename.ext`
 4. Videos auto-generate first-frame thumbnails
 5. Max 3 columns desktop, 2 mobile (CSS handled)
+6. **OST Requirement**: If the user mentions that an item is an OST (or if updating an OST track):
+   - In `room.html`: prepend the item to `DATA.items`
+   - In `room.html`: append its media path (`post/<filename>.webm`) to `DATA.ost`
 
 ## Workflow
 1. **Auto-detect new files**: Check "update to post folder" for files WITHOUT `(p)_` prefix
 2. Read current `BENTO_ITEMS` in `script.js`
-3. Add/edit/remove items as requested
-4. Verify media files exist in `post/`
-5. Git commit + push to deploy
-6. Rename processed files with `(p)_` prefix
+3. Add/edit/remove items as requested in `script.js`
+4. **Update Room OST (if applicable)**: If the item is an OST (or user specifies it as an OST):
+   - Prepend to `DATA.items` in `room.html`
+   - Append to `DATA.ost` in `room.html` (becomes OST N)
+5. Verify media files exist in `post/`
+6. Git commit + push to deploy
+7. Rename processed files with `(p)_` prefix
 
 ## Auto-Detect Command
 ```powershell
@@ -83,3 +92,11 @@ git add -A && git commit -m "gallery: update items" && git push
 - `room.html` DATA.items — new first entry; DATA.ost — appended as OST 28
 - Committed and pushed: "gallery: add 202611191927 video (OST 28)"
 - Renamed source → `(p)_202611191927.webm`
+
+### 2026-11-20
+- Auto-detected `202611201834.webm` (no (p)_ prefix)
+- Copied to `post/202611201834.webm` and added as first item in `BENTO_ITEMS` (script.js)
+- `room.html` DATA.items — new first entry; DATA.ost — appended as OST 29
+- Updated AGENTS.md workflow & rules with Room OST requirement instructions
+- Committed and pushed: "gallery: add 202611201834 video (OST 29) + update AGENTS.md"
+- Renamed source → `(p)_202611201834.webm`
