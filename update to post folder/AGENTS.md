@@ -100,3 +100,10 @@ git add -A && git commit -m "gallery: update items" && git push
 - Updated AGENTS.md workflow & rules with Room OST requirement instructions
 - Committed and pushed: "gallery: add 202611201834 video (OST 29) + update AGENTS.md"
 - Renamed source → `(p)_202611201834.webm`
+
+### 2026-11-21
+- Auto-detected `202611210223.webm` (no (p)_ prefix)
+- Copied to `post/202611210223.webm` and added as first item in `BENTO_ITEMS` (script.js)
+- `room.html` DATA.items — new first entry; DATA.ost — appended as OST 30
+- Committed and pushed: "gallery: add 202611210223 video (OST 30)"
+- Renamed source → `(p)_202611210223.webm`
