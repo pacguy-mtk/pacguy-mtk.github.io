@@ -107,3 +107,10 @@ git add -A && git commit -m "gallery: update items" && git push
 - `room.html` DATA.items — new first entry; DATA.ost — appended as OST 30
 - Committed and pushed: "gallery: add 202611210223 video (OST 30)"
 - Renamed source → `(p)_202611210223.webm`
+
+### 2026-11-22
+- Auto-detected `202611220407.webm` & `202611220432.webm` (no (p)_ prefix)
+- Copied both to `post/` and added to `BENTO_ITEMS` (script.js) in date descending order
+- `room.html` DATA.items — prepended both entries; DATA.ost — appended as OST 31 & OST 32
+- Committed and pushed: "gallery: add 202611220407 and 202611220432 videos (OST 31 & 32)"
+- Renamed sources → `(p)_202611220407.webm` & `(p)_202611220432.webm`
