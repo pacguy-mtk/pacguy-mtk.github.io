@@ -365,7 +365,7 @@
       const ttsText = clean.slice(0, 1400);
 
       try {
-        const res = await fetch('https://api.gradium.ai/api/speech/tts', {
+        const res = await fetch('https://lumie-tts-proxy.zijun-hub.workers.dev', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
