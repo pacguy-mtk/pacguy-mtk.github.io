@@ -343,10 +343,7 @@ body[data-panel="radio"] #sec-radio{display:flex}
 </div></div>
 
 <header id="hud">
-  <div style="display:flex;align-items:center;gap:10px">
-    <a class="brand" href="room.html" aria-label="ZiJun Room"><div class="brand-mark">ZJ</div></a>
-    <button class="pill" id="zoomBackBtn" type="button" hidden style="border-color:rgba(185,242,124,.5);color:#b9f27c"><i class="fas fa-arrow-left"></i> Back to room</button>
-  </div>
+  <a class="brand" href="room.html" aria-label="ZiJun Room"><div class="brand-mark">ZJ</div></a>
   <div class="hud-right">
     <button class="pill" id="qBtn" type="button" title="Graphics quality (click to change)">Graphics: <b id="qLbl">Auto</b></button>
     <button class="pill" id="npPill" type="button" hidden aria-label="Toggle music"><span class="eq"><i></i><i></i><i></i></span><span class="np-title" id="npTitle">OST</span></button>
@@ -594,7 +591,6 @@ UI.open = function(id){
   $('#drIco').innerHTML = '<i class="fas ' + p.icon + '"></i>'; $('#drIco').style.setProperty('--c', p.c);
   markDock(id);
   UI.onfocus(id);
-  const zb = $('#zoomBackBtn'); if(zb) zb.hidden = false;
   if(id === 'gallery') renderGallery(true);
   if(id === 'lumie'){
     if(!lumieGreetedOnce){
@@ -612,7 +608,6 @@ function closeTarot(silent){
   const o = $('#tarotOverlay'); o.classList.remove('on'); o.setAttribute('aria-hidden','true');
   if(!silent && UI.current === 'tarot'){
     UI.current = null; UI.onfocus(null); markDock(null);
-    const zb = $('#zoomBackBtn'); if(zb) zb.hidden = true;
   }
 }
 UI.close = function(){
@@ -622,12 +617,10 @@ UI.close = function(){
   closeDrawerOnly();
   markDock(null);
   UI.onfocus(null);
-  const zb = $('#zoomBackBtn'); if(zb) zb.hidden = true;
 };
 
 $$('#dock button').forEach(b => b.addEventListener('click', () => (UI.current === b.dataset.open) ? UI.close() : UI.open(b.dataset.open)));
 $('#drClose').addEventListener('click', UI.close);
-if($('#zoomBackBtn')) $('#zoomBackBtn').addEventListener('click', UI.close);
 $('#tarotClose').addEventListener('click', () => closeTarot(false));
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape') UI.close();
