@@ -196,6 +196,24 @@ body[data-panel="radio"] #sec-radio{display:flex}
 
 /* chat */
 #sec-lumie{gap:0;padding:0}
+.chat-header-bar{display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;margin-bottom:10px}
+.chat-header-avatar{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#b9f27c,#42e8d4);color:#0b1510;display:grid;place-items:center;font-weight:800;font-size:13px;letter-spacing:0.5px;box-shadow:0 0 12px rgba(185,242,124,.35)}
+.chat-header-info{flex:1;min-width:0}
+.chat-header-info strong{display:block;font-size:13px;color:#fff;font-weight:700}
+.chat-header-info span{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-voice-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.06);color:#b9f27c;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;font-size:13px}
+.chat-voice-btn:hover{background:rgba(185,242,124,.18);border-color:#b9f27c}
+.chat-voice-btn.muted{color:var(--muted);border-color:rgba(255,255,255,.1)}
+#lumieVoiceFloatingBtn{position:fixed;z-index:25;width:34px;height:34px;border-radius:50%;border:1px solid rgba(185,242,124,.5);background:rgba(8,12,22,.85);backdrop-filter:blur(8px);color:#b9f27c;display:none;align-items:center;justify-content:center;font-size:13px;cursor:pointer;transition:transform .2s,background .2s,border-color .2s;box-shadow:0 4px 16px rgba(0,0,0,.45);transform:translate(-50%,-50%)}
+#lumieVoiceFloatingBtn:hover{transform:translate(-50%,-50%) scale(1.15);background:rgba(20,30,48,.95);border-color:#b9f27c}
+#lumieVoiceFloatingBtn.muted{color:var(--muted);border-color:rgba(255,255,255,.18)}
+.typewriter-cursor{display:inline-block;width:7px;height:14px;background:#b9f27c;margin-left:2px;vertical-align:-2px;animation:twCursorBlink .7s steps(2) infinite}
+@keyframes twCursorBlink{0%,100%{opacity:0}50%{opacity:1}}
+.msg-text{word-break:break-word}
+.chat-cards{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chat-card{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.06);font-size:12px;color:#fff;text-decoration:none;cursor:pointer;transition:all .2s}
+.chat-card:hover{background:rgba(66,232,212,.18);border-color:#42e8d4;color:#d8fff9;transform:translateY(-1px)}
+.chat-card i{color:#42e8d4;font-size:11px}
 .chat-msgs{flex:1;min-height:180px;overflow:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:10px}
 .msg{max-width:88%;padding:10px 13px;border-radius:16px;font-size:13.5px;line-height:1.5;overflow-wrap:anywhere}
 .msg.bot{align-self:flex-start;background:rgba(255,255,255,.08);border-bottom-left-radius:5px}
@@ -332,6 +350,7 @@ body[data-panel="radio"] #sec-radio{display:flex}
 <div class="hint" id="hint">Click the glowing things on the desk, or use the buttons below</div>
 <div id="label"></div>
 <div id="bubble"></div>
+<button id="lumieVoiceFloatingBtn" class="lumie-voice-toggle" type="button" aria-label="Toggle Lumie voice" title="Toggle Lumie voice"><i class="fas fa-volume-high"></i></button>
 <div id="rotate" hidden><div class="box">
   <div class="rot-ico">&#128241;</div>
   <h2>Please turn your phone sideways</h2>
@@ -429,6 +448,16 @@ body[data-panel="radio"] #sec-radio{display:flex}
     </section>
 
     <section class="sec keep" id="sec-lumie">
+      <div class="chat-header-bar">
+        <div class="chat-header-avatar">LU</div>
+        <div class="chat-header-info">
+          <strong>Lumie</strong>
+          <span>Warm-light guide for recruiters &amp; visitors</span>
+        </div>
+        <button class="chat-voice-btn lumie-voice-toggle" id="lumieDrawerVoiceBtn" type="button" aria-label="Toggle voice" title="Toggle voice">
+          <i class="fas fa-volume-high"></i>
+        </button>
+      </div>
       <div class="chat-msgs" id="chatMsgs"></div>
       <div class="quick" id="chatQuick"></div>
       <form class="chat-in" id="chatForm" autocomplete="off">
@@ -485,6 +514,8 @@ window.__DATA_ITEMS = DATA.items;
 /* Lumie chat keys: the GitHub Actions build step swaps these placeholders for your repo secrets (see notes). */
 const GROQ_API_KEY = "__GROQ_API_KEY__";
 const OPENROUTER_API_KEY = "__OPENROUTER_API_KEY__";
+const LUMIE_VAPI_KEY = "__LUMIE_VAPI_KEY__";
+const GRADIUM_VOICE_ID = "nplGtNEYtTnNcqR9";
 function isRealKey(k){ return typeof k === 'string' && k.length >= 10 && k.indexOf('__') !== 0; }
 
 const SYSTEMS = [
@@ -679,28 +710,227 @@ setTrack(0, false);
 $('#rack').innerHTML = SYSTEMS.map(s => '<div class="drawer-unit"><button type="button"><span class="dr-ico" style="width:34px;height:34px"><i class="fas ' + s.icon + '"></i></span><span><span class="code">' + s.code + '</span><strong>' + esc(s.title) + '</strong><small>' + esc(s.sub) + '</small></span><span class="led"></span></button><div class="du-links">' + s.links.map(l => '<a href="' + l.url + '" target="_blank" rel="noopener"><i class="fas ' + l.icon + '"></i>' + esc(l.label) + '</a>').join('') + '</div></div>').join('');
 $('#rack').addEventListener('click', e => { const b = e.target.closest('.drawer-unit > button'); if(b) b.parentElement.classList.toggle('open'); });
 
+/* ---------- Lumie Voice & Audio ---------- */
+const LUMIE_AUDIO_LINES = {
+  '*buzz* Welcome to the desk!': 'voice/gradium-tts_en_lumie_Yg_XHXZ88xo.ogg',
+  'Lumie is here. Don\'t worry.': 'voice/gradium-tts_en_lumie_oicCnMGbgKE.ogg',
+  'Try the radio~ ♪': 'voice/gradium-tts_en_lumie_H_8GZoDBAhA.ogg',
+  'Want a tarot reading?': 'voice/gradium-tts_en_lumie_dTyR8VrFFcc.ogg',
+  'Ask me anything about ZiJun *(｡· v ·｡)*': 'voice/gradium-tts_en_lumie_18-JjYR4Rxk.ogg',
+  'Warm light for you ✦': 'voice/gradium-tts_en_lumie_GI2HjcfyyP0.ogg',
+  '*buzz* Lumie is here. Don\'t worry. I bring warm light for you. *(｡· v ·｡)* Ask me about ZiJun, or tap a shortcut.': 'voice/gradium-tts_en_lumie_ooxZrcYOJw0.ogg'
+};
+
+let voiceMuted = localStorage.getItem('zj_lumie_voice_muted') === '1';
+let currentVoiceAudio = null;
+
+function setVoiceMuted(val){
+  voiceMuted = !!val;
+  try{ localStorage.setItem('zj_lumie_voice_muted', voiceMuted ? '1' : '0'); }catch(e){}
+  if(voiceMuted && currentVoiceAudio){
+    currentVoiceAudio.pause();
+    currentVoiceAudio.currentTime = 0;
+    currentVoiceAudio = null;
+    UI.onsay(null);
+  }
+  updateVoiceUI();
+}
+
+function updateVoiceUI(){
+  $$('.lumie-voice-toggle').forEach(b => {
+    b.innerHTML = voiceMuted ? '<i class="fas fa-volume-xmark"></i>' : '<i class="fas fa-volume-high"></i>';
+    b.classList.toggle('muted', voiceMuted);
+    b.setAttribute('title', voiceMuted ? 'Unmute Lumie voice' : 'Mute Lumie voice');
+  });
+}
+
+function playVoice(src, onEnd){
+  if(voiceMuted) return null;
+  if(currentVoiceAudio){
+    currentVoiceAudio.pause();
+    currentVoiceAudio.currentTime = 0;
+    currentVoiceAudio = null;
+  }
+  const a = new Audio(src);
+  currentVoiceAudio = a;
+  UI.onsay('happy');
+  a.addEventListener('ended', () => {
+    if(currentVoiceAudio === a){
+      currentVoiceAudio = null;
+      UI.onsay(null);
+    }
+    if(onEnd) onEnd();
+  });
+  a.addEventListener('error', () => {
+    if(currentVoiceAudio === a){
+      currentVoiceAudio = null;
+      UI.onsay(null);
+    }
+  });
+  a.play().catch(() => {
+    if(currentVoiceAudio === a){
+      currentVoiceAudio = null;
+      UI.onsay(null);
+    }
+  });
+  return a;
+}
+
+async function speakWithGradium(text){
+  if(voiceMuted || !isRealKey(LUMIE_VAPI_KEY)) return;
+  const clean = String(text)
+    .replace(/\*\([^*]*\)\*/g, '')
+    .replace(/[*_#`~>]/g, '')
+    .replace(/https?:\/\/\S+/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if(!clean || clean.length < 2) return;
+  const ttsText = clean.slice(0, 1400);
+
+  try{
+    const res = await fetch('https://api.gradium.ai/api/speech/tts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': LUMIE_VAPI_KEY
+      },
+      body: JSON.stringify({
+        text: ttsText,
+        voice_id: GRADIUM_VOICE_ID,
+        output_format: 'wav',
+        only_audio: true
+      })
+    });
+    if(!res.ok){
+      console.warn('[Gradium TTS] Error status:', res.status);
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    playVoice(url, () => { URL.revokeObjectURL(url); });
+  }catch(e){
+    console.warn('[Gradium TTS] Network error:', e);
+  }
+}
+
+/* Dialogue typewriter (Tarot-style rAF animation with cursor) */
+function typeInto(target, text, msPerChar, scrollBox, onDone){
+  const node = document.createTextNode('');
+  const cursor = document.createElement('span');
+  cursor.className = 'typewriter-cursor';
+  target.textContent = '';
+  target.append(node, cursor);
+
+  const start = performance.now();
+  let shown = 0, raf = 0, done = false;
+
+  const finish = () => {
+    if(done) return;
+    done = true;
+    cancelAnimationFrame(raf);
+    target.innerHTML = esc(text).replace(/\n/g, '<br>');
+    cursor.remove();
+    if(scrollBox) scrollBox.scrollTop = scrollBox.scrollHeight;
+    if(onDone) onDone();
+  };
+
+  const cancel = () => {
+    done = true;
+    cancelAnimationFrame(raf);
+    cursor.remove();
+  };
+
+  function tick(now){
+    if(done) return;
+    const n = Math.min(text.length, Math.floor((now - start) / msPerChar));
+    if(n !== shown){
+      shown = n;
+      node.nodeValue = text.slice(0, n);
+      if(scrollBox) scrollBox.scrollTop = scrollBox.scrollHeight;
+    }
+    if(n < text.length){
+      raf = requestAnimationFrame(tick);
+    } else {
+      finish();
+    }
+  }
+
+  const msgParent = target.closest('.msg');
+  if(msgParent){
+    msgParent.addEventListener('click', finish, { once:true });
+  }
+
+  raf = requestAnimationFrame(tick);
+  return { finish, cancel };
+}
+
 /* ---------- Lumie chat ---------- */
 const chatMsgs = $('#chatMsgs'), chatInput = $('#chatInput'), chatSend = $('#chatSend');
 const history = [];
 const ACTIONS = [
-  { re:/tarot|fortune|divin|oracle|card|reading/i, id:'tarot', label:'Open Tarot' },
-  { re:/gallery|image|photo|art|ai work|comfyui|video|mockup|clip/i, id:'gallery', label:'Open Gallery' },
-  { re:/system|rack|calculator|parallax|drive|resume|cv|tool|project|server/i, id:'server', label:'Open Systems' },
-  { re:/contact|reach|email|linkedin|whatsapp|hire|job|freelance|recruit|message/i, id:'phone', label:'Open Contact' },
-  { re:/music|ost|radio|song|listen/i, id:'radio', label:'Open Radio' },
-  { re:/ko-?fi|coffee|donate|sponsor|support/i, id:'mug', label:'Ko-fi' }
+  { re:/tarot|fortune|divin|oracle|card|reading/i, id:'tarot', label:'Open Tarot', icon:'fas fa-moon' },
+  { re:/gallery|image|photo|art|ai work|comfyui|video|mockup|clip/i, id:'gallery', label:'Open Gallery', icon:'fas fa-images' },
+  { re:/system|rack|calculator|parallax|drive|resume|cv|tool|project|server/i, id:'server', label:'Open Systems', icon:'fas fa-server' },
+  { re:/linkedin/i, url:'https://www.linkedin.com/in/looi-jia-jun-b734133b2', label:'LinkedIn', icon:'fab fa-linkedin' },
+  { re:/email|mail/i, url:'mailto:juniorlooi95@gmail.com', label:'Email ZiJun', icon:'fas fa-envelope' },
+  { re:/whatsapp|wa/i, url:'https://wa.me/60173588931', label:'WhatsApp', icon:'fab fa-whatsapp' },
+  { re:/resume|cv/i, url:'https://drive.google.com/drive/folders/1TuHiogcZ9p08ol-aS3qd7Wcj0U0NhDtS', label:'Resume (Drive)', icon:'fab fa-google-drive' },
+  { re:/contact|reach|hire|job|freelance|recruit|message/i, id:'phone', label:'Open Contact', icon:'fas fa-mobile-screen' },
+  { re:/music|ost|radio|song|listen/i, id:'radio', label:'Open Radio', icon:'fas fa-radio' },
+  { re:/ko-?fi|coffee|donate|sponsor|support/i, id:'mug', label:'Ko-fi', icon:'fas fa-mug-hot' }
 ];
-function addMsg(role, text, acts){
+
+function addMsg(role, text, acts, opts = {}){
   const el = document.createElement('div'); el.className = 'msg ' + role;
-  el.innerHTML = esc(text).replace(/\n/g, '<br>');
-  if(acts && acts.length){
-    const w = document.createElement('div'); w.className = 'acts';
-    acts.forEach(a => { const b = document.createElement('button'); b.type = 'button'; b.textContent = a.label; b.addEventListener('click', () => UI.open(a.id)); w.appendChild(b); });
-    el.appendChild(w);
+  if(opts.isTyping){
+    el.classList.add('typing');
+    el.innerHTML = '<i></i><i></i><i></i>';
+    chatMsgs.appendChild(el);
+    chatMsgs.scrollTop = chatMsgs.scrollHeight;
+    return el;
   }
-  chatMsgs.appendChild(el); chatMsgs.scrollTop = chatMsgs.scrollHeight;
+  const textNode = document.createElement('div');
+  textNode.className = 'msg-text';
+  el.appendChild(textNode);
+
+  function appendActs(){
+    if(acts && acts.length){
+      const w = document.createElement('div'); w.className = 'chat-cards';
+      acts.forEach(a => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chat-card';
+        b.innerHTML = (a.icon ? `<i class="${a.icon}"></i>` : '') + esc(a.label);
+        b.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          if(a.url) window.open(a.url, '_blank', 'noopener');
+          else if(a.id) UI.open(a.id);
+        });
+        w.appendChild(b);
+      });
+      el.appendChild(w);
+      chatMsgs.scrollTop = chatMsgs.scrollHeight;
+    }
+  }
+
+  chatMsgs.appendChild(el);
+  chatMsgs.scrollTop = chatMsgs.scrollHeight;
+
+  if(opts.typewriter && role === 'bot'){
+    typeInto(textNode, text, 18, chatMsgs, appendActs);
+  } else {
+    textNode.innerHTML = esc(text).replace(/\n/g, '<br>');
+    appendActs();
+  }
+
+  if(opts.voiceFile && !voiceMuted){
+    playVoice(opts.voiceFile);
+  } else if(opts.speakGradium && !voiceMuted){
+    speakWithGradium(text);
+  }
   return el;
 }
+
 function actionsFor(text){ const out = []; ACTIONS.forEach(a => { if(a.re.test(text) && out.length < 3) out.push(a); }); return out; }
 const CANNED = [
   [/tarot|fortune|divin|oracle|reading/i, '*buzz* Lumie senses a reading coming. The tarot mat is waiting for you!'],
@@ -710,6 +940,7 @@ const CANNED = [
   [/music|ost|radio|song/i, '*buzz* The radio plays the OST ZiJun made. Turn the knob~'],
   [/who|about|zijun|introduce|skill/i, '*buzz* ZiJun is a designer who codes: graphic design, web tools, AI tools and Python. Lumie is here to guide you *(｡· v ·｡)*']
 ];
+
 async function ask(text){
   text = text.trim(); if(!text) return;
   addMsg('user', text); history.push({ role:'user', content:text }); chatInput.value = ''; chatSend.disabled = true;
@@ -717,7 +948,7 @@ async function ask(text){
   const hasGroq = isRealKey(GROQ_API_KEY), hasOR = isRealKey(OPENROUTER_API_KEY);
   let reply = null;
   if(hasGroq || hasOR){
-    const typing = addMsg('bot', ''); typing.classList.add('typing'); typing.innerHTML = '<i></i><i></i><i></i>';
+    const typing = addMsg('bot', '', null, { isTyping: true });
     const servers = [];
     if(hasGroq){
       servers.push({ url:'https://api.groq.com/openai/v1/chat/completions', model:'openai/gpt-oss-120b', key:GROQ_API_KEY });
@@ -742,14 +973,22 @@ async function ask(text){
     reply = hit ? hit[1] : '*buzz* Lumie is here. What would you like to see?';
   }
   history.push({ role:'assistant', content:reply });
-  addMsg('bot', reply, actionsFor(text + ' ' + reply));
-  UI.onsay('happy');
+  addMsg('bot', reply, actionsFor(text + ' ' + reply), { typewriter: true, speakGradium: true });
   chatSend.disabled = false; if(innerWidth > 720) chatInput.focus();
 }
+
 $('#chatForm').addEventListener('submit', e => { e.preventDefault(); ask(chatInput.value); });
-addMsg('bot', '*buzz* Lumie is here. Don\'t worry. I bring warm light for you. *(｡· v ·｡)*\nAsk me about ZiJun, or tap a shortcut.');
+const welcomeChatMsg = '*buzz* Lumie is here. Don\'t worry. I bring warm light for you. *(｡· v ·｡)*\nAsk me about ZiJun, or tap a shortcut.';
+addMsg('bot', welcomeChatMsg, null, { typewriter: false });
 $('#chatQuick').innerHTML = ['Who is ZiJun?', 'Show me the gallery', 'How do I contact him?', 'Play tarot'].map(q => '<button class="chip" type="button">' + q + '</button>').join('');
 $('#chatQuick').addEventListener('click', e => { const b = e.target.closest('.chip'); if(b) ask(b.textContent); });
+$$('.lumie-voice-toggle').forEach(b => {
+  b.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    setVoiceMuted(!voiceMuted);
+  });
+});
+updateVoiceUI();
 
 /* ---------- Welcome ---------- */
 function enter(withMusic){
@@ -952,16 +1191,34 @@ function start([tMid, tDep, tLumie, tMug, tLamp, tMon, tRad, tSteam]){
   const toScreen = (ix, iy) => [(ix - IMG_W / 2) * scale + wx + W / 2, H / 2 - ((IMG_H / 2 - iy) * scale + wy)];
 
   /* ---- input ---- */
-  const labelEl = $('#label'), bubbleEl = $('#bubble');
+  const labelEl = $('#label'), bubbleEl = $('#bubble'), lumieVoiceFloatingBtn = $('#lumieVoiceFloatingBtn');
   let hovered = null, downAt = null, sayUntil = 0, nextLine = 9;
-  const LINES = ['*buzz* Welcome to the desk!', 'Lumie is here. Don\'t worry.', 'Try the radio~ ♪', 'Want a tarot reading?', 'Ask me anything about ZiJun *(｡· v ·｡)*', 'Warm light for you ✦'];
+  const LINES = [
+    '*buzz* Welcome to the desk!',
+    'Lumie is here. Don\'t worry.',
+    'Try the radio~ ♪',
+    'Want a tarot reading?',
+    'Ask me anything about ZiJun *(｡· v ·｡)*',
+    'Warm light for you ✦'
+  ];
   const pickLine = a => a[(Math.random() * a.length) | 0];
-  function say(t, ms){ bubbleEl.textContent = t; bubbleEl.classList.add('on'); sayUntil = performance.now() + (ms || 3500); }
+  function say(t, ms){
+    bubbleEl.textContent = t;
+    bubbleEl.classList.add('on');
+    sayUntil = performance.now() + (ms || 3500);
+    if(!voiceMuted && LUMIE_AUDIO_LINES[t]){
+      playVoice(LUMIE_AUDIO_LINES[t]);
+    }
+  }
   canvas.addEventListener('pointermove', e => {
     tx = e.clientX / W * 2 - 1; ty = e.clientY / H * 2 - 1;
     if(!entered || e.pointerType === 'touch') return;
     const p = toImage(e.clientX, e.clientY), id = hitTest(p[0], p[1]);
-    if(id !== hovered){ hovered = id; canvas.style.cursor = id ? 'pointer' : 'default'; if(id === 'lumie') say(pickLine(['*buzz* Hi there!', 'Click me to chat~', 'Lumie is here *(｡· v ·｡)*']), 2400); }
+    if(id !== hovered){
+      hovered = id;
+      canvas.style.cursor = id ? 'pointer' : 'default';
+      if(id === 'lumie') say(pickLine(['*buzz* Welcome to the desk!', 'Lumie is here. Don\'t worry.', 'Ask me anything about ZiJun *(｡· v ·｡)*']), 2800);
+    }
     if(id){ labelEl.textContent = CFG.hot[id].label; labelEl.style.left = e.clientX + 'px'; labelEl.style.top = e.clientY + 'px'; labelEl.classList.add('on'); } else labelEl.classList.remove('on');
   });
   canvas.addEventListener('pointerleave', () => { hovered = null; labelEl.classList.remove('on'); });
@@ -974,7 +1231,7 @@ function start([tMid, tDep, tLumie, tMug, tLamp, tMon, tRad, tSteam]){
   canvas.addEventListener('keydown', e => { if(e.key === 'Escape') window.UI.close(); });
   window.UI.onsay = m => { mood = m; moodUntil = performance.now() + 1600; };
   window.UI.onmusic = on => { musicOn = on; };
-  window.UI.onenter = () => { entered = true; if(isPhone) lockLandscape(); setTimeout(() => say('*buzz* Welcome! Click what glows ✦', 4200), 1200); };
+  window.UI.onenter = () => { entered = true; if(isPhone) lockLandscape(); setTimeout(() => say('*buzz* Welcome to the desk!', 4200), 1200); };
   ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev => addEventListener(ev, () => { lastInput = performance.now(); }, { passive: true }));
   addEventListener('resize', () => { layout(); setDpr(); });
 
@@ -1056,6 +1313,20 @@ function start([tMid, tDep, tLumie, tMug, tLamp, tMon, tRad, tSteam]){
     nextLine -= dt; if(nextLine <= 0 && entered && !window.UI.current){ say(pickLine(LINES), 3600); nextLine = 16 + Math.random() * 10; }
     if(sayUntil && now > sayUntil){ bubbleEl.classList.remove('on'); sayUntil = 0; }
     if(sayUntil){ const b = toScreen(CFG.bubbleAt[0], CFG.bubbleAt[1]); bubbleEl.style.left = Math.max(110, Math.min(W - 110, b[0])) + 'px'; bubbleEl.style.top = Math.max(60, b[1] - 6) + 'px'; }
+
+    if(lumieVoiceFloatingBtn){
+      if(entered && !document.body.classList.contains('show-welcome')){
+        const L = layers.lumie;
+        const lx = CFG.hot.lumie.c[0] + (L ? L.sx || 0 : 0) + 70;
+        const ly = 490 + (L ? L.sy || 0 : 0);
+        const vp = toScreen(lx, ly);
+        lumieVoiceFloatingBtn.style.left = Math.max(16, Math.min(W - 16, vp[0])) + 'px';
+        lumieVoiceFloatingBtn.style.top = Math.max(16, Math.min(H - 16, vp[1])) + 'px';
+        lumieVoiceFloatingBtn.style.display = 'flex';
+      } else {
+        lumieVoiceFloatingBtn.style.display = 'none';
+      }
+    }
 
     renderer.render(scene, cam);
     if(++frames === 3){ window.__roomBooted = true; $('#loader').classList.add('done'); }

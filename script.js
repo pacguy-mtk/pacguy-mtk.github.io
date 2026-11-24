@@ -1,5 +1,6 @@
     const GROQ_API_KEY = "__GROQ_API_KEY__";
     const OPENROUTER_API_KEY = "__OPENROUTER_API_KEY__";
+    const LUMIE_VAPI_KEY = "__LUMIE_VAPI_KEY__";
     function isRealKey(k) { return typeof k === 'string' && k.length >= 10 && k.indexOf('__') !== 0; }
 
     const bgVideo = document.querySelector(".bg-video");
@@ -274,9 +275,167 @@
 
     initPet();
 
+    /* ══════ LUMIE VOICE & AUDIO ══════ */
+    const GRADIUM_VOICE_ID = "nplGtNEYtTnNcqR9";
+    const LUMIE_AUDIO_LINES = {
+      '*buzz* Welcome to the desk!': 'voice/gradium-tts_en_lumie_Yg_XHXZ88xo.ogg',
+      'Lumie is here. Don\'t worry.': 'voice/gradium-tts_en_lumie_oicCnMGbgKE.ogg',
+      'Try the radio~ ♪': 'voice/gradium-tts_en_lumie_H_8GZoDBAhA.ogg',
+      'Want a tarot reading?': 'voice/gradium-tts_en_lumie_dTyR8VrFFcc.ogg',
+      'Ask me anything about ZiJun *(｡· v ·｡)*': 'voice/gradium-tts_en_lumie_18-JjYR4Rxk.ogg',
+      'Warm light for you ✦': 'voice/gradium-tts_en_lumie_GI2HjcfyyP0.ogg',
+      '*buzz* Lumie is here. Don\'t worry. I bring warm light for you. *(｡· v ·｡)* Ask me about ZiJun, or tap a shortcut.': 'voice/gradium-tts_en_lumie_ooxZrcYOJw0.ogg'
+    };
+
+    let voiceMuted = localStorage.getItem('zj_lumie_voice_muted') === '1';
+    let currentVoiceAudio = null;
+
+    function setVoiceMuted(val) {
+      voiceMuted = !!val;
+      try { localStorage.setItem('zj_lumie_voice_muted', voiceMuted ? '1' : '0'); } catch(e) {}
+      if (voiceMuted && currentVoiceAudio) {
+        currentVoiceAudio.pause();
+        currentVoiceAudio.currentTime = 0;
+        currentVoiceAudio = null;
+      }
+      updateVoiceUI();
+    }
+
+    function updateVoiceUI() {
+      document.querySelectorAll('.lumie-voice-toggle').forEach(b => {
+        b.innerHTML = voiceMuted ? '<i class="fas fa-volume-xmark"></i>' : '<i class="fas fa-volume-high"></i>';
+        b.classList.toggle('muted', voiceMuted);
+        b.setAttribute('title', voiceMuted ? 'Unmute Lumie voice' : 'Mute Lumie voice');
+      });
+    }
+
+    function playVoice(src, onEnd) {
+      if (voiceMuted) return null;
+      if (currentVoiceAudio) {
+        currentVoiceAudio.pause();
+        currentVoiceAudio.currentTime = 0;
+        currentVoiceAudio = null;
+      }
+      const a = new Audio(src);
+      currentVoiceAudio = a;
+      a.addEventListener('ended', () => {
+        if (currentVoiceAudio === a) {
+          currentVoiceAudio = null;
+        }
+        if (onEnd) onEnd();
+      });
+      a.addEventListener('error', () => {
+        if (currentVoiceAudio === a) {
+          currentVoiceAudio = null;
+        }
+      });
+      a.play().catch(() => {
+        if (currentVoiceAudio === a) {
+          currentVoiceAudio = null;
+        }
+      });
+      return a;
+    }
+
+    async function speakWithGradium(text) {
+      if (voiceMuted || !isRealKey(LUMIE_VAPI_KEY)) return;
+      const clean = String(text)
+        .replace(/\*\([^*]*\)\*/g, '')
+        .replace(/[*_#`~>]/g, '')
+        .replace(/https?:\/\/\S+/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (!clean || clean.length < 2) return;
+      const ttsText = clean.slice(0, 1400);
+
+      try {
+        const res = await fetch('https://api.gradium.ai/api/speech/tts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': LUMIE_VAPI_KEY
+          },
+          body: JSON.stringify({
+            text: ttsText,
+            voice_id: GRADIUM_VOICE_ID,
+            output_format: 'wav',
+            only_audio: true
+          })
+        });
+        if (!res.ok) {
+          console.warn('[Gradium TTS] Error status:', res.status);
+          return;
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        playVoice(url, () => { URL.revokeObjectURL(url); });
+      } catch(e) {
+        console.warn('[Gradium TTS] Network error:', e);
+      }
+    }
+
+    function typeInto(target, text, msPerChar, scrollBox, onDone) {
+      const node = document.createTextNode('');
+      const cursor = document.createElement('span');
+      cursor.className = 'typewriter-cursor';
+      target.textContent = '';
+      target.append(node, cursor);
+
+      const start = performance.now();
+      let shown = 0, raf = 0, done = false;
+
+      const finish = () => {
+        if (done) return;
+        done = true;
+        cancelAnimationFrame(raf);
+        target.innerHTML = String(text)
+          .replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
+          .replace(/\n/g, '<br>');
+        cursor.remove();
+        if (scrollBox) scrollBox.scrollTop = scrollBox.scrollHeight;
+        if (onDone) onDone();
+      };
+
+      const cancel = () => {
+        done = true;
+        cancelAnimationFrame(raf);
+        cursor.remove();
+      };
+
+      function tick(now) {
+        if (done) return;
+        const n = Math.min(text.length, Math.floor((now - start) / msPerChar));
+        if (n !== shown) {
+          shown = n;
+          node.nodeValue = text.slice(0, n);
+          if (scrollBox) scrollBox.scrollTop = scrollBox.scrollHeight;
+        }
+        if (n < text.length) {
+          raf = requestAnimationFrame(tick);
+        } else {
+          finish();
+        }
+      }
+
+      const msgParent = target.closest('.chat-msg');
+      if (msgParent) {
+        msgParent.addEventListener('click', finish, { once: true });
+      }
+
+      raf = requestAnimationFrame(tick);
+      return { finish, cancel };
+    }
+
     /* ══════ PET IDLE BUBBLES ══════ */
     const petSay = document.getElementById('hub-pet-say');
-    const petSayMsgs = ['*buzz* Lumie is here!', 'Warm light for you.', 'Ask Lumie about ZiJun!'];
+    const petSayMsgs = [
+      '*buzz* Welcome to the desk!',
+      'Lumie is here. Don\'t worry.',
+      'Warm light for you ✦',
+      'Ask me anything about ZiJun *(｡· v ·｡)*',
+      'Try the radio~ ♪',
+      'Want a tarot reading?'
+    ];
     let petSayIdx = 0;
     let petSayTimer = null;
 
@@ -288,9 +447,13 @@
 
     function showPetSay() {
       if (chatOpen || isDragging) return;
-      petSay.textContent = petSayMsgs[petSayIdx];
+      const text = petSayMsgs[petSayIdx];
+      petSay.textContent = text;
       petSay.classList.add('show');
       positionPetSay();
+      if (!voiceMuted && LUMIE_AUDIO_LINES[text]) {
+        playVoice(LUMIE_AUDIO_LINES[text]);
+      }
       petSayIdx = (petSayIdx + 1) % petSayMsgs.length;
       petSayTimer = setTimeout(() => {
         petSay.classList.remove('show');
@@ -409,7 +572,7 @@
         positionChatPanel();
         setPetState('wave');
         if (chatHistory.length === 0) {
-          addBotMessage('*buzz* Lumie is here. Don\'t worry. I bring warm light for you. *(｡· v ·｡)* What would you like to know about ZiJun?', ['main-menu']);
+          addBotMessage('*buzz* Lumie is here. Don\'t worry. I bring warm light for you. *(｡· v ·｡)* Ask me about ZiJun, or tap a shortcut.', ['main-menu'], { voiceFile: 'voice/gradium-tts_en_lumie_ooxZrcYOJw0.ogg' });
         }
         chatInput.focus();
       } else {
@@ -544,9 +707,13 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
       return {};
     }
 
-    function addBotMessage(text, cardKeys) {
+    function addBotMessage(text, cardKeys, opts = {}) {
       const msgEl = document.createElement('div');
       msgEl.className = 'chat-msg bot';
+
+      const textNode = document.createElement('div');
+      textNode.className = 'msg-text';
+      msgEl.appendChild(textNode);
 
       let cardsHtml = '';
       if (cardKeys && cardKeys.length > 0) {
@@ -561,10 +728,29 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
         }).join('') + '</div>';
       }
 
-      msgEl.innerHTML = text.replace(/\n/g, '<br>') + cardsHtml;
+      function appendCards() {
+        if (cardsHtml && !msgEl.querySelector('.chat-cards')) {
+          const cardsWrapper = document.createElement('div');
+          cardsWrapper.innerHTML = cardsHtml;
+          msgEl.appendChild(cardsWrapper.firstElementChild);
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+      }
+
       chatMessages.appendChild(msgEl);
       chatMessages.scrollTop = chatMessages.scrollHeight;
       chatHistory.push({ role: 'assistant', content: text });
+
+      const voiceSrc = opts.voiceFile || LUMIE_AUDIO_LINES[text];
+      if (voiceSrc && !voiceMuted) {
+        playVoice(voiceSrc);
+      } else if (!opts.silent && !opts.skipTts) {
+        speakWithGradium(text);
+      }
+
+      typeInto(textNode, text, 18, chatMessages, () => {
+        appendCards();
+      });
     }
 
     function addUserMessage(text) {
@@ -642,7 +828,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
         };
         const resp = cardKeys[0] || 'main-menu';
         const reply = responses[resp] || 'What would you like to see?';
-        addBotMessage(reply, cardKeys);
+        addBotMessage(reply, cardKeys, opts);
         if (!opts.silent) setPetState('jump');
         if (opts.onReply) opts.onReply(reply);
         chatSend.disabled = false;
@@ -701,7 +887,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
         if (!aiText) throw new Error('All providers failed');
 
         const cardKeys = extractCards(aiText);
-        addBotMessage(aiText, cardKeys);
+        addBotMessage(aiText, cardKeys, opts);
         if (!opts.silent) setPetState('jump');
         if (opts.onReply) opts.onReply(aiText);
       } catch (err) {
@@ -709,7 +895,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
         console.error('Chatbot API error:', err.message, err);
         const cardKeys = extractCards(text);
         const failText = '⚠️ *buzz* Lumie\'s connection is flickering, but the backup answers are ready. What do you need?';
-        addBotMessage(failText, cardKeys);
+        addBotMessage(failText, cardKeys, opts);
         if (!opts.silent) setPetState('failed');
         if (opts.onReply) opts.onReply(failText);
       } finally {
@@ -725,6 +911,11 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
         sendChatMessage();
       }
     });
+
+    document.querySelectorAll('.lumie-voice-toggle').forEach(b => {
+      b.addEventListener('click', () => setVoiceMuted(!voiceMuted));
+    });
+    updateVoiceUI();
 
     /* ══════ POSTS & FEED SYSTEM LOGIC ══════ */
     let composerMedia = [];
