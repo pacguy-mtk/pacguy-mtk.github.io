@@ -288,15 +288,43 @@
     };
 
     let voiceMuted = localStorage.getItem('zj_lumie_voice_muted') === '1';
-    let currentVoiceAudio = null;
+    const voiceAudio = new Audio();
+    voiceAudio.preload = 'auto';
+    let voiceUnlocked = false;
+    let voiceOnEndCb = null;
+
+    function unlockVoiceAudio() {
+      if (voiceUnlocked) return;
+      voiceUnlocked = true;
+      try {
+        voiceAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+        const p = voiceAudio.play();
+        if (p && typeof p.then === 'function') {
+          p.then(() => { voiceAudio.pause(); voiceAudio.currentTime = 0; }).catch(() => { voiceUnlocked = false; });
+        }
+      } catch(e) {}
+    }
+
+    ['pointerdown', 'keydown'].forEach(ev => {
+      document.addEventListener(ev, unlockVoiceAudio, { once: true, passive: true });
+    });
+
+    voiceAudio.addEventListener('ended', () => {
+      if (voiceOnEndCb) { const cb = voiceOnEndCb; voiceOnEndCb = null; cb(); }
+    });
+    voiceAudio.addEventListener('error', () => {
+      if (voiceOnEndCb) { const cb = voiceOnEndCb; voiceOnEndCb = null; cb(); }
+    });
 
     function setVoiceMuted(val) {
       voiceMuted = !!val;
       try { localStorage.setItem('zj_lumie_voice_muted', voiceMuted ? '1' : '0'); } catch(e) {}
-      if (voiceMuted && currentVoiceAudio) {
-        currentVoiceAudio.pause();
-        currentVoiceAudio.currentTime = 0;
-        currentVoiceAudio = null;
+      if (voiceMuted) {
+        voiceAudio.pause();
+        voiceAudio.currentTime = 0;
+        if (voiceOnEndCb) { const cb = voiceOnEndCb; voiceOnEndCb = null; cb(); }
+      } else {
+        unlockVoiceAudio();
       }
       updateVoiceUI();
     }
@@ -311,34 +339,22 @@
 
     function playVoice(src, onEnd) {
       if (voiceMuted) return null;
-      if (currentVoiceAudio) {
-        currentVoiceAudio.pause();
-        currentVoiceAudio.currentTime = 0;
-        currentVoiceAudio = null;
-      }
-      const a = new Audio(src);
-      currentVoiceAudio = a;
-      a.addEventListener('ended', () => {
-        if (currentVoiceAudio === a) {
-          currentVoiceAudio = null;
-        }
-        if (onEnd) onEnd();
+      if (voiceOnEndCb) { const cb = voiceOnEndCb; voiceOnEndCb = null; cb(); }
+      voiceAudio.pause();
+      voiceAudio.src = src;
+      voiceAudio.currentTime = 0;
+      voiceOnEndCb = onEnd || null;
+      voiceAudio.play().catch((err) => {
+        console.warn('[Lumie Voice] play blocked or failed:', err && err.message ? err.message : err);
+        if (voiceOnEndCb) { const cb = voiceOnEndCb; voiceOnEndCb = null; cb(); }
       });
-      a.addEventListener('error', () => {
-        if (currentVoiceAudio === a) {
-          currentVoiceAudio = null;
-        }
-      });
-      a.play().catch(() => {
-        if (currentVoiceAudio === a) {
-          currentVoiceAudio = null;
-        }
-      });
-      return a;
+      return voiceAudio;
     }
 
     async function speakWithGradium(text) {
-      if (voiceMuted || !isRealKey(LUMIE_VAPI_KEY)) return;
+      if (voiceMuted) return;
+      if (LUMIE_AUDIO_LINES[text]) { playVoice(LUMIE_AUDIO_LINES[text]); return; }
+      if (!isRealKey(LUMIE_VAPI_KEY)) return;
       const clean = String(text)
         .replace(/\*\([^*]*\)\*/g, '')
         .replace(/[*_#`~>]/g, '')
@@ -366,11 +382,12 @@
           console.warn('[Gradium TTS] Error status:', res.status);
           return;
         }
-        const blob = await res.blob();
+        const buf = await res.arrayBuffer();
+        const blob = new Blob([buf], { type: 'audio/wav' });
         const url = URL.createObjectURL(blob);
         playVoice(url, () => { URL.revokeObjectURL(url); });
       } catch(e) {
-        console.warn('[Gradium TTS] Network error:', e);
+        console.warn('[Gradium TTS] Network/CORS error:', e);
       }
     }
 

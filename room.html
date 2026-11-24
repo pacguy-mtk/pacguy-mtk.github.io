@@ -109,10 +109,13 @@ body.show-welcome #dock,body.show-welcome #hud{opacity:0;pointer-events:none}
 #drawer{position:fixed;z-index:30;top:74px;right:16px;bottom:96px;width:min(440px,calc(100vw - 32px));display:flex;flex-direction:column;border-radius:24px;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(18px);box-shadow:var(--shadow);transform:translateX(calc(100% + 30px));opacity:0;pointer-events:none;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .35s;overflow:hidden}
 body[data-panel] #drawer{transform:none;opacity:1;pointer-events:auto}
 .dr-head{display:flex;align-items:center;gap:12px;padding:16px 18px 12px;border-bottom:1px solid var(--line)}
-.dr-ico{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.07);color:var(--c,var(--cyan));font-size:16px}
-.dr-head h2{margin:0;font-size:17px;line-height:1.2}
-.dr-head small{display:block;color:var(--faint);font-size:12px;margin-top:2px}
-.dr-x{margin-left:auto;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.05)}
+.dr-ico{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.07);color:var(--c,var(--cyan));font-size:16px}
+.dr-head-text{flex:1;min-width:0}
+.dr-head h2{margin:0;font-size:17px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dr-head small{display:block;color:var(--faint);font-size:12px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dr-x{flex:none;margin-left:auto;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.05)}
+#lumieDrawerVoiceBtn{display:none;flex:none}
+body[data-panel="lumie"] #lumieDrawerVoiceBtn{display:flex}
 .dr-x:hover{background:rgba(255,255,255,.12)}
 .dr-body{flex:1;min-height:0;overflow:auto;padding:16px 18px 18px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.2) transparent}
 .sec{display:none;height:100%;flex-direction:column;gap:12px}
@@ -340,7 +343,10 @@ body[data-panel="radio"] #sec-radio{display:flex}
 </div></div>
 
 <header id="hud">
-  <a class="brand" href="room.html" aria-label="ZiJun Room"><div class="brand-mark">ZJ</div></a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a class="brand" href="room.html" aria-label="ZiJun Room"><div class="brand-mark">ZJ</div></a>
+    <button class="pill" id="zoomBackBtn" type="button" hidden style="border-color:rgba(185,242,124,.5);color:#b9f27c"><i class="fas fa-arrow-left"></i> Back to room</button>
+  </div>
   <div class="hud-right">
     <button class="pill" id="qBtn" type="button" title="Graphics quality (click to change)">Graphics: <b id="qLbl">Auto</b></button>
     <button class="pill" id="npPill" type="button" hidden aria-label="Toggle music"><span class="eq"><i></i><i></i><i></i></span><span class="np-title" id="npTitle">OST</span></button>
@@ -373,7 +379,10 @@ body[data-panel="radio"] #sec-radio{display:flex}
 <aside id="drawer" aria-live="polite">
   <div class="dr-head">
     <div class="dr-ico" id="drIco"><i class="fas fa-images"></i></div>
-    <div><h2 id="drTitle">Gallery</h2><small id="drSub"></small></div>
+    <div class="dr-head-text"><h2 id="drTitle">Gallery</h2><small id="drSub"></small></div>
+    <button class="chat-voice-btn lumie-voice-toggle" id="lumieDrawerVoiceBtn" type="button" aria-label="Toggle voice" title="Toggle voice">
+      <i class="fas fa-volume-high"></i>
+    </button>
     <button class="dr-x" id="drClose" type="button" aria-label="Close panel"><i class="fas fa-xmark"></i></button>
   </div>
   <div class="dr-body">
@@ -448,16 +457,6 @@ body[data-panel="radio"] #sec-radio{display:flex}
     </section>
 
     <section class="sec keep" id="sec-lumie">
-      <div class="chat-header-bar">
-        <div class="chat-header-avatar">LU</div>
-        <div class="chat-header-info">
-          <strong>Lumie</strong>
-          <span>Warm-light guide for recruiters &amp; visitors</span>
-        </div>
-        <button class="chat-voice-btn lumie-voice-toggle" id="lumieDrawerVoiceBtn" type="button" aria-label="Toggle voice" title="Toggle voice">
-          <i class="fas fa-volume-high"></i>
-        </button>
-      </div>
       <div class="chat-msgs" id="chatMsgs"></div>
       <div class="quick" id="chatQuick"></div>
       <form class="chat-in" id="chatForm" autocomplete="off">
@@ -570,7 +569,7 @@ const PANELS = {
 };
 
 const UI = window.UI = { current:null, onfocus:function(){}, onmusic:function(){}, onsay:function(){}, musicOn:false };
-let tarotTimer = 0, tarotLoaded = false;
+let tarotTimer = 0, tarotLoaded = false, lumieGreetedOnce = false;
 
 UI.open = function(id){
   if(!PANELS[id]) return;
@@ -595,8 +594,15 @@ UI.open = function(id){
   $('#drIco').innerHTML = '<i class="fas ' + p.icon + '"></i>'; $('#drIco').style.setProperty('--c', p.c);
   markDock(id);
   UI.onfocus(id);
+  const zb = $('#zoomBackBtn'); if(zb) zb.hidden = false;
   if(id === 'gallery') renderGallery(true);
-  if(id === 'lumie'){ setTimeout(function(){ const i = $('#chatInput'); if(i && innerWidth > 720) i.focus(); }, 500); }
+  if(id === 'lumie'){
+    if(!lumieGreetedOnce){
+      lumieGreetedOnce = true;
+      if(!voiceMuted) playVoice('voice/gradium-tts_en_lumie_ooxZrcYOJw0.ogg');
+    }
+    setTimeout(function(){ const i = $('#chatInput'); if(i && innerWidth > 720) i.focus(); }, 500);
+  }
   const h = $('#hint'); if(h) h.classList.add('off');
 };
 function closeDrawerOnly(){ delete document.body.dataset.panel; }
@@ -604,16 +610,24 @@ function markDock(id){ $$('#dock button').forEach(b => b.classList.toggle('on', 
 function closeTarot(silent){
   clearTimeout(tarotTimer);
   const o = $('#tarotOverlay'); o.classList.remove('on'); o.setAttribute('aria-hidden','true');
-  if(!silent && UI.current === 'tarot'){ UI.current = null; UI.onfocus(null); markDock(null); }
+  if(!silent && UI.current === 'tarot'){
+    UI.current = null; UI.onfocus(null); markDock(null);
+    const zb = $('#zoomBackBtn'); if(zb) zb.hidden = true;
+  }
 }
 UI.close = function(){
   if($('#lightbox').classList.contains('on')){ closeLB(); return; }
   if($('#tarotOverlay').classList.contains('on') || UI.current === 'tarot'){ closeTarot(false); return; }
-  if(UI.current){ UI.current = null; closeDrawerOnly(); markDock(null); UI.onfocus(null); }
+  UI.current = null;
+  closeDrawerOnly();
+  markDock(null);
+  UI.onfocus(null);
+  const zb = $('#zoomBackBtn'); if(zb) zb.hidden = true;
 };
 
 $$('#dock button').forEach(b => b.addEventListener('click', () => (UI.current === b.dataset.open) ? UI.close() : UI.open(b.dataset.open)));
 $('#drClose').addEventListener('click', UI.close);
+if($('#zoomBackBtn')) $('#zoomBackBtn').addEventListener('click', UI.close);
 $('#tarotClose').addEventListener('click', () => closeTarot(false));
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape') UI.close();
@@ -722,16 +736,46 @@ const LUMIE_AUDIO_LINES = {
 };
 
 let voiceMuted = localStorage.getItem('zj_lumie_voice_muted') === '1';
-let currentVoiceAudio = null;
+const voiceAudio = new Audio();
+voiceAudio.preload = 'auto';
+let voiceUnlocked = false;
+let voiceOnEndCb = null;
+
+function unlockVoiceAudio(){
+  if(voiceUnlocked) return;
+  voiceUnlocked = true;
+  try{
+    voiceAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+    const p = voiceAudio.play();
+    if(p && typeof p.then === 'function'){
+      p.then(() => { voiceAudio.pause(); voiceAudio.currentTime = 0; }).catch(() => { voiceUnlocked = false; });
+    }
+  }catch(e){}
+}
+UI.unlockVoice = unlockVoiceAudio;
+UI.sayVoice = function(lineText){
+  if(!voiceMuted && LUMIE_AUDIO_LINES[lineText]) playVoice(LUMIE_AUDIO_LINES[lineText]);
+};
+
+voiceAudio.addEventListener('ended', () => {
+  UI.onsay(null);
+  if(voiceOnEndCb){ const cb = voiceOnEndCb; voiceOnEndCb = null; cb(); }
+});
+voiceAudio.addEventListener('error', () => {
+  UI.onsay(null);
+  if(voiceOnEndCb){ const cb = voiceOnEndCb; voiceOnEndCb = null; cb(); }
+});
 
 function setVoiceMuted(val){
   voiceMuted = !!val;
   try{ localStorage.setItem('zj_lumie_voice_muted', voiceMuted ? '1' : '0'); }catch(e){}
-  if(voiceMuted && currentVoiceAudio){
-    currentVoiceAudio.pause();
-    currentVoiceAudio.currentTime = 0;
-    currentVoiceAudio = null;
+  if(voiceMuted){
+    voiceAudio.pause();
+    voiceAudio.currentTime = 0;
+    if(voiceOnEndCb){ const cb = voiceOnEndCb; voiceOnEndCb = null; cb(); }
     UI.onsay(null);
+  } else {
+    unlockVoiceAudio();
   }
   updateVoiceUI();
 }
@@ -746,38 +790,24 @@ function updateVoiceUI(){
 
 function playVoice(src, onEnd){
   if(voiceMuted) return null;
-  if(currentVoiceAudio){
-    currentVoiceAudio.pause();
-    currentVoiceAudio.currentTime = 0;
-    currentVoiceAudio = null;
-  }
-  const a = new Audio(src);
-  currentVoiceAudio = a;
+  if(voiceOnEndCb){ const cb = voiceOnEndCb; voiceOnEndCb = null; cb(); }
+  voiceAudio.pause();
+  voiceAudio.src = src;
+  voiceAudio.currentTime = 0;
+  voiceOnEndCb = onEnd || null;
   UI.onsay('happy');
-  a.addEventListener('ended', () => {
-    if(currentVoiceAudio === a){
-      currentVoiceAudio = null;
-      UI.onsay(null);
-    }
-    if(onEnd) onEnd();
+  voiceAudio.play().catch((err) => {
+    console.warn('[Lumie Voice] play blocked or failed:', err && err.message ? err.message : err);
+    UI.onsay(null);
+    if(voiceOnEndCb){ const cb = voiceOnEndCb; voiceOnEndCb = null; cb(); }
   });
-  a.addEventListener('error', () => {
-    if(currentVoiceAudio === a){
-      currentVoiceAudio = null;
-      UI.onsay(null);
-    }
-  });
-  a.play().catch(() => {
-    if(currentVoiceAudio === a){
-      currentVoiceAudio = null;
-      UI.onsay(null);
-    }
-  });
-  return a;
+  return voiceAudio;
 }
 
 async function speakWithGradium(text){
-  if(voiceMuted || !isRealKey(LUMIE_VAPI_KEY)) return;
+  if(voiceMuted) return;
+  if(LUMIE_AUDIO_LINES[text]){ playVoice(LUMIE_AUDIO_LINES[text]); return; }
+  if(!isRealKey(LUMIE_VAPI_KEY)) return;
   const clean = String(text)
     .replace(/\*\([^*]*\)\*/g, '')
     .replace(/[*_#`~>]/g, '')
@@ -805,11 +835,12 @@ async function speakWithGradium(text){
       console.warn('[Gradium TTS] Error status:', res.status);
       return;
     }
-    const blob = await res.blob();
+    const buf = await res.arrayBuffer();
+    const blob = new Blob([buf], { type: 'audio/wav' });
     const url = URL.createObjectURL(blob);
     playVoice(url, () => { URL.revokeObjectURL(url); });
   }catch(e){
-    console.warn('[Gradium TTS] Network error:', e);
+    console.warn('[Gradium TTS] Network/CORS error:', e);
   }
 }
 
@@ -977,11 +1008,11 @@ async function ask(text){
   chatSend.disabled = false; if(innerWidth > 720) chatInput.focus();
 }
 
-$('#chatForm').addEventListener('submit', e => { e.preventDefault(); ask(chatInput.value); });
+$('#chatForm').addEventListener('submit', e => { e.preventDefault(); unlockVoiceAudio(); ask(chatInput.value); });
 const welcomeChatMsg = '*buzz* Lumie is here. Don\'t worry. I bring warm light for you. *(｡· v ·｡)*\nAsk me about ZiJun, or tap a shortcut.';
 addMsg('bot', welcomeChatMsg, null, { typewriter: false });
 $('#chatQuick').innerHTML = ['Who is ZiJun?', 'Show me the gallery', 'How do I contact him?', 'Play tarot'].map(q => '<button class="chip" type="button">' + q + '</button>').join('');
-$('#chatQuick').addEventListener('click', e => { const b = e.target.closest('.chip'); if(b) ask(b.textContent); });
+$('#chatQuick').addEventListener('click', e => { const b = e.target.closest('.chip'); if(b){ unlockVoiceAudio(); ask(b.textContent); } });
 $$('.lumie-voice-toggle').forEach(b => {
   b.addEventListener('click', (ev) => {
     ev.stopPropagation();
@@ -992,6 +1023,7 @@ updateVoiceUI();
 
 /* ---------- Welcome ---------- */
 function enter(withMusic){
+  unlockVoiceAudio();
   const w = $('#welcome'); w.classList.add('leaving');
   document.body.classList.remove('show-welcome');
   setTimeout(() => { w.style.display = 'none'; }, 1000);
@@ -1202,12 +1234,13 @@ function start([tMid, tDep, tLumie, tMug, tLamp, tMon, tRad, tSteam]){
     'Warm light for you ✦'
   ];
   const pickLine = a => a[(Math.random() * a.length) | 0];
-  function say(t, ms){
+  function say(t, ms, silentAudio){
+    if(window.UI.current || view !== 'home') return;
     bubbleEl.textContent = t;
     bubbleEl.classList.add('on');
     sayUntil = performance.now() + (ms || 3500);
-    if(!voiceMuted && LUMIE_AUDIO_LINES[t]){
-      playVoice(LUMIE_AUDIO_LINES[t]);
+    if(!silentAudio && window.UI.sayVoice){
+      window.UI.sayVoice(t);
     }
   }
   canvas.addEventListener('pointermove', e => {
@@ -1217,16 +1250,23 @@ function start([tMid, tDep, tLumie, tMug, tLamp, tMon, tRad, tSteam]){
     if(id !== hovered){
       hovered = id;
       canvas.style.cursor = id ? 'pointer' : 'default';
-      if(id === 'lumie') say(pickLine(['*buzz* Welcome to the desk!', 'Lumie is here. Don\'t worry.', 'Ask me anything about ZiJun *(｡· v ·｡)*']), 2800);
+      if(id === 'lumie' && !window.UI.current && view === 'home'){
+        say(pickLine(['*buzz* Welcome to the desk!', 'Lumie is here. Don\'t worry.', 'Ask me anything about ZiJun *(｡· v ·｡)*']), 2800, true);
+      }
     }
     if(id){ labelEl.textContent = CFG.hot[id].label; labelEl.style.left = e.clientX + 'px'; labelEl.style.top = e.clientY + 'px'; labelEl.classList.add('on'); } else labelEl.classList.remove('on');
   });
   canvas.addEventListener('pointerleave', () => { hovered = null; labelEl.classList.remove('on'); });
-  canvas.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; });
+  canvas.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; window.UI.unlockVoice && window.UI.unlockVoice(); });
   canvas.addEventListener('pointerup', e => {
     if(!downAt || !entered) return; const moved = Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]); downAt = null; if(moved > 8) return;
     const p = toImage(e.clientX, e.clientY), id = hitTest(p[0], p[1]);
-    if(id) window.UI.open(id); else if(window.UI.current) window.UI.close();
+    if(id){
+      if(id === window.UI.current) window.UI.close();
+      else window.UI.open(id);
+    } else if(window.UI.current || view !== 'home'){
+      window.UI.close();
+    }
   });
   canvas.addEventListener('keydown', e => { if(e.key === 'Escape') window.UI.close(); });
   window.UI.onsay = m => { mood = m; moodUntil = performance.now() + 1600; };
@@ -1310,18 +1350,22 @@ function start([tMid, tDep, tLumie, tMug, tLamp, tMon, tRad, tSteam]){
       el.style.transform = 'translate(' + p[0].toFixed(1) + 'px,' + p[1].toFixed(1) + 'px)' + (isHov ? ' scale(1.3)' : '');
       el.classList.toggle('on', showRings && !isHov); el.classList.toggle('hov', showRings && isHov);
     });
-    nextLine -= dt; if(nextLine <= 0 && entered && !window.UI.current){ say(pickLine(LINES), 3600); nextLine = 16 + Math.random() * 10; }
-    if(sayUntil && now > sayUntil){ bubbleEl.classList.remove('on'); sayUntil = 0; }
-    if(sayUntil){ const b = toScreen(CFG.bubbleAt[0], CFG.bubbleAt[1]); bubbleEl.style.left = Math.max(110, Math.min(W - 110, b[0])) + 'px'; bubbleEl.style.top = Math.max(60, b[1] - 6) + 'px'; }
+    if(window.UI.current || view !== 'home'){
+      if(sayUntil){ bubbleEl.classList.remove('on'); sayUntil = 0; }
+    } else {
+      nextLine -= dt; if(nextLine <= 0 && entered){ say(pickLine(LINES), 3600); nextLine = 16 + Math.random() * 10; }
+      if(sayUntil && now > sayUntil){ bubbleEl.classList.remove('on'); sayUntil = 0; }
+      if(sayUntil){ const b = toScreen(CFG.bubbleAt[0], CFG.bubbleAt[1]); bubbleEl.style.left = Math.max(110, Math.min(W - 110, b[0])) + 'px'; bubbleEl.style.top = Math.max(90, b[1] - 6) + 'px'; }
+    }
 
     if(lumieVoiceFloatingBtn){
-      if(entered && !document.body.classList.contains('show-welcome')){
+      if(entered && !document.body.classList.contains('show-welcome') && !window.UI.current && view === 'home'){
         const L = layers.lumie;
-        const lx = CFG.hot.lumie.c[0] + (L ? L.sx || 0 : 0) + 70;
-        const ly = 490 + (L ? L.sy || 0 : 0);
+        const lx = CFG.hot.lumie.c[0] + (L ? L.sx || 0 : 0) + 95;
+        const ly = 470 + (L ? L.sy || 0 : 0);
         const vp = toScreen(lx, ly);
-        lumieVoiceFloatingBtn.style.left = Math.max(16, Math.min(W - 16, vp[0])) + 'px';
-        lumieVoiceFloatingBtn.style.top = Math.max(16, Math.min(H - 16, vp[1])) + 'px';
+        lumieVoiceFloatingBtn.style.left = Math.max(20, Math.min(W - 20, vp[0])) + 'px';
+        lumieVoiceFloatingBtn.style.top = Math.max(20, Math.min(H - 20, vp[1])) + 'px';
         lumieVoiceFloatingBtn.style.display = 'flex';
       } else {
         lumieVoiceFloatingBtn.style.display = 'none';
