@@ -6,6 +6,7 @@ Personal site on GitHub Pages with two modes:
 
 Mode switch preference is remembered via `localStorage.zj_mode`, with URL overrides `?mode=room` and `?mode=classic`.
 See `AGENTS.md` (how to edit), `docs/room-HANDOFF.md` (room internals), `docs/future-expansion.md` (ideas) and `docs/tarot-HANDOFF.md` (tarot internals).
+For Lumie voice input internals, see `docs/voice-HANDOFF.md`.
 
 ## Note: Blender is required for the best three.js visuals
 Hand-written three.js (shapes built in code) can only look so good: it looked "basic" next to a rendered image. To reach the best visual quality with three.js

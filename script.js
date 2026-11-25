@@ -557,6 +557,7 @@
       } else {
         setPetState('idle');
         resetPetSayTimer();
+        if (window.LumiePTT) LumiePTT.cancel();
       }
     }
 
@@ -595,6 +596,7 @@
       } else {
         setPetState('idle');
         resetPetSayTimer();
+        if (window.LumiePTT) LumiePTT.cancel();
       }
     }
 
@@ -770,10 +772,24 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
       });
     }
 
-    function addUserMessage(text) {
+    function addUserMessage(text, meta) {
       const msgEl = document.createElement('div');
       msgEl.className = 'chat-msg user';
-      msgEl.textContent = text;
+      if (meta && meta.voice) {
+        const mic = document.createElement('span');
+        mic.className = 'msg-mic';
+        mic.textContent = '🎤 ';
+        msgEl.appendChild(mic);
+      }
+      const textNode = document.createElement('span');
+      textNode.textContent = meta && meta.original ? meta.original : text;
+      msgEl.appendChild(textNode);
+      if (meta && meta.translated && meta.english && meta.english !== (meta.original || text)) {
+        const sub = document.createElement('div');
+        sub.className = 'msg-sub';
+        sub.textContent = '\u2192 ' + meta.english;
+        msgEl.appendChild(sub);
+      }
       chatMessages.appendChild(msgEl);
       chatMessages.scrollTop = chatMessages.scrollHeight;
       chatHistory.push({ role: 'user', content: text });
@@ -821,10 +837,13 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
     async function sendChatMessage(textArg, opts = {}) {
       const text = (typeof textArg === 'string' ? textArg : chatInput.value).trim();
       if (!text) return;
+      if (!opts.voiceMeta && pendingVoiceConfirm) { pendingVoiceConfirm = null; pttConfirm.hidden = true; }
 
-      addUserMessage(text);
+      addUserMessage(text, opts.voiceMeta);
       chatInput.value = '';
       chatSend.disabled = true;
+      const micButton = document.getElementById('lumieMicBtn');
+      if (micButton) micButton.disabled = true;
 
       // A key counts only if it is real: the build step swaps the key placeholders (top of this file) for the repo secrets.
       // If the placeholder is still there (injection did not run), skip every network call and use the free canned answers.
@@ -849,6 +868,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
         if (!opts.silent) setPetState('jump');
         if (opts.onReply) opts.onReply(reply);
         chatSend.disabled = false;
+        if (micButton) micButton.disabled = false;
         return;
       }
 
@@ -917,6 +937,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
         if (opts.onReply) opts.onReply(failText);
       } finally {
         chatSend.disabled = false;
+        if (micButton) micButton.disabled = false;
         if (!opts.silent) chatInput.focus();
       }
     }
@@ -928,6 +949,35 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
         sendChatMessage();
       }
     });
+
+    let pendingVoiceConfirm = null;
+    const pttConfirm = document.getElementById('pttConfirm');
+    pttConfirm.querySelector('[data-ptt-confirm-send]').addEventListener('click', () => {
+      const text = chatInput.value.trim();
+      const meta = pendingVoiceConfirm;
+      pendingVoiceConfirm = null; pttConfirm.hidden = true;
+      if (text && meta) {
+        const mic = document.getElementById('lumieMicBtn'); mic.disabled = true;
+        sendChatMessage(text, { voiceMeta: { ...meta, english: text, translated: text !== meta.original } }).finally(() => { mic.disabled = false; });
+      }
+    });
+    pttConfirm.querySelector('[data-ptt-confirm-edit]').addEventListener('click', () => { pttConfirm.hidden = true; chatInput.focus(); });
+
+    if (window.LumiePTT) {
+      LumiePTT.mount({
+        button: document.getElementById('lumieMicBtn'),
+        statusEl: document.getElementById('pttStatus'),
+        groqKey: GROQ_API_KEY,
+        getHistory: () => chatHistory,
+        onBeforeRecord: () => { unlockVoiceAudio && unlockVoiceAudio(); voiceAudio && voiceAudio.pause(); },
+        onResult: r => {
+          const mic = document.getElementById('lumieMicBtn'); mic.disabled = true;
+          sendChatMessage(r.english, { voiceMeta: r }).finally(() => { mic.disabled = false; });
+        },
+        onNeedsConfirm: r => { pendingVoiceConfirm = r; chatInput.value = r.english; chatInput.focus(); pttConfirm.hidden = false; },
+        onState: s => setPetState(s === 'transcribing' || s === 'understanding' ? 'jump' : 'idle')
+      });
+    }
 
     document.querySelectorAll('.lumie-voice-toggle').forEach(b => {
       b.addEventListener('click', () => setVoiceMuted(!voiceMuted));

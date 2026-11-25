@@ -8,6 +8,8 @@ description: >
 
 # Gallery Update Agent
 
+For Lumie push-to-talk behavior and maintenance notes, see `docs/voice-HANDOFF.md`.
+
 ## Role
 Maintain the bento gallery on https://pacguy-mtk.github.io/
 

@@ -3773,3 +3773,207 @@
     }
     .tarot-toolbar-title .beta-tm { font-size: .7em; margin-left: .4em; }
     .tarot-chances { color: #f6e3b4; font-weight: 800; letter-spacing: .02em; }
+
+
+/* ═══════════════════════════════════════════════
+   Lumie PTT — mic button + states
+   ─────────────────────────────────────────────── */
+
+/* Classic-site mic button (matches .chat-send pixel style) */
+.chat-mic, .chat-voice-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: 3px solid #213a27;
+  background: #4e7b45;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  position: relative;
+  overflow: visible;
+}
+
+.chat-mic:hover, .chat-voice-btn:hover {
+  background: #5d9052;
+}
+
+/* Recording state: red + pulsing ring */
+.chat-mic[data-ptt-state="recording"],
+.chat-voice-btn[data-ptt-state="recording"] {
+  background: #c0392b;
+  border-color: #7b1a13;
+  animation: ptt-pulse 1.4s infinite;
+}
+
+@keyframes ptt-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, calc(var(--lvl, 0.3) * 0.7)); }
+  50%       { box-shadow: 0 0 0 calc(4px + var(--lvl, 0.1) * 10px) rgba(192, 57, 43, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-mic[data-ptt-state="recording"],
+  .chat-voice-btn[data-ptt-state="recording"] {
+    animation: none;
+    box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.5);
+  }
+}
+
+/* Cancelling: grey/red with strikethrough appearance */
+.chat-mic[data-ptt-state="cancelling"],
+.chat-voice-btn[data-ptt-state="cancelling"] {
+  background: #555;
+  border-color: #888;
+  opacity: 0.75;
+}
+
+/* Transcribing / Understanding: spinner overlay */
+.chat-mic[data-ptt-state="transcribing"],
+.chat-mic[data-ptt-state="understanding"],
+.chat-voice-btn[data-ptt-state="transcribing"],
+.chat-voice-btn[data-ptt-state="understanding"] {
+  background: #2a4a7f;
+  border-color: #1a2e55;
+}
+
+.chat-mic[data-ptt-state="transcribing"]::after,
+.chat-mic[data-ptt-state="understanding"]::after,
+.chat-voice-btn[data-ptt-state="transcribing"]::after,
+.chat-voice-btn[data-ptt-state="understanding"]::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 3px;
+  border: 2px solid transparent;
+  border-top-color: #7aa7ff;
+  animation: ptt-spin 0.7s linear infinite;
+}
+
+@keyframes ptt-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error: shake animation */
+.ptt-shake {
+  animation: ptt-shake 0.4s ease;
+}
+
+@keyframes ptt-shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-4px); }
+  40%       { transform: translateX(4px); }
+  60%       { transform: translateX(-3px); }
+  80%       { transform: translateX(3px); }
+}
+
+/* Status text below/above input */
+.ptt-status {
+  font-size: 11px;
+  color: var(--muted, #aab5ce);
+  min-height: 14px;
+  padding: 2px 4px;
+  line-height: 1.3;
+  pointer-events: none;
+}
+
+.ptt-confirm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  color: var(--muted, #aab5ce);
+  font-size: 11px;
+}
+.ptt-confirm[hidden] { display: none; }
+.ptt-confirm button {
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 5px;
+  padding: 3px 8px;
+  background: rgba(255,255,255,.08);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+.ptt-confirm button:first-of-type { color: #d7efcf; }
+
+.chat-input-area .ptt-status {
+  position: absolute;
+  left: 12px;
+  bottom: calc(100% + 2px);
+}
+.chat-input-area .ptt-confirm {
+  position: absolute;
+  left: 12px;
+  bottom: calc(100% + 16px);
+  background: rgba(22, 30, 26, .94);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 6px;
+  z-index: 4;
+}
+
+/* Voice message sub-line (original + translated) */
+.msg-sub {
+  font-size: 11px;
+  color: var(--muted, #aab5ce);
+  margin-top: 3px;
+  opacity: 0.8;
+}
+
+.msg-mic {
+  font-size: 13px;
+  margin-right: 2px;
+}
+
+/* First-use toast */
+.ptt-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 30, 50, 0.95);
+  color: #f4f7ff;
+  font-size: 12px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  z-index: 9999;
+  max-width: 320px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  animation: ptt-toast-in 0.3s ease;
+}
+
+@keyframes ptt-toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Room: PTT status above #chatForm */
+#pttStatus.ptt-status {
+  padding: 2px 8px;
+}
+
+/* Room: mic button in .chat-in row (42px circle to match chatSend) */
+#sec-lumie .chat-mic {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+
+#sec-lumie .chat-mic:hover {
+  background: rgba(255,255,255,0.14);
+}
+
+#sec-lumie .chat-mic[data-ptt-state="recording"] {
+  background: rgba(192, 57, 43, 0.85);
+  border-color: rgba(192,57,43,0.4);
+}
+
+#sec-lumie .ptt-status, #sec-lumie .ptt-confirm { color: var(--muted, #aab5ce); }

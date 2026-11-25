@@ -358,7 +358,10 @@
     </div>
     <div class="chat-messages" id="chatMessages"></div>
     <div class="chat-input-area">
+      <div id="pttStatus" class="ptt-status" aria-live="polite"></div>
+      <div id="pttConfirm" class="ptt-confirm" hidden><span>Did you mean this?</span><button type="button" data-ptt-confirm-send>Send</button><button type="button" data-ptt-confirm-edit>Edit</button></div>
       <input class="chat-input" id="chatInput" type="text" placeholder="Ask Lumie about ZiJun..." autocomplete="off">
+      <button type="button" id="lumieMicBtn" class="chat-mic chat-voice-btn" aria-label="Hold to talk" aria-pressed="false" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></button>
       <button class="chat-send" id="chatSend" type="button" aria-label="Send message">
         <i class="fas fa-paper-plane"></i>
       </button>
@@ -382,6 +385,7 @@
     </div>
   </div>
 
+  <script src="lumie-ptt.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
