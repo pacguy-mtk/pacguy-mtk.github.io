@@ -87,7 +87,6 @@
   var COOLDOWN_MS = 1500;
   var MAX_RECORD_MS = 30000;
   var MIN_RECORD_MS = 400;
-  var SLIDE_CANCEL_PX = 80;
   var SILENCE_THRESHOLD = 0.015;
   var STREAM_KEEP_MS = 20000;
   var STAGE2_TIMEOUT_MS = 6000;
@@ -102,8 +101,7 @@
   var _levelRaf = null;
   var _chunks = [];
   var _pressTime = 0;
-  var _pressX = 0;
-  var _isCancelling = false;
+  var _activePointerId = null;
   var _inFlight = false;
   var _abortCtrl = null;
   var _maxTimer = null;
@@ -213,7 +211,6 @@
 
       _chunks = [];
       _peakRms = 0;
-      _isCancelling = false;
       _pressTime = Date.now();
 
       _recorder = new MediaRecorder(stream, { mimeType: mime });
@@ -222,17 +219,20 @@
       };
       _recorder.start(100);
 
-      setState('recording', btn, statusEl, 'Listening\u2026 release to send \u00b7 slide left to cancel');
+      setState('recording', btn, statusEl, 'Listening\u2026 release to send');
       startLevelMeter(btn);
 
       // Elapsed timer
-      var elapsed = 0;
       _elapsedTimer = setInterval(function () {
-        elapsed++;
-        if (statusEl) statusEl.textContent = 'Listening\u2026 ' + elapsed + 's \u00b7 slide left to cancel';
+        var elapsed = Math.floor((Date.now() - _pressTime) / 1000);
+        if (elapsed * 1000 >= MAX_RECORD_MS) {
+          stopRecording(btn, statusEl);
+          return;
+        }
+        if (statusEl) statusEl.textContent = 'Listening ' + elapsed + 's\u2026 release to send';
       }, 1000);
 
-      // Max length auto-stop
+      // Hard cap, with the elapsed timer above as a foreground safety check.
       _maxTimer = setTimeout(function () { stopRecording(btn, statusEl); }, MAX_RECORD_MS);
     });
   }
@@ -244,15 +244,14 @@
     stopLevelMeter(btn);
 
     var duration = Date.now() - _pressTime;
-    var shouldCancel = _isCancelling;
     var mime = _recorder.mimeType;
 
     _recorder.onstop = function () {
       scheduleStreamRelease();
 
-      if (shouldCancel || duration < MIN_RECORD_MS) {
-        setState('idle', btn, statusEl, shouldCancel ? '' : 'Hold the mic and speak');
-        if (!shouldCancel) setTimeout(function () { if (statusEl) statusEl.textContent = ''; }, 3000);
+      if (duration < MIN_RECORD_MS) {
+        setState('idle', btn, statusEl, 'Hold the mic and speak');
+        setTimeout(function () { if (statusEl) statusEl.textContent = ''; }, 3000);
         _chunks = [];
         return;
       }
@@ -274,7 +273,7 @@
   }
 
   function cancelRecording(btn, statusEl) {
-    _isCancelling = true;
+    _activePointerId = null;
     if (_recorder && _recorder.state === 'recording') {
       clearTimeout(_maxTimer);
       clearInterval(_elapsedTimer);
@@ -628,8 +627,7 @@
       if (btn.disabled) return;
       e.preventDefault();
       if (e.pointerId != null && btn.setPointerCapture) btn.setPointerCapture(e.pointerId);
-      _pressX = typeof e.clientX === 'number' ? e.clientX : 0;
-      _isCancelling = false;
+      _activePointerId = e.pointerId == null ? -1 : e.pointerId;
 
       showFirstUseNotice();
       if (_config.onBeforeRecord) _config.onBeforeRecord();
@@ -660,27 +658,23 @@
 
     btn.addEventListener('pointerdown', beginPress);
 
-    btn.addEventListener('pointermove', function (e) {
+    function finishPointer(e) {
       if (!_recorder || _recorder.state !== 'recording') return;
-      if (_pressX - e.clientX > SLIDE_CANCEL_PX) {
-        if (!_isCancelling) {
-          _isCancelling = true;
-          setState('cancelling', btn, statusEl, 'Release to cancel');
-        }
-      } else if (_isCancelling) {
-        _isCancelling = false;
-        setState('recording', btn, statusEl, 'Listening\u2026 release to send \u00b7 slide left to cancel');
-      }
-    });
-
-    btn.addEventListener('pointerup', function () {
-      if (!_recorder || _recorder.state !== 'recording') return;
+      if (_activePointerId == null || _activePointerId < 0) return;
+      if (_activePointerId != null && e.pointerId !== _activePointerId) return;
+      _activePointerId = null;
       stopRecording(btn, statusEl);
-    });
+    }
 
-    btn.addEventListener('pointercancel', function () {
+    // Listen at window level so release still ends capture if the pointer leaves the button.
+    window.addEventListener('pointerup', finishPointer);
+
+    function cancelPointer(e) {
+      if (_activePointerId == null || _activePointerId < 0) return;
+      if (_activePointerId != null && e.pointerId !== _activePointerId) return;
       cancelRecording(btn, statusEl);
-    });
+    }
+    window.addEventListener('pointercancel', cancelPointer);
 
     // Keyboard: Space / Enter to hold, Esc to cancel
     btn.addEventListener('keydown', function (e) {
@@ -693,7 +687,7 @@
     });
 
     btn.addEventListener('keyup', function (e) {
-      if ((e.key === ' ' || e.key === 'Enter') && _recorder && _recorder.state === 'recording') {
+      if ((e.key === ' ' || e.key === 'Enter') && _activePointerId === -1 && _recorder && _recorder.state === 'recording') {
         stopRecording(btn, statusEl);
       }
     });

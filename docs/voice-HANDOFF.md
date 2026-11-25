@@ -4,7 +4,7 @@
 
 ## Pipeline
 
-1. The first hold requests microphone permission. Later holds record with `MediaRecorder`; release submits, while a short press, silence, slide-left, Escape, hidden tab, pointer cancellation, or closing the chat cancels or skips submission.
+1. The first hold requests microphone permission. Later holds record with `MediaRecorder`; release submits. A short press, silence, Escape, hidden tab, pointer cancellation, or closing the chat cancels or skips submission. Recording is capped at 30 seconds.
 2. The recording is sent to Groq Whisper (`whisper-large-v3`) using the existing injected Groq key. The module auto-detects language, filters known silence hallucinations, and estimates transcript confidence.
 3. Non-English, uncertain, corrected, or context-dependent text goes through a short Groq chat normalization call. It translates to English and can use recent chat context. The normalizer does not answer the user.
 4. Confident English text enters the existing Lumie chat. Uncertain text is placed in the input with Send/Edit controls. User bubbles retain the original transcript and show the English text when it differs.
