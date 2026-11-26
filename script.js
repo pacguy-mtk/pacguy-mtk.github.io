@@ -1011,7 +1011,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
         likes: 1,
         liked: false,
         media: [
-          { type: 'video', src: 'https://github.com/pacguy-mtk/pacguy-mtk.github.io/raw/refs/heads/main/post/jobscorer_480p.mp4' }
+          { type: 'video', src: 'https://github.com/pacguy-mtk/pacguy-mtk.github.io/raw/refs/heads/main/post/jobscorer_480p.webm' }
         ]
       },
       {
@@ -1050,7 +1050,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
         likes: 2,
         liked: false,
         media: [
-          { type: 'video', src: 'https://github.com/pacguy-mtk/pacguy-mtk.github.io/raw/refs/heads/main/post/202607231141-480sfx.mp4' }
+          { type: 'video', src: 'https://github.com/pacguy-mtk/pacguy-mtk.github.io/raw/refs/heads/main/post/202607231141-480sfx.webm' }
         ]
       },
       {
