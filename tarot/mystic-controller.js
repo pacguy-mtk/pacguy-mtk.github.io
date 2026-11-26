@@ -219,57 +219,15 @@
     }
   }
 
-  function decodePcmWav(ctx, audioData) {
+  function decodePcmAudio(ctx, audioData) {
+    if (!audioData.byteLength || audioData.byteLength % 2 !== 0) {
+      throw new Error('No playable audio data was received');
+    }
     const view = new DataView(audioData);
-    const readTag = offset => String.fromCharCode(view.getUint8(offset), view.getUint8(offset + 1), view.getUint8(offset + 2), view.getUint8(offset + 3));
-    if (audioData.byteLength < 44 || readTag(0) !== 'RIFF' || readTag(8) !== 'WAVE') {
-      throw new Error('The audio file is not a WAV file');
-    }
-
-    let format = 0, channels = 0, sampleRate = 0, bitsPerSample = 0;
-    let dataOffset = -1, dataLength = 0;
-    for (let offset = 12; offset + 8 <= view.byteLength;) {
-      const tag = readTag(offset);
-      const declaredLength = view.getUint32(offset + 4, true);
-      const chunkStart = offset + 8;
-      const chunkLength = Math.min(declaredLength, Math.max(0, view.byteLength - chunkStart));
-      if (tag === 'fmt ' && chunkLength >= 16) {
-        format = view.getUint16(chunkStart, true);
-        channels = view.getUint16(chunkStart + 2, true);
-        sampleRate = view.getUint32(chunkStart + 4, true);
-        bitsPerSample = view.getUint16(chunkStart + 14, true);
-        if (format === 0xfffe && chunkLength >= 40) format = view.getUint16(chunkStart + 24, true);
-      } else if (tag === 'data') {
-        dataOffset = chunkStart;
-        // Some WAV responses use a zero data-size marker even though the body contains samples.
-        dataLength = declaredLength === 0 ? view.byteLength - chunkStart : chunkLength;
-      }
-      if (declaredLength > view.byteLength - chunkStart) break;
-      offset = chunkStart + declaredLength + (declaredLength & 1);
-    }
-
-    const bytesPerSample = bitsPerSample / 8;
-    if (dataOffset < 0 || !channels || !sampleRate || ![1, 3].includes(format) ||
-        ![8, 16, 24, 32].includes(bitsPerSample) || (format === 3 && bitsPerSample !== 32)) {
-      throw new Error('The audio format is not supported');
-    }
-    const frameCount = Math.floor(dataLength / (channels * bytesPerSample));
-    if (!frameCount) throw new Error('The audio file is empty');
-    const buffer = ctx.createBuffer(channels, frameCount, sampleRate);
-    for (let channel = 0; channel < channels; channel++) {
-      const output = buffer.getChannelData(channel);
-      for (let frame = 0; frame < frameCount; frame++) {
-        const pos = dataOffset + (frame * channels + channel) * bytesPerSample;
-        if (format === 3) output[frame] = view.getFloat32(pos, true);
-        else if (bitsPerSample === 8) output[frame] = (view.getUint8(pos) - 128) / 128;
-        else if (bitsPerSample === 16) output[frame] = view.getInt16(pos, true) / 32768;
-        else if (bitsPerSample === 24) {
-          let value = view.getUint8(pos) | (view.getUint8(pos + 1) << 8) | (view.getUint8(pos + 2) << 16);
-          if (value & 0x800000) value |= 0xff000000;
-          output[frame] = value / 8388608;
-        } else output[frame] = view.getInt32(pos, true) / 2147483648;
-      }
-    }
+    const frameCount = audioData.byteLength / 2;
+    const buffer = ctx.createBuffer(1, frameCount, 48000);
+    const output = buffer.getChannelData(0);
+    for (let frame = 0; frame < frameCount; frame++) output[frame] = view.getInt16(frame * 2, true) / 32768;
     return buffer;
   }
 
@@ -293,7 +251,10 @@
         let detail = '';
         try {
           const body = await response.json();
-          detail = typeof body?.error === 'string' ? `: ${body.error}` : '';
+          if (body?.error === 'empty_audio') detail = ': no audio data was returned';
+          else if (body?.error === 'tts_upstream_error') detail = ': voice generation failed';
+          else if (body?.error === 'tts_not_configured') detail = ': voice is not configured';
+          else if (body?.error === 'tts_timeout') detail = ': voice generation timed out';
           if (Number.isInteger(body?.upstream_status)) detail += ` (voice service HTTP ${body.upstream_status})`;
         } catch (error) { /* Keep the HTTP status if the proxy response is not JSON. */ }
         throw new Error(`Final reading voice request failed (HTTP ${response.status}${detail})`);
@@ -302,13 +263,10 @@
       if (controller.signal.aborted || B.getLanguage() !== 'en') return null;
       const ctx = getAudioContext();
       if (!ctx) throw new Error('Web Audio is unavailable');
-      let buffer;
-      try {
-        buffer = await ctx.decodeAudioData(audioData.slice(0));
-      } catch (decodeError) {
-        console.warn('[Tarot voice] Native WAV decode failed; trying PCM WAV decoder:', decodeError);
-        buffer = decodePcmWav(ctx, audioData);
-      }
+      const contentType = response.headers.get('Content-Type') || '';
+      const buffer = /audio\/wav/i.test(contentType)
+        ? await ctx.decodeAudioData(audioData.slice(0))
+        : decodePcmAudio(ctx, audioData);
       if (controller.signal.aborted || B.getLanguage() !== 'en') return null;
       finalVoiceBuffer = buffer;
       finalVoiceText = text;

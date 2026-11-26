@@ -98,6 +98,7 @@ export default {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 120_000);
     let upstream;
+    let audioBytes;
     try {
       upstream = await fetch('https://api.gradium.ai/api/speech/tts', {
         method: 'POST',
@@ -108,11 +109,16 @@ export default {
         body: JSON.stringify({
           text,
           voice_id: VOICE_ID,
-          output_format: 'wav',
+          output_format: 'pcm',
           only_audio: true
         }),
         signal: controller.signal
       });
+      if (!upstream.ok) {
+        console.error('[Tarot TTS] Gradium returned HTTP', upstream.status);
+        return json(502, { error: 'tts_upstream_error', upstream_status: upstream.status }, cors);
+      }
+      audioBytes = await upstream.arrayBuffer();
     } catch (error) {
       const timedOut = error?.name === 'AbortError';
       return json(timedOut ? 504 : 502, {
@@ -122,16 +128,23 @@ export default {
       clearTimeout(timeout);
     }
 
-    if (!upstream.ok) {
-      console.error('[Tarot TTS] Gradium returned HTTP', upstream.status);
-      return json(502, { error: 'tts_upstream_error', upstream_status: upstream.status }, cors);
+    if (!audioBytes || audioBytes.byteLength < 2 || audioBytes.byteLength % 2 !== 0) {
+      console.error('[Tarot TTS] Upstream returned empty or malformed PCM audio', {
+        contentType: upstream.headers.get('Content-Type') || 'unknown',
+        contentLength: upstream.headers.get('Content-Length') || 'unknown',
+        requestId: upstream.headers.get('x-request-id') || upstream.headers.get('x-gradium-request-id') || 'unknown'
+      });
+      return json(502, { error: 'empty_audio' }, cors);
     }
 
-    return new Response(upstream.body, {
+    return new Response(audioBytes, {
       status: 200,
       headers: {
         ...cors,
-        'Content-Type': upstream.headers.get('Content-Type') || 'audio/wav',
+        'Content-Type': 'application/octet-stream',
+        'X-Audio-Format': 'pcm_s16le',
+        'X-Sample-Rate': '48000',
+        'X-Audio-Channels': '1',
         'Cache-Control': 'no-store',
         'X-Content-Type-Options': 'nosniff'
       }
