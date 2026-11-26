@@ -30,7 +30,7 @@ See `LUMIE_PUSH_TO_TALK_SPEC.md` supplied with the implementation request for th
 Tarot voice is separate from Lumie's push-to-talk and uses two playback sources:
 
 - `tarot/assets/voices/welcome.ogg` is the Oracle's opening greeting and is attempted as soon as the Tarot game opens. Since browsers may block autoplay, the controller also retries on the first pointer or keyboard interaction.
-- When **English - voice (beta)** is selected, the final Tarot reading is sent to the Tarot TTS Worker as soon as the LLM returns the finished text; speech generation starts alongside the on-screen reading reveal. Non-English selections do not request English speech. The **Read the Revelation Again** action reuses the decoded reading audio in memory.
+- When **English - voice (beta)** is selected, the final Tarot reading is sent to the Tarot TTS Worker as soon as the LLM returns the finished text; streamed speech starts playing as audio frames arrive, alongside the on-screen reading reveal. Non-English selections do not request English speech. The **Read the Revelation Again** action reuses the streamed reading audio cached in memory.
 - Major Arcana cards (IDs 0–21) play their bundled name clip after the card flips, independent of the reading-language selection. This lets the first card speak before the question prompt opens. Minor Arcana have no voice clip.
 - No separate "Listen to voice" button is used. The English selector controls only API-generated final-reading speech; the opening greeting and Major Arcana name clips are bundled audio and play independently.
 
@@ -63,14 +63,14 @@ The clips from `lumie_eon_ogg.zip` are stored as `tarot/assets/voices/major/<car
 | 20 | Judgement | `20.ogg` |
 | 21 | The World | `21.ogg` |
 
-To reduce clipped or delayed audio starts, the controller begins fetching and decoding a major-card clip before the flip, then plays its `AudioBuffer` through Web Audio with a short scheduled start. The final WAV response is also decoded and played through Web Audio instead of an HTML media element. Decoded final-reading audio stays cached only in the current page session and is discarded on reset.
+To reduce clipped or delayed audio starts, the controller begins fetching and decoding a major-card clip before the flip, then plays its `AudioBuffer` through Web Audio with a short scheduled start. The final reading's PCM frames are scheduled through Web Audio as they stream from the Worker; the joined audio stays cached only in the current page session and is discarded on reset.
 
 ### Tarot TTS Worker and Gradium API
 
 - Cloudflare Worker: `tarotgemini-tts-proxy`
 - Production endpoint: `https://tarotgemini-tts-proxy.backbackbacktrowtow.workers.dev/tts`
 - Local source: `tarot/gradium-tts-proxy/worker.js`; Wrangler config: `tarot/gradium-tts-proxy/wrangler.toml`
-- The Worker accepts `POST` JSON `{"text":"..."}`, sends the reading to Gradium's speech TTS endpoint, fixes the voice to `Wouc5gcfN4vTyYo2`, and returns WAV audio. It allows the published site origin and local HTTP origins, limits text to 4,000 characters, and has a best-effort isolate-local per-IP request limit.
+- The Worker accepts `POST /tts` JSON `{"text":"..."}` for buffered WAV output and `GET /tts-stream` WebSocket upgrades for real-time PCM streaming. The Tarot English voice uses the streaming route: it sends the finished reading as soon as the revelation opens, then plays Gradium PCM frames as they arrive while the text types onto the screen. The voice is fixed to `Wouc5gcfN4vTyYo2`. Both routes allow the published site origin and local HTTP origins, limit text to 4,000 characters, and use a best-effort isolate-local per-IP request limit.
 - Worker runtime secret: `TAROT_VAPI_KEY`. The deploy workflow supplies it from the GitHub Actions repository secret with the same name. Existing manual Worker setups using `GRADIUM_API_KEY` remain supported as a fallback. Never put either key in source files.
 - The CORS check and in-memory limit reduce accidental/external use but are not strong authentication. Add a Cloudflare rate-limiting rule if stronger edge-enforced limits are needed.
 

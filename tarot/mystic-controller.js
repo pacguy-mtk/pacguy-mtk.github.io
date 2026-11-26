@@ -31,6 +31,7 @@
   let askCat = null;
   let el = {};
   let activeVoiceSource = null;
+  const activeVoiceSources = new Set();
   let finalVoiceBuffer = null;
   let finalVoiceText = '';
   let finalVoiceRequest = null;
@@ -101,9 +102,10 @@
   }
 
   function stopVoicePlayback() {
-    if (!activeVoiceSource) return;
-    try { activeVoiceSource.stop(); } catch (e) { /* already stopped */ }
+    if (activeVoiceSource) try { activeVoiceSource.stop(); } catch (e) { /* already stopped */ }
     activeVoiceSource = null;
+    activeVoiceSources.forEach(source => { try { source.stop(); } catch (e) { /* already stopped */ } });
+    activeVoiceSources.clear();
   }
 
   async function playVoiceBuffer(buffer) {
@@ -123,11 +125,13 @@
     source.connect(gain);
     gain.connect(ctx.destination);
     source.addEventListener('ended', () => {
+      activeVoiceSources.delete(source);
       if (activeVoiceSource === source) activeVoiceSource = null;
       source.disconnect();
       gain.disconnect();
     }, { once: true });
     activeVoiceSource = source;
+    activeVoiceSources.add(source);
     source.start(ctx.currentTime + 0.035);
     return true;
   }
@@ -228,41 +232,85 @@
     }
 
     if (finalVoiceRequest) finalVoiceRequest.abort();
-    const controller = new AbortController();
-    finalVoiceRequest = controller;
+    const requestToken = { abort: () => { if (socket && socket.readyState < WebSocket.CLOSING) socket.close(1000, 'Cancelled'); } };
+    let socket;
+    finalVoiceRequest = requestToken;
     try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-        signal: controller.signal
-      });
-      if (!response.ok) {
-        let detail = '';
-        try {
-          const body = await response.json();
-          detail = typeof body?.error === 'string' ? `: ${body.error}` : '';
-          if (Number.isInteger(body?.upstream_status)) detail += ` (Gradium HTTP ${body.upstream_status})`;
-        } catch (error) { /* Keep the HTTP status if the proxy response is not JSON. */ }
-        throw new Error(`Final reading voice request failed (HTTP ${response.status}${detail})`);
-      }
-      const audioData = await response.arrayBuffer();
-      if (controller.signal.aborted || B.getLanguage() !== 'en') return;
+      const streamUrl = endpoint.replace(/^https:/, 'wss:').replace(/\/tts(?:\?.*)?$/, '/tts-stream');
+      if (!streamUrl.startsWith('wss:')) throw new Error('Voice stream URL is invalid');
       const ctx = getAudioContext();
       if (!ctx) throw new Error('Web Audio is unavailable');
-      const buffer = await ctx.decodeAudioData(audioData);
-      if (controller.signal.aborted || B.getLanguage() !== 'en') return;
-      finalVoiceBuffer = buffer;
+      if (ctx.state === 'suspended') await ctx.resume();
+      socket = new WebSocket(streamUrl);
+      const pcmChunks = [];
+      let scheduledUntil = 0;
+      let receivedAudio = false;
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Voice stream timed out')), 120_000);
+        let settled = false;
+        const finish = error => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timeout);
+          error ? reject(error) : resolve();
+        };
+        socket.addEventListener('open', () => socket.send(JSON.stringify({ text })), { once: true });
+        socket.addEventListener('message', event => {
+          let message;
+          try { message = JSON.parse(event.data); } catch { return finish(new Error('Voice stream sent invalid data')); }
+          if (message.type === 'error') return finish(new Error(message.message || 'Voice stream failed'));
+          if (message.type === 'end_of_stream') return finish();
+          if (message.type !== 'audio' || typeof message.audio !== 'string') return;
+          try {
+            const raw = atob(message.audio);
+            const samples = new Int16Array(raw.length / 2);
+            for (let i = 0; i < samples.length; i++) {
+              const value = raw.charCodeAt(i * 2) | (raw.charCodeAt(i * 2 + 1) << 8);
+              samples[i] = value > 32767 ? value - 65536 : value;
+            }
+            const floats = new Float32Array(samples.length);
+            for (let i = 0; i < samples.length; i++) floats[i] = samples[i] / 32768;
+            pcmChunks.push(floats);
+            const buffer = ctx.createBuffer(1, floats.length, 48000);
+            buffer.copyToChannel(floats, 0);
+            const source = ctx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(ctx.destination);
+            source.addEventListener('ended', () => {
+              activeVoiceSources.delete(source);
+              if (activeVoiceSource === source) activeVoiceSource = null;
+            }, { once: true });
+            scheduledUntil = Math.max(scheduledUntil, ctx.currentTime + (receivedAudio ? 0 : 0.12));
+            source.start(scheduledUntil);
+            scheduledUntil += buffer.duration;
+            activeVoiceSource = source;
+            activeVoiceSources.add(source);
+            receivedAudio = true;
+          } catch (error) { finish(new Error('Could not play streamed voice audio')); }
+        });
+        socket.addEventListener('error', () => finish(new Error('Voice stream connection failed')), { once: true });
+        socket.addEventListener('close', event => {
+          if (!settled) finish(new Error(event.code === 1000 ? 'Voice stream ended before completion' : 'Voice stream closed unexpectedly'));
+        }, { once: true });
+      });
+      if (finalVoiceRequest !== requestToken || B.getLanguage() !== 'en') return;
+      if (!receivedAudio) throw new Error('The voice stream returned no audio');
+      const frameCount = pcmChunks.reduce((total, chunk) => total + chunk.length, 0);
+      const combined = new Float32Array(frameCount);
+      let offset = 0;
+      pcmChunks.forEach(chunk => { combined.set(chunk, offset); offset += chunk.length; });
+      finalVoiceBuffer = ctx.createBuffer(1, frameCount, 48000);
+      finalVoiceBuffer.copyToChannel(combined, 0);
       finalVoiceText = text;
-      if (!await playVoiceBuffer(buffer)) throw new Error('Audio playback could not start');
     } catch (error) {
-      if (error.name !== 'AbortError') {
+      if (finalVoiceRequest === requestToken) {
         console.warn('[Tarot voice] Final reading audio unavailable:', error);
         const detail = error?.message ? ` ${error.message}` : '';
         el.revNote.textContent = [lastNote, `English voice is unavailable right now.${detail}`].filter(Boolean).join(' ');
       }
     } finally {
-      if (finalVoiceRequest === controller) finalVoiceRequest = null;
+      if (socket && socket.readyState < WebSocket.CLOSING) socket.close(1000, 'Complete');
+      if (finalVoiceRequest === requestToken) finalVoiceRequest = null;
     }
   }
 
