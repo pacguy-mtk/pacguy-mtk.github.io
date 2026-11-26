@@ -36,7 +36,6 @@
   let activeFinalVoiceAudio = null;
   let activeFinalVoiceUrl = '';
   let finalVoiceBlob = null;
-  let finalVoiceBuffer = null;
   let finalVoiceText = '';
   let finalVoiceRequest = null;
   let welcomeVoiceBufferPromise = null;
@@ -232,24 +231,11 @@
     }
   }
 
-  function decodePcmAudio(ctx, audioData) {
-    if (!audioData.byteLength || audioData.byteLength % 2 !== 0) {
-      throw new Error('No playable audio data was received');
-    }
-    const view = new DataView(audioData);
-    const frameCount = audioData.byteLength / 2;
-    const buffer = ctx.createBuffer(1, frameCount, 48000);
-    const output = buffer.getChannelData(0);
-    for (let frame = 0; frame < frameCount; frame++) output[frame] = view.getInt16(frame * 2, true) / 32768;
-    return buffer;
-  }
-
   async function getFinalReadingVoice(text) {
     if (B.getLanguage() !== 'en' || !text) return null;
     const endpoint = window.TAROT_CONFIG.TTS_PROXY_URL;
     if (!endpoint) return null;
     if (finalVoiceText === text) {
-      if (finalVoiceBuffer) return { format: 'pcm', buffer: finalVoiceBuffer };
       if (finalVoiceBlob) return { format: 'wav', blob: finalVoiceBlob };
     }
 
@@ -277,21 +263,12 @@
       }
       const audioData = await response.arrayBuffer();
       if (controller.signal.aborted || B.getLanguage() !== 'en') return null;
-      const contentType = response.headers.get('Content-Type') || '';
-      if (/audio\/wav/i.test(contentType)) {
-        finalVoiceBlob = new Blob([audioData], { type: 'audio/wav' });
-        finalVoiceBuffer = null;
-        finalVoiceText = text;
-        return { format: 'wav', blob: finalVoiceBlob };
-      }
-      const ctx = getAudioContext();
-      if (!ctx) throw new Error('Web Audio is unavailable');
-      const buffer = decodePcmAudio(ctx, audioData);
-      if (controller.signal.aborted || B.getLanguage() !== 'en') return null;
-      finalVoiceBlob = null;
-      finalVoiceBuffer = buffer;
+      if (!audioData.byteLength) throw new Error('The voice service returned no audio data');
+      // Match Lumie's proven playback path: Gradium is asked for WAV, so always
+      // label the complete response as WAV even if the proxy MIME is generic.
+      finalVoiceBlob = new Blob([audioData], { type: 'audio/wav' });
       finalVoiceText = text;
-      return { format: 'pcm', buffer };
+      return { format: 'wav', blob: finalVoiceBlob };
     } catch (error) {
       if (error.name !== 'AbortError' && finalVoiceRequest === controller) {
         console.warn('[Tarot voice] Final reading audio unavailable:', error);
@@ -341,7 +318,6 @@
     if (finalVoiceRequest) finalVoiceRequest.abort();
     finalVoiceRequest = null;
     finalVoiceBlob = null;
-    finalVoiceBuffer = null;
     finalVoiceText = '';
     stopVoicePlayback();
   }

@@ -43,6 +43,22 @@ The updated controller and Worker source are pushed to GitHub. GitHub Actions bu
 
 No API key or secret value belongs in this document or in source control.
 
+## Current incident: live English-reading voice still fails
+
+The user reports that successful AI readings sometimes show an empty-audio `HTTP 502`, fail to decode audio, or produce no voice. Screenshots establish that the text-reading API can succeed while voice playback fails separately. The browser should only invoke speech for a successful AI reading in English; Basic/local readings intentionally do not invoke speech.
+
+### GitHub client logic restored to Lumie's WAV path
+
+The Tarot client previously selected its decoder from the response `Content-Type`: `audio/wav` used an HTML audio element, while any other MIME type was treated as raw 48 kHz PCM. That is unsafe because the Tarot Worker may forward a generic MIME type even when Gradium returned WAV bytes. The client now always wraps a successful response as a Blob labeled `audio/wav` and plays it through `HTMLAudioElement`, matching Lumie's working client behavior. The checked-in Tarot Worker already requests WAV and labels its response `audio/wav`. This corrects the MIME/decoder mismatch; it cannot turn a truly empty upstream body into audio.
+
+### Cloudflare inspection still required
+
+The dashboard probes previously made from Quick Edit did not reach the speech upstream: a root GET was rejected with `origin_not_allowed`, and a root POST returned `not_found`; Tarot calls `/tts`. Separately, the user's reading screenshot reported `HTTP 502` with `empty_audio`, which indicates the Worker returned an error response after receiving an empty upstream body (or the deployed Worker has different code). That cannot be diagnosed from the GitHub source alone.
+
+There is no Cloudflare MCP connection/tool available in the current Codex session, and plugin discovery returned no Cloudflare plugin. Do not describe the production Worker as verified. Once Cloudflare MCP is connected, inspect the active `tarotgemini-tts-proxy` deployment and its source, confirm only that the `GRADIUM_API_KEY` secret binding exists (never read or expose its value), and inspect request logs for a single successful AI reading: path, HTTP status, upstream status/request ID, response content type and byte count. Compare the deployed code with `tarot/gradium-tts-proxy/worker.js`; update and deploy only the Tarot Worker if they differ or logs show a specific defect. Then verify the browser receives non-empty WAV bytes and plays them. Keep Lumie's Worker untouched.
+
+The repository's Worker deployment workflow requires `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` Actions secrets; the prior workflow skipped automatic Worker deployment when they were absent. This is separate from the encrypted runtime `GRADIUM_API_KEY` secret shown in Cloudflare. A GitHub Pages push updates the client, but does not by itself prove that Cloudflare is running the matching Worker source.
+
 ## Follow-up case: why the speech API was not called
 
 During the Nov 26, 2026 troubleshooting session, the live Tarot page showed **Basic readings**. This is the local, no-AI mode. The controller correctly calls the speech Worker only when the narrator returns `source: 'ai'`; a local/basic reading has no LLM output to speak, so it must not call speech. The UI now states this in the reading note when English voice is selected but the result came from a basic/local path.
