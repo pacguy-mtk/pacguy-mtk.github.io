@@ -6,7 +6,9 @@ Tarot's English reading text could be generated successfully by the Oracle, whil
 
 The user asked the agent to inspect Lumie's already-working voice implementation before changing Tarot. The user then supplied the actual Cloudflare code for both Workers, which corrected the first diagnosis: both deployed Workers request WAV. The more important difference is **the response MIME type**. Lumie wraps returned bytes in a Blob explicitly labeled `audio/wav`; the supplied Tarot Worker forwards Gradium's `Content-Type` unchanged (using `audio/wav` only when that header is absent). Tarot's page branches on that header: it plays `audio/wav` through `HTMLAudioElement`, but treats every other content type as raw PCM. If Gradium labels its WAV bytes `application/octet-stream`, Tarot sends the complete RIFF/WAVE file to the PCM decoder. That can produce the decode/empty-audio failures even though the bytes are a WAV file. This is the key implementation difference identified by comparing the working version, as the user requested.
 
-The earlier repository revision also requested PCM, but that does not describe the Cloudflare Tarot code the user pasted, which already requests WAV. The updated repository Worker now handles both concerns explicitly: it buffers and validates the complete WAV response and always labels valid output `audio/wav`.
+The earlier repository revision also requested PCM, but that does not describe the Cloudflare Tarot code the user pasted, which already requests WAV. The repository Worker now buffers the full response and always labels the bytes `audio/wav`.
+
+The follow-up screenshot exposed a false positive in that validation: Tarot returned HTTP 502 with `empty_audio` because the hand-written RIFF chunk parser rejected Gradium's WAV layout. That error came from the Worker check, not proof that Gradium returned zero bytes. To stay close to Lumie's tolerant playback path, the Worker now rejects only a truly zero-byte body, then passes the buffered bytes through as `audio/wav`.
 
 ## The working reference: Lumie
 
@@ -21,7 +23,7 @@ This lets the browser's normal media decoder handle the WAV container. The page 
 
 ## Tarot changes
 
-- The Tarot Worker requests WAV, buffers the full upstream body before the timeout is cleared, checks for a RIFF/WAVE header and non-empty data chunk, and always returns valid bytes as `audio/wav`. This prevents upstream MIME metadata from routing WAV bytes into the PCM decoder. Invalid or empty responses become a clear upstream error instead of a successful empty audio response.
+- The Tarot Worker requests WAV, buffers the full upstream body before the timeout is cleared, rejects only a zero-byte response, and always returns bytes as `audio/wav`. This prevents upstream MIME metadata from routing WAV bytes into the PCM decoder while avoiding a brittle WAV chunk parser.
 - Tarot keeps the completed AI reading in memory and starts the speech request first. It waits for `audio.play()` to successfully start, then waits three seconds before beginning the typewriter reveal. If speech fails, the text still appears after a short three-second minimum; if speech takes over 20 seconds to start, the request is aborted and the text is shown rather than leaving the Oracle stuck.
 - Only a successful AI reading (`source === 'ai'`) uses the speech Worker. A basic/local fallback does not consume a speech request. The reread action can reuse the cached audio.
 - The local Major Arcana OGG clips, welcome OGG, and SFX remain on their existing Web Audio paths and do not depend on the English-reading setting.
@@ -37,6 +39,6 @@ All 26 had audio streams and decoded samples; no corrupt or zero-sample file was
 
 ## Scope and remaining verification
 
-The updated controller and Worker source are pushed to GitHub. GitHub Actions built the Pages site, but the Worker deployment workflow skipped its deploy step because this repository does not have Cloudflare deployment credentials; the user's Cloudflare dashboard code must be updated separately (as Lumie's was). The Cloudflare Worker code pasted for Tarot still forwards Gradium's content type and response stream; update it from `tarot/gradium-tts-proxy/worker.js` or at minimum force the response type to `audio/wav` and buffer/validate its WAV body. A successful local asset decode does not prove the live Cloudflare secret, Gradium account, quota, or network path is configured correctly. Confirm one English AI reading on the published site: the audio should begin first, text should start about three seconds later, and card-flip/welcome sounds should remain available independently.
+The updated controller and Worker source are pushed to GitHub. GitHub Actions built the Pages site, but the Worker deployment workflow skipped its deploy step because this repository does not have Cloudflare deployment credentials; the user's Cloudflare dashboard code must be updated separately (as Lumie's was). Deploy the current `tarot/gradium-tts-proxy/worker.js` from the Cloudflare dashboard. A successful local asset decode does not prove the live Cloudflare secret, Gradium account, quota, or network path is configured correctly. Confirm one English AI reading on the published site: the audio should begin first, text should start about three seconds later, and card-flip/welcome sounds should remain available independently.
 
 No API key or secret value belongs in this document or in source control.

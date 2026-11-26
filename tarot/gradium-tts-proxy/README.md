@@ -22,6 +22,6 @@ Content-Type: application/json
 {"text":"The Oracle's completed reading..."}
 ```
 
-Success returns a non-empty RIFF/WAVE response with `Content-Type: audio/wav`; the Tarot frontend plays its Blob through an `HTMLAudioElement`, matching Lumie's working path. Raw PCM is no longer the expected Worker response.
+Success returns the buffered Gradium audio bytes with `Content-Type: audio/wav`; only a zero-byte body is rejected. The Tarot frontend plays its Blob through an `HTMLAudioElement`, matching Lumie's working path. Raw PCM is no longer the expected Worker response.
 
 The CORS origin check and in-memory rate limit are abuse-reduction measures, not strong authentication. For stricter production limits, add a Cloudflare rate-limiting rule for this Worker route.
