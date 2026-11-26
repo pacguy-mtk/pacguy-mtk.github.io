@@ -1,6 +1,6 @@
 # room.html handoff (v2.2: layered picture room)
 
-Read this first if you are an AI agent (or a human) editing `room.html`. Related: `AGENTS.md`, `docs/tarot-HANDOFF.md`, `version/v2.2-completion.md`.
+Read this first if you are an AI agent (or a human) editing `room.html`. Related: `AGENTS.md`, `docs/tarot.md`, `docs/history.md`.
 
 Version naming used by the owner: **v2.1 = tarot implemented, v2.2 = this layered room** (a good update, the owner's favourite so far).
 
@@ -9,7 +9,7 @@ Version naming used by the owner: **v2.1 = tarot implemented, v2.2 = this layere
 shifts the layers by different amounts, which gives a 3D feel. three.js (r160, import map in the page head) is only a fast layer compositor and effect renderer.
 Nothing is lit or shadowed in real time, so it is light on the GPU.
 
-Everything outside the module script (HTML, CSS, drawers, gallery, radio/OST, Systems, Lumie chat, tarot overlay, welcome card, dock, loader, fatal screen) is the
+The styles are in `css/room.css`, the gallery list in `data/gallery.js`. Everything outside the module script (HTML, CSS, drawers, gallery, radio/OST, Systems, Lumie chat, tarot overlay, welcome card, dock, loader, fatal screen) is the
 original UI layer. The scene talks to it only through `window.UI`: `open(id)`, `close()`, `onfocus(id)`, `onmusic(on)`, `onsay(mood)`, `onenter()`, `current`.
 ids: gallery, radio, server, lumie, mug, phone, tarot.
 
