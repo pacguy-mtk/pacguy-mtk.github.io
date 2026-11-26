@@ -24,6 +24,7 @@
   let audioCtx = null;
   let revealStatus = [null, null, null];
   let lastNarrativeReading = '';
+  let lastNarrativeSource = '';
   let isSpreadComplete = false;
   let forcedNext = null;                      // debug: { id, orientation }
   let currentQuestion = null;                 // { categoryId, text } | null (null = general reading)
@@ -222,7 +223,7 @@
     const view = new DataView(audioData);
     const readTag = offset => String.fromCharCode(view.getUint8(offset), view.getUint8(offset + 1), view.getUint8(offset + 2), view.getUint8(offset + 3));
     if (audioData.byteLength < 44 || readTag(0) !== 'RIFF' || readTag(8) !== 'WAVE') {
-      throw new Error('Gradium returned audio that is not a WAV file');
+      throw new Error('The audio file is not a WAV file');
     }
 
     let format = 0, channels = 0, sampleRate = 0, bitsPerSample = 0;
@@ -249,10 +250,10 @@
     const bytesPerSample = bitsPerSample / 8;
     if (dataOffset < 0 || !channels || !sampleRate || ![1, 3].includes(format) ||
         ![8, 16, 24, 32].includes(bitsPerSample) || (format === 3 && bitsPerSample !== 32)) {
-      throw new Error('Gradium returned a WAV format this browser cannot play');
+      throw new Error('The audio format is not supported');
     }
     const frameCount = Math.floor(dataLength / (channels * bytesPerSample));
-    if (!frameCount) throw new Error('Gradium returned an empty WAV file');
+    if (!frameCount) throw new Error('The audio file is empty');
     const buffer = ctx.createBuffer(channels, frameCount, sampleRate);
     for (let channel = 0; channel < channels; channel++) {
       const output = buffer.getChannelData(channel);
@@ -292,7 +293,7 @@
         try {
           const body = await response.json();
           detail = typeof body?.error === 'string' ? `: ${body.error}` : '';
-          if (Number.isInteger(body?.upstream_status)) detail += ` (Gradium HTTP ${body.upstream_status})`;
+          if (Number.isInteger(body?.upstream_status)) detail += ` (voice service HTTP ${body.upstream_status})`;
         } catch (error) { /* Keep the HTTP status if the proxy response is not JSON. */ }
         throw new Error(`Final reading voice request failed (HTTP ${response.status}${detail})`);
       }
@@ -763,14 +764,13 @@
 
     const result = await B.fireNarrator(currentSpread, currentQuestion);
     lastNarrativeReading = result.text;
+    lastNarrativeSource = result.source || 'local';
     lastNote = result.note || '';
     isSpreadComplete = true;
-    if (B.getLanguage() === 'en') {
-      const voiceBuffer = await getFinalReadingVoice(lastNarrativeReading);
-      if (voiceBuffer && B.getLanguage() === 'en') {
-        const started = await playVoiceBuffer(voiceBuffer);
-        if (started) await sleep(450); // Let the first spoken words land before revealing the reading.
-      }
+    if (B.getLanguage() === 'en' && result.source === 'ai') {
+      // Keep the generated LLM text private while the voice request gets a head start.
+      void playFinalReadingVoice(lastNarrativeReading);
+      await sleep(3000);
     }
 
     await showRevelationText(formatNarrative(result.text), lastNote);   // resolves when the Seeker clicks back
@@ -934,7 +934,7 @@
   function rereadRevelation() {
     if (revState || !lastNarrativeReading) return;
     openRevelation();
-    if (B.getLanguage() === 'en') void playFinalReadingVoice(lastNarrativeReading);
+    if (B.getLanguage() === 'en' && lastNarrativeSource === 'ai') void playFinalReadingVoice(lastNarrativeReading);
     showRevelationText(formatNarrative(lastNarrativeReading), lastNote, { instant: true });
   }
 
@@ -1014,6 +1014,7 @@
     clearTimelineDock();
     currentSpread = [];
     lastNarrativeReading = '';
+    lastNarrativeSource = '';
     currentQuestion = null;
     isSpreadComplete = false;
     resetRevealStatus();
