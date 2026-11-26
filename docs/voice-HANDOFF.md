@@ -31,8 +31,8 @@ Tarot voice is separate from Lumie's push-to-talk and uses two playback sources:
 
 - `tarot/assets/voices/welcome.ogg` is the Oracle's opening greeting and is attempted as soon as the Tarot game opens. Since browsers may block autoplay, the controller also retries on the first pointer or keyboard interaction.
 - When **English - voice (beta)** is selected, the final Tarot reading is sent to the Tarot TTS Worker and spoken automatically after the full reading text appears. Non-English selections do not request English speech. The **Read the Revelation Again** action reuses the decoded reading audio in memory.
-- Major Arcana cards (IDs 0–21) play their bundled English name clip after the card flips. Minor Arcana have no voice clip. The first card waits until the language prompt is answered before playing, so a visitor can choose a non-English reading first.
-- No separate "Listen to voice" button is used; the language selector is the voice setting.
+- Major Arcana cards (IDs 0–21) play their bundled name clip after the card flips, independent of the reading-language selection. This lets the first card speak before the question prompt opens. Minor Arcana have no voice clip.
+- No separate "Listen to voice" button is used. The English selector controls only API-generated final-reading speech; the opening greeting and Major Arcana name clips are bundled audio and play independently.
 
 ### Major Arcana OGG files
 

@@ -202,10 +202,10 @@
   }
 
   async function playMajorVoice(cardData, voicePromise) {
-    if (B.getLanguage() !== 'en' || !isMajorCard(cardData) || !voicePromise) return;
+    if (!isMajorCard(cardData) || !voicePromise) return;
     try {
       const buffer = await voicePromise;
-      if (B.getLanguage() === 'en' && buffer) await playVoiceBuffer(buffer);
+      if (buffer) await playVoiceBuffer(buffer);
     } catch (error) {
       console.warn('[Tarot voice] Major Arcana clip unavailable:', cardData.name, error);
     }
@@ -612,7 +612,7 @@
     flying.classList.add('flipped');
     await sleep(800);
 
-    if (cardVoicePromise && slotIndex > 0) void playMajorVoice(cardData, cardVoicePromise);
+    if (cardVoicePromise) void playMajorVoice(cardData, cardVoicePromise);
 
     // v0.9.1: Major Arcana get a trading-card style showcase (grow, tilt, light ray), then return
     if (isMajorCard(cardData)) await playMajorShowcase(flying);
@@ -634,10 +634,7 @@
     flying.remove();
     playSound('dock');
 
-    if (slotIndex === 0) {
-      await askQuestion();                                     // choose reading language after the first card
-      if (cardVoicePromise) void playMajorVoice(cardData, cardVoicePromise);
-    }
+    if (slotIndex === 0) await askQuestion();                  // choose reading language after the first card
 
     isAnimating = false;
     updateDeckTitle();
