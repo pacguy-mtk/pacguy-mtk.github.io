@@ -16,6 +16,18 @@
 
   const CHANGELOG = [
     {
+      version: '0.9.4', title: 'API calling routing', date: 'Nov 26, 2026',
+      summary: 'English voice now follows the successful AI reading, with clearer playback timing.',
+      groups: [
+        { type: 'upgrades', items: [
+          '<strong>Reading route:</strong> only a completed AI reading requests English voice. The finished text stays hidden until speech starts, then appears after a short lead-in. Basic readings do not make a speech API call.'
+        ]},
+        { type: 'fixes', items: [
+          'Voice audio is buffered and played as WAV using the browser audio player.'
+        ]}
+      ]
+    },
+    {
       version: '0.9.3', title: 'Voice update', date: 'Nov 26, 2026',
       summary: 'A welcome voice, English reading audio and all 22 Major Arcana clips arrive.',
       groups: [

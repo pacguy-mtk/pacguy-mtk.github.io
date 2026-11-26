@@ -768,6 +768,9 @@
     lastNarrativeReading = result.text;
     lastNarrativeSource = result.source || 'local';
     lastNote = result.note || '';
+    if (B.getLanguage() === 'en' && result.source !== 'ai') {
+      lastNote = [lastNote, 'English voice is available for successful AI readings only.'].filter(Boolean).join(' ');
+    }
     isSpreadComplete = true;
     if (B.getLanguage() === 'en' && result.source === 'ai') {
       // Keep the finished LLM text private until speech is actually playing.
