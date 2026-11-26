@@ -40,7 +40,7 @@ Maintain the bento gallery on https://pacguy-mtk.github.io/
 1. Items sorted by `date` descending (newest first)
 2. All media files must exist in `post/` folder
 3. Use relative paths: `post/filename.ext`
-4. Videos auto-generate first-frame thumbnails
+4. Videos auto-generate first-frame thumbnails (classic site). `room.html` uses `post/thumbs/`: after adding media to its `DATA.items`, run `python tools/make-thumbs.py` (needs ffmpeg) and commit `post/thumbs/` with `room.html`
 5. Max 3 columns desktop, 2 mobile (CSS handled)
 6. **OST Requirement**: If the user mentions that an item is an OST (or if updating an OST track):
    - In `room.html`: prepend the item to `DATA.items`
