@@ -205,7 +205,10 @@
     if (!isMajorCard(cardData) || !voicePromise) return;
     try {
       const buffer = await voicePromise;
-      if (buffer) await playVoiceBuffer(buffer);
+      if (buffer) {
+        await sleep(1000); // Give the card flip a beat before its name is spoken.
+        await playVoiceBuffer(buffer);
+      }
     } catch (error) {
       console.warn('[Tarot voice] Major Arcana clip unavailable:', cardData.name, error);
     }
@@ -234,7 +237,15 @@
         body: JSON.stringify({ text }),
         signal: controller.signal
       });
-      if (!response.ok) throw new Error(`Final reading voice request failed (${response.status})`);
+      if (!response.ok) {
+        let detail = '';
+        try {
+          const body = await response.json();
+          detail = typeof body?.error === 'string' ? `: ${body.error}` : '';
+          if (Number.isInteger(body?.upstream_status)) detail += ` (Gradium HTTP ${body.upstream_status})`;
+        } catch (error) { /* Keep the HTTP status if the proxy response is not JSON. */ }
+        throw new Error(`Final reading voice request failed (HTTP ${response.status}${detail})`);
+      }
       const audioData = await response.arrayBuffer();
       if (controller.signal.aborted || B.getLanguage() !== 'en') return;
       const ctx = getAudioContext();
@@ -247,7 +258,8 @@
     } catch (error) {
       if (error.name !== 'AbortError') {
         console.warn('[Tarot voice] Final reading audio unavailable:', error);
-        el.revNote.textContent = [lastNote, 'English voice is unavailable right now.'].filter(Boolean).join(' ');
+        const detail = error?.message ? ` ${error.message}` : '';
+        el.revNote.textContent = [lastNote, `English voice is unavailable right now.${detail}`].filter(Boolean).join(' ');
       }
     } finally {
       if (finalVoiceRequest === controller) finalVoiceRequest = null;

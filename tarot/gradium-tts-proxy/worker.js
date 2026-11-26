@@ -96,7 +96,7 @@ export default {
     }
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30_000);
+    const timeout = setTimeout(() => controller.abort(), 120_000);
     let upstream;
     try {
       upstream = await fetch('https://api.gradium.ai/api/speech/tts', {
@@ -124,7 +124,7 @@ export default {
 
     if (!upstream.ok) {
       console.error('[Tarot TTS] Gradium returned HTTP', upstream.status);
-      return json(502, { error: 'tts_upstream_error' }, cors);
+      return json(502, { error: 'tts_upstream_error', upstream_status: upstream.status }, cors);
     }
 
     return new Response(upstream.body, {
