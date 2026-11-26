@@ -1353,7 +1353,7 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
     // Custom titles dictionary for specific filenames
     const GALLERY_TITLE_MAP = {
       'deviantart_aicompare_30_SP2.jpg': 'Vocaloid: Hatsune Miku',
-      'ComfyUI_temp_npikj_00091_.png': 'For Reduced the piano keys error.',
+      'ComfyUI_temp_npikj_00091_.webp': 'For Reduced the piano keys error.',
       'deviantart_aicompare_30_SP.jpg': 'Vocaloid: Hatsune Miku (Alt)',
       'deviantart_aicompare_30.jpg': 'AI Comparison #30'
     };
@@ -1368,9 +1368,9 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
         dim: '1216 &times; 832'
       },
       {
-        src: 'images/gallery/ComfyUI_temp_npikj_00091_.png',
-        fallback: 'ComfyUI_temp_npikj_00091_.png',
-        filename: 'ComfyUI_temp_npikj_00091_.png',
+        src: 'images/gallery/ComfyUI_temp_npikj_00091_.webp',
+        fallback: 'ComfyUI_temp_npikj_00091_.webp',
+        filename: 'ComfyUI_temp_npikj_00091_.webp',
         title: 'For Reduced the piano keys error.',
         subtitle: 'ComfyUI Prompt &amp; Model Comparison',
         dim: '1216 &times; 832'
