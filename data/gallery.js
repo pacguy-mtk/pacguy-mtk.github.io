@@ -71,8 +71,6 @@ window.GALLERY = {
   {"title": "3D Miku Festival", "context": "Character 3D render", "src": "post/sample3d-mikuchanfes.jpg", "type": "image", "category": "ai-generated", "date": "2026-05"},
   {"title": "Miku Festival Flyer", "context": "Event promotional flyer", "src": "post/mikuchan_fes_flyer.png", "type": "image", "category": "mockups", "date": "2026-05"},
   {"title": "AI Compilation", "context": "AI motion work compilation", "src": "post/AI_Compilation.mp4", "type": "video", "category": "ai-generated", "date": "2026-04"},
-  {"title": "AI Characters", "context": "Character generation tests", "src": "post/AI_Compilation2.mp4", "type": "video", "category": "ai-generated", "date": "2026-04"},
-  {"title": "Cat Float", "context": "AI animation test", "src": "post/catfloat.mp4", "type": "video", "category": "ai-generated", "date": "2026-03"},
   {"title": "ComfyUI Experiment", "context": "Model comparison test", "src": "post/ComfyUI_temp_xhjbh_00011_.png", "type": "image", "category": "ai-generated", "date": "2026-03"}
 ],
 "ost": [
