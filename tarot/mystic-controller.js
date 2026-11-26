@@ -218,6 +218,59 @@
     }
   }
 
+  function decodePcmWav(ctx, audioData) {
+    const view = new DataView(audioData);
+    const readTag = offset => String.fromCharCode(view.getUint8(offset), view.getUint8(offset + 1), view.getUint8(offset + 2), view.getUint8(offset + 3));
+    if (audioData.byteLength < 44 || readTag(0) !== 'RIFF' || readTag(8) !== 'WAVE') {
+      throw new Error('Gradium returned audio that is not a WAV file');
+    }
+
+    let format = 0, channels = 0, sampleRate = 0, bitsPerSample = 0;
+    let dataOffset = -1, dataLength = 0;
+    for (let offset = 12; offset + 8 <= view.byteLength;) {
+      const tag = readTag(offset);
+      const declaredLength = view.getUint32(offset + 4, true);
+      const chunkStart = offset + 8;
+      const chunkLength = Math.min(declaredLength, Math.max(0, view.byteLength - chunkStart));
+      if (tag === 'fmt ' && chunkLength >= 16) {
+        format = view.getUint16(chunkStart, true);
+        channels = view.getUint16(chunkStart + 2, true);
+        sampleRate = view.getUint32(chunkStart + 4, true);
+        bitsPerSample = view.getUint16(chunkStart + 14, true);
+        if (format === 0xfffe && chunkLength >= 40) format = view.getUint16(chunkStart + 24, true);
+      } else if (tag === 'data') {
+        dataOffset = chunkStart;
+        dataLength = chunkLength;
+      }
+      if (declaredLength > view.byteLength - chunkStart) break;
+      offset = chunkStart + declaredLength + (declaredLength & 1);
+    }
+
+    const bytesPerSample = bitsPerSample / 8;
+    if (dataOffset < 0 || !channels || !sampleRate || ![1, 3].includes(format) ||
+        ![8, 16, 24, 32].includes(bitsPerSample) || (format === 3 && bitsPerSample !== 32)) {
+      throw new Error('Gradium returned a WAV format this browser cannot play');
+    }
+    const frameCount = Math.floor(dataLength / (channels * bytesPerSample));
+    if (!frameCount) throw new Error('Gradium returned an empty WAV file');
+    const buffer = ctx.createBuffer(channels, frameCount, sampleRate);
+    for (let channel = 0; channel < channels; channel++) {
+      const output = buffer.getChannelData(channel);
+      for (let frame = 0; frame < frameCount; frame++) {
+        const pos = dataOffset + (frame * channels + channel) * bytesPerSample;
+        if (format === 3) output[frame] = view.getFloat32(pos, true);
+        else if (bitsPerSample === 8) output[frame] = (view.getUint8(pos) - 128) / 128;
+        else if (bitsPerSample === 16) output[frame] = view.getInt16(pos, true) / 32768;
+        else if (bitsPerSample === 24) {
+          let value = view.getUint8(pos) | (view.getUint8(pos + 1) << 8) | (view.getUint8(pos + 2) << 16);
+          if (value & 0x800000) value |= 0xff000000;
+          output[frame] = value / 8388608;
+        } else output[frame] = view.getInt32(pos, true) / 2147483648;
+      }
+    }
+    return buffer;
+  }
+
   async function getFinalReadingVoice(text) {
     if (B.getLanguage() !== 'en' || !text) return null;
     const endpoint = window.TAROT_CONFIG.TTS_PROXY_URL;
@@ -247,7 +300,13 @@
       if (controller.signal.aborted || B.getLanguage() !== 'en') return null;
       const ctx = getAudioContext();
       if (!ctx) throw new Error('Web Audio is unavailable');
-      const buffer = await ctx.decodeAudioData(audioData);
+      let buffer;
+      try {
+        buffer = await ctx.decodeAudioData(audioData.slice(0));
+      } catch (decodeError) {
+        console.warn('[Tarot voice] Native WAV decode failed; trying PCM WAV decoder:', decodeError);
+        buffer = decodePcmWav(ctx, audioData);
+      }
       if (controller.signal.aborted || B.getLanguage() !== 'en') return null;
       finalVoiceBuffer = buffer;
       finalVoiceText = text;
