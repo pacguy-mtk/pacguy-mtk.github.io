@@ -1,0 +1,3 @@
+name = "tarotgemini-tts-proxy"
+main = "worker.js"
+compatibility_date = "2026-11-26"

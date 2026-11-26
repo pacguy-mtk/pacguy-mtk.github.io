@@ -16,6 +16,20 @@
 
   const CHANGELOG = [
     {
+      version: '0.9.3', title: 'Voice update', date: 'Nov 26, 2026',
+      summary: 'A welcome voice, English reading audio and all 22 Major Arcana clips arrive.',
+      groups: [
+        { type: 'assets', items: [
+          '<strong>Welcome:</strong> a spoken greeting plays when Tarot opens. If autoplay is blocked, it starts after the first interaction.',
+          '<strong>English - voice (beta):</strong> the final reading is spoken in English. Support for other languages is coming soon.',
+          '<strong>Major Arcana:</strong> each major card speaks its name after flipping. Minor Arcana stay silent.'
+        ]},
+        { type: 'fixes', items: [
+          'Voice clips are decoded before playback to avoid the clipped or delayed start some media players can produce.'
+        ]}
+      ]
+    },
+    {
       version: '0.9.2', title: 'Layout update', date: 'Nov 11, 2026',
       summary: 'A tidier table, cleaner cards and a simpler key window.',
       groups: [

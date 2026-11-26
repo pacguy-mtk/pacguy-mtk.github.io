@@ -30,6 +30,14 @@
   let askDone = null;                         // resolver while the question panel is open
   let askCat = null;
   let el = {};
+  let activeVoiceSource = null;
+  let finalVoiceBuffer = null;
+  let finalVoiceText = '';
+  let finalVoiceRequest = null;
+  let welcomeVoiceBufferPromise = null;
+  let welcomeVoiceAttempt = null;
+  let welcomeVoicePlayed = false;
+  const majorVoiceBuffers = new Map();
 
   // =========================================================================
   // Web Audio API Sound Synthesizer
@@ -40,7 +48,7 @@
       const Ctx = window.AudioContext || window.webkitAudioContext;
       if (Ctx) audioCtx = new Ctx();
     }
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => { });
     return audioCtx;
   }
 
@@ -90,6 +98,168 @@
       else if (type === 'dock') tone(ctx, 'triangle', 140, 40, 0.25, now, 0.2);
       else if (type === 'chime') [880, 1320, 1760].forEach((f, i) => tone(ctx, 'sine', f, 0, 0.12, now + i * 0.08, 0.8));
     } catch (e) { /* autoplay policy: stay silent */ }
+  }
+
+  function stopVoicePlayback() {
+    if (!activeVoiceSource) return;
+    try { activeVoiceSource.stop(); } catch (e) { /* already stopped */ }
+    activeVoiceSource = null;
+  }
+
+  async function playVoiceBuffer(buffer) {
+    let ctx;
+    try { ctx = getAudioContext(); } catch (error) { return false; }
+    if (!ctx || !buffer) return false;
+    if (ctx.state === 'suspended') {
+      try { await ctx.resume(); } catch (e) { return false; }
+    }
+    if (ctx.state !== 'running') return false;
+
+    stopVoicePlayback();
+    const source = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    source.buffer = buffer;
+    gain.gain.value = 0.95;
+    source.connect(gain);
+    gain.connect(ctx.destination);
+    source.addEventListener('ended', () => {
+      if (activeVoiceSource === source) activeVoiceSource = null;
+      source.disconnect();
+      gain.disconnect();
+    }, { once: true });
+    activeVoiceSource = source;
+    source.start(ctx.currentTime + 0.035);
+    return true;
+  }
+
+  function loadMajorVoice(cardId) {
+    if (!Number.isInteger(cardId) || cardId < 0 || cardId > 21) return Promise.resolve(null);
+    if (majorVoiceBuffers.has(cardId)) return majorVoiceBuffers.get(cardId);
+    let ctx;
+    try { ctx = getAudioContext(); } catch (error) { return Promise.resolve(null); }
+    if (!ctx) return Promise.resolve(null);
+
+    const pending = fetch(`assets/voices/major/${cardId}.ogg`, { cache: 'force-cache' })
+      .then(response => {
+        if (!response.ok) throw new Error(`Major Arcana voice ${cardId} failed to load (${response.status})`);
+        return response.arrayBuffer();
+      })
+      .then(data => ctx.decodeAudioData(data));
+    majorVoiceBuffers.set(cardId, pending);
+    pending.catch(() => majorVoiceBuffers.delete(cardId));
+    return pending;
+  }
+
+  function loadWelcomeVoice() {
+    if (welcomeVoiceBufferPromise) return welcomeVoiceBufferPromise;
+    let ctx;
+    try { ctx = getAudioContext(); } catch (error) { return Promise.resolve(null); }
+    if (!ctx) return Promise.resolve(null);
+
+    welcomeVoiceBufferPromise = fetch('assets/voices/welcome.ogg', { cache: 'force-cache' })
+      .then(response => {
+        if (!response.ok) throw new Error(`Tarot welcome voice failed to load (${response.status})`);
+        return response.arrayBuffer();
+      })
+      .then(data => ctx.decodeAudioData(data));
+    welcomeVoiceBufferPromise.catch(() => { welcomeVoiceBufferPromise = null; });
+    return welcomeVoiceBufferPromise;
+  }
+
+  async function startWelcomeVoice() {
+    if (welcomeVoicePlayed) return true;
+    let ctx;
+    try { ctx = getAudioContext(); } catch (error) { return false; }
+    if (!ctx) return false;
+    if (welcomeVoiceAttempt) return welcomeVoiceAttempt;
+
+    welcomeVoiceAttempt = (async () => {
+      try {
+        const buffer = await loadWelcomeVoice();
+        if (!buffer) return false;
+        if (ctx.state === 'suspended') {
+          try { await ctx.resume(); } catch (error) { return false; }
+        }
+        if (ctx.state !== 'running') return false;
+        const played = await playVoiceBuffer(buffer);
+        if (played) welcomeVoicePlayed = true;
+        return played;
+      } catch (error) {
+        console.warn('[Tarot voice] Welcome clip unavailable:', error);
+        return false;
+      }
+    })();
+
+    try { return await welcomeVoiceAttempt; }
+    finally { welcomeVoiceAttempt = null; }
+  }
+
+  function unlockWelcomeVoice() {
+    document.removeEventListener('pointerdown', unlockWelcomeVoice, true);
+    document.removeEventListener('keydown', unlockWelcomeVoice, true);
+    try { getAudioContext(); } catch (error) { /* Keep the game usable without Web Audio. */ }
+    void startWelcomeVoice();
+  }
+
+  async function playMajorVoice(cardData, voicePromise) {
+    if (B.getLanguage() !== 'en' || !isMajorCard(cardData) || !voicePromise) return;
+    try {
+      const buffer = await voicePromise;
+      if (B.getLanguage() === 'en' && buffer) await playVoiceBuffer(buffer);
+    } catch (error) {
+      console.warn('[Tarot voice] Major Arcana clip unavailable:', cardData.name, error);
+    }
+  }
+
+  async function playFinalReadingVoice(text) {
+    if (B.getLanguage() !== 'en' || !text) return;
+    const endpoint = window.TAROT_CONFIG.TTS_PROXY_URL;
+    if (!endpoint) return;
+
+    stopVoicePlayback();
+    if (finalVoiceBuffer && finalVoiceText === text) {
+      if (!await playVoiceBuffer(finalVoiceBuffer)) {
+        el.revNote.textContent = [lastNote, 'Voice playback is unavailable in this browser.'].filter(Boolean).join(' ');
+      }
+      return;
+    }
+
+    if (finalVoiceRequest) finalVoiceRequest.abort();
+    const controller = new AbortController();
+    finalVoiceRequest = controller;
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+        signal: controller.signal
+      });
+      if (!response.ok) throw new Error(`Final reading voice request failed (${response.status})`);
+      const audioData = await response.arrayBuffer();
+      if (controller.signal.aborted || B.getLanguage() !== 'en') return;
+      const ctx = getAudioContext();
+      if (!ctx) throw new Error('Web Audio is unavailable');
+      const buffer = await ctx.decodeAudioData(audioData);
+      if (controller.signal.aborted || B.getLanguage() !== 'en') return;
+      finalVoiceBuffer = buffer;
+      finalVoiceText = text;
+      if (!await playVoiceBuffer(buffer)) throw new Error('Audio playback could not start');
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.warn('[Tarot voice] Final reading audio unavailable:', error);
+        el.revNote.textContent = [lastNote, 'English voice is unavailable right now.'].filter(Boolean).join(' ');
+      }
+    } finally {
+      if (finalVoiceRequest === controller) finalVoiceRequest = null;
+    }
+  }
+
+  function clearFinalReadingVoice() {
+    if (finalVoiceRequest) finalVoiceRequest.abort();
+    finalVoiceRequest = null;
+    finalVoiceBuffer = null;
+    finalVoiceText = '';
+    stopVoicePlayback();
   }
 
   // =========================================================================
@@ -196,6 +366,9 @@
     resetRevealStatus();
     if (window.OracleAccess) window.OracleAccess.init();
     typewriterDialogue('Welcome Seeker to Tarot Divination. Draw three cards to uncover your Past, Present, and Future timeline.');
+    document.addEventListener('pointerdown', unlockWelcomeVoice, true);
+    document.addEventListener('keydown', unlockWelcomeVoice, true);
+    void startWelcomeVoice();
   }
 
   function cacheElements() {
@@ -238,6 +411,7 @@
     if (el.revOverlay) {
       el.revOverlay.addEventListener('click', onRevelationClick);
       el.revOverlay.addEventListener('keydown', e => {
+        if (e.target.closest('button') && e.key !== 'Escape') return;
         if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') { e.preventDefault(); onRevelationClick(); }
       });
     }
@@ -409,6 +583,10 @@
     const slotIndex = currentSpread.length;
     const cardData = takeCard();
     currentSpread.push(cardData);
+    try { getAudioContext(); } catch (error) { /* Card play continues if Web Audio is unavailable. */ }
+    const cardVoicePromise = isMajorCard(cardData)
+      ? loadMajorVoice(cardData.id)
+      : null;
     const orientation = cardData.isReversed ? 'Reversed' : 'Upright';
     const position = ['PAST', 'PRESENT', 'FUTURE'][slotIndex];
     const artReady = loadArt(cardData.id);
@@ -434,6 +612,8 @@
     flying.classList.add('flipped');
     await sleep(800);
 
+    if (cardVoicePromise && slotIndex > 0) void playMajorVoice(cardData, cardVoicePromise);
+
     // v0.9.1: Major Arcana get a trading-card style showcase (grow, tilt, light ray), then return
     if (isMajorCard(cardData)) await playMajorShowcase(flying);
 
@@ -454,7 +634,10 @@
     flying.remove();
     playSound('dock');
 
-    if (slotIndex === 0) await askQuestion();                  // ask once, after the first card
+    if (slotIndex === 0) {
+      await askQuestion();                                     // choose reading language after the first card
+      if (cardVoicePromise) void playMajorVoice(cardData, cardVoicePromise);
+    }
 
     isAnimating = false;
     updateDeckTitle();
@@ -620,6 +803,7 @@
     el.revText.textContent = 'The Oracle is weaving your timeline...';
     el.revText.classList.add('is-loading');
     el.revNote.textContent = '';
+    stopVoicePlayback();
     el.revHint.classList.remove('show');
     el.revScroll.scrollTop = 0;
 
@@ -641,6 +825,7 @@
         state.phase = 'ready';
         state.readyAt = performance.now() + 350;                // ignore the click that skipped the typing
         el.revNote.textContent = note || '';
+        if (B.getLanguage() === 'en') void playFinalReadingVoice(lastNarrativeReading);
         el.revHint.classList.add('show');
       });
       if (opts.instant) state.typer.finish();
@@ -740,6 +925,7 @@
   }
 
   function handleReset() {
+    clearFinalReadingVoice();
     clearTimelineDock();
     currentSpread = [];
     lastNarrativeReading = '';

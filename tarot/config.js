@@ -13,6 +13,9 @@ window.TAROT_CONFIG = Object.freeze({
   API_BASE: 'https://generativelanguage.googleapis.com/v1beta',
   MAX_OUTPUT_TOKENS: 700,          // thinking + answer budget for one reading
 
+  // Optional speech version of the finished reading (Gradium TTS Worker).
+  TTS_PROXY_URL: 'https://tarotgemini-tts-proxy.backbackbacktrowtow.workers.dev/tts',
+
   // --- Daily tokens (house Oracle only) ----------------------------------
   // One reading (3 cards + the Oracle's narration) costs 1 token.
   // Visitors who paste their own Google key are never limited.
@@ -58,7 +61,7 @@ window.TAROT_CONFIG = Object.freeze({
   // `name` is what the Oracle is told. `disabled: true` shows a greyed "coming soon" line.
   // The first entry is the default. (Basic no-AI readings stay English.)
   LANGUAGES: [
-    { id: 'en',      label: 'English',               name: 'English' },
+    { id: 'en',      label: 'English - voice (beta)', name: 'English' },
     { id: 'zh-Hans', label: '中文（简体）',             name: 'Simplified Chinese (简体中文)' },
     { id: 'ms',      label: 'Bahasa Malaysia',       name: 'Malay (Bahasa Malaysia)' },
     { id: 'soon',    label: 'More languages — coming soon', name: null, disabled: true }
