@@ -232,8 +232,15 @@
     }
 
     if (finalVoiceRequest) finalVoiceRequest.abort();
-    const requestToken = { abort: () => { if (socket && socket.readyState < WebSocket.CLOSING) socket.close(1000, 'Cancelled'); } };
     let socket;
+    let fallbackAbort = null;
+    let voiceFramesStarted = false;
+    const requestToken = {
+      abort: () => {
+        if (socket && socket.readyState < WebSocket.CLOSING) socket.close(1000, 'Cancelled');
+        if (fallbackAbort) fallbackAbort.abort();
+      }
+    };
     finalVoiceRequest = requestToken;
     try {
       const streamUrl = endpoint.replace(/^https:/, 'wss:').replace(/\/tts(?:\?.*)?$/, '/tts-stream');
@@ -286,6 +293,7 @@
             activeVoiceSource = source;
             activeVoiceSources.add(source);
             receivedAudio = true;
+            voiceFramesStarted = true;
           } catch (error) { finish(new Error('Could not play streamed voice audio')); }
         });
         socket.addEventListener('error', () => finish(new Error('Voice stream connection failed')), { once: true });
@@ -304,9 +312,37 @@
       finalVoiceText = text;
     } catch (error) {
       if (finalVoiceRequest === requestToken) {
-        console.warn('[Tarot voice] Final reading audio unavailable:', error);
-        const detail = error?.message ? ` ${error.message}` : '';
-        el.revNote.textContent = [lastNote, `English voice is unavailable right now.${detail}`].filter(Boolean).join(' ');
+        if (!voiceFramesStarted) {
+          try {
+            // Streaming may be unavailable at the edge; retain the original WAV route as a recovery path.
+            fallbackAbort = new AbortController();
+            const response = await fetch(endpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text }),
+              signal: fallbackAbort.signal
+            });
+            if (!response.ok) throw new Error(`Fallback voice request failed (HTTP ${response.status})`);
+            const audio = await response.arrayBuffer();
+            if (finalVoiceRequest !== requestToken || B.getLanguage() !== 'en') return;
+            const fallbackContext = getAudioContext();
+            if (!fallbackContext) throw new Error('Web Audio is unavailable');
+            const buffer = await fallbackContext.decodeAudioData(audio);
+            if (!await playVoiceBuffer(buffer)) throw new Error('Audio playback could not start');
+            finalVoiceBuffer = buffer;
+            finalVoiceText = text;
+            return;
+          } catch (fallbackError) {
+            if (finalVoiceRequest !== requestToken) return;
+            console.warn('[Tarot voice] Streaming and WAV fallback failed:', error, fallbackError);
+            const detail = fallbackError?.message ? ` ${fallbackError.message}` : '';
+            el.revNote.textContent = [lastNote, `English voice is unavailable right now.${detail}`].filter(Boolean).join(' ');
+          }
+        } else {
+          console.warn('[Tarot voice] Stream stopped after playback began:', error);
+          const detail = error?.message ? ` ${error.message}` : '';
+          el.revNote.textContent = [lastNote, `English voice stopped unexpectedly.${detail}`].filter(Boolean).join(' ');
+        }
       }
     } finally {
       if (socket && socket.readyState < WebSocket.CLOSING) socket.close(1000, 'Complete');
