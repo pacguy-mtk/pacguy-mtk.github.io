@@ -241,7 +241,8 @@
         if (format === 0xfffe && chunkLength >= 40) format = view.getUint16(chunkStart + 24, true);
       } else if (tag === 'data') {
         dataOffset = chunkStart;
-        dataLength = chunkLength;
+        // Some WAV responses use a zero data-size marker even though the body contains samples.
+        dataLength = declaredLength === 0 ? view.byteLength - chunkStart : chunkLength;
       }
       if (declaredLength > view.byteLength - chunkStart) break;
       offset = chunkStart + declaredLength + (declaredLength & 1);
