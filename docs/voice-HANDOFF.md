@@ -30,7 +30,7 @@ See `LUMIE_PUSH_TO_TALK_SPEC.md` supplied with the implementation request for th
 Tarot voice is separate from Lumie's push-to-talk and uses two playback sources:
 
 - `tarot/assets/voices/welcome.ogg` is the Oracle's opening greeting and is attempted as soon as the Tarot game opens. Since browsers may block autoplay, the controller also retries on the first pointer or keyboard interaction.
-- When **English - voice (beta)** is selected, the final Tarot reading is sent to the Tarot TTS Worker and spoken automatically after the full reading text appears. Non-English selections do not request English speech. The **Read the Revelation Again** action reuses the decoded reading audio in memory.
+- When **English - voice (beta)** is selected, the final Tarot reading is sent to the Tarot TTS Worker as soon as the LLM returns the finished text; speech generation starts alongside the on-screen reading reveal. Non-English selections do not request English speech. The **Read the Revelation Again** action reuses the decoded reading audio in memory.
 - Major Arcana cards (IDs 0–21) play their bundled name clip after the card flips, independent of the reading-language selection. This lets the first card speak before the question prompt opens. Minor Arcana have no voice clip.
 - No separate "Listen to voice" button is used. The English selector controls only API-generated final-reading speech; the opening greeting and Major Arcana name clips are bundled audio and play independently.
 
@@ -71,7 +71,7 @@ To reduce clipped or delayed audio starts, the controller begins fetching and de
 - Production endpoint: `https://tarotgemini-tts-proxy.backbackbacktrowtow.workers.dev/tts`
 - Local source: `tarot/gradium-tts-proxy/worker.js`; Wrangler config: `tarot/gradium-tts-proxy/wrangler.toml`
 - The Worker accepts `POST` JSON `{"text":"..."}`, sends the reading to Gradium's speech TTS endpoint, fixes the voice to `Wouc5gcfN4vTyYo2`, and returns WAV audio. It allows the published site origin and local HTTP origins, limits text to 4,000 characters, and has a best-effort isolate-local per-IP request limit.
-- Cloudflare production secret: `GRADIUM_API_KEY`, set under the Worker **Settings → Variables and Secrets** as a Secret. Do not copy this key into source files or GitHub Actions.
+- Worker runtime secret: `TAROT_VAPI_KEY`. The deploy workflow supplies it from the GitHub Actions repository secret with the same name. Existing manual Worker setups using `GRADIUM_API_KEY` remain supported as a fallback. Never put either key in source files.
 - The CORS check and in-memory limit reduce accidental/external use but are not strong authentication. Add a Cloudflare rate-limiting rule if stronger edge-enforced limits are needed.
 
 ### Connect Worker deployment to GitHub
@@ -83,4 +83,4 @@ Before the GitHub Action can deploy, add these repository **Actions secrets** in
 1. `CLOUDFLARE_ACCOUNT_ID` — the Cloudflare account ID that owns the Worker.
 2. `CLOUDFLARE_API_TOKEN` — an API token scoped to that account with the **Edit Cloudflare Workers** permission.
 
-Pushing a change to the Worker folder on `main` starts the deployment workflow. If either Cloudflare deployment secret is missing, the workflow warns and skips the Worker deploy rather than failing the site's separate Pages deploy. After both secrets exist, Worker-folder pushes deploy it automatically. The existing `GRADIUM_API_KEY` remains a runtime Secret on the Cloudflare Worker; it is not a GitHub secret and is not sent to the deployment workflow. The official setup is documented at [Cloudflare Workers GitHub Actions](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/) and uses [Cloudflare's Wrangler Action](https://github.com/cloudflare/wrangler-action).
+Pushing a change to the Worker folder on `main` starts the deployment workflow. It requires GitHub Actions secrets `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, and `TAROT_VAPI_KEY`; if any are missing, it warns and skips Worker deployment rather than failing the site's separate Pages deploy. Wrangler uploads `TAROT_VAPI_KEY` as an encrypted Worker runtime secret. Existing manual Worker deployments may use the legacy `GRADIUM_API_KEY` binding as a fallback. The official setup is documented at [Cloudflare Workers GitHub Actions](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/) and uses [Cloudflare's Wrangler Action](https://github.com/cloudflare/wrangler-action).

@@ -684,6 +684,7 @@
     lastNarrativeReading = result.text;
     lastNote = result.note || '';
     isSpreadComplete = true;
+    if (B.getLanguage() === 'en') void playFinalReadingVoice(lastNarrativeReading);
 
     await showRevelationText(formatNarrative(result.text), lastNote);   // resolves when the Seeker clicks back
 
@@ -822,7 +823,6 @@
         state.phase = 'ready';
         state.readyAt = performance.now() + 350;                // ignore the click that skipped the typing
         el.revNote.textContent = note || '';
-        if (B.getLanguage() === 'en') void playFinalReadingVoice(lastNarrativeReading);
         el.revHint.classList.add('show');
       });
       if (opts.instant) state.typer.finish();
@@ -847,6 +847,7 @@
   function rereadRevelation() {
     if (revState || !lastNarrativeReading) return;
     openRevelation();
+    if (B.getLanguage() === 'en') void playFinalReadingVoice(lastNarrativeReading);
     showRevelationText(formatNarrative(lastNarrativeReading), lastNote, { instant: true });
   }
 

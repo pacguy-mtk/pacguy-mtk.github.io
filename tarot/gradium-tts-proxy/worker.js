@@ -73,7 +73,8 @@ export default {
     if (Number(request.headers.get('Content-Length') || 0) > 16_384) {
       return json(413, { error: 'request_too_large' }, cors);
     }
-    if (!env.GRADIUM_API_KEY) return json(503, { error: 'tts_not_configured' }, cors);
+    const apiKey = env.TAROT_VAPI_KEY || env.GRADIUM_API_KEY;
+    if (!apiKey) return json(503, { error: 'tts_not_configured' }, cors);
 
     let body;
     try {
@@ -102,7 +103,7 @@ export default {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': env.GRADIUM_API_KEY
+          'x-api-key': apiKey
         },
         body: JSON.stringify({
           text,

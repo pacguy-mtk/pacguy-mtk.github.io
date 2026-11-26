@@ -27,13 +27,14 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TAROT_VAPI_KEY: ${{ secrets.TAROT_VAPI_KEY }}
         shell: bash
         run: |
-          if [[ -n "$CLOUDFLARE_API_TOKEN" && -n "$CLOUDFLARE_ACCOUNT_ID" ]]; then
+          if [[ -n "$CLOUDFLARE_API_TOKEN" && -n "$CLOUDFLARE_ACCOUNT_ID" && -n "$TAROT_VAPI_KEY" ]]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Cloudflare deployment secrets are missing; Worker deployment skipped."
+            echo "::warning::Cloudflare deployment credentials or TAROT_VAPI_KEY are missing; Worker deployment skipped."
           fi
 
       - name: Deploy Worker
@@ -43,3 +44,5 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: tarot/gradium-tts-proxy
+          secrets: |
+            TAROT_VAPI_KEY
