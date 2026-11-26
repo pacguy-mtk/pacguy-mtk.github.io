@@ -2038,6 +2038,21 @@ RULES: Greet warm. Brief intro for ZiJun questions. Summarize skills/projects fa
 
 var BENTO_ITEMS = [
         {
+          title: '202611261903',
+          context: 'Video clip',
+          src: 'post/202611261903.webm',
+          type: 'video',
+          category: 'ai-generated',
+          date: '2026-11'
+        },
+        {
+          title: '202611252341',
+          context: 'Video clip',
+          src: 'post/202611252341.webm',
+          type: 'video',
+          category: 'ai-generated',
+          date: '2026-11'
+        },        {
           title: '202611220432',
           context: 'Video clip',
           src: 'post/202611220432.webm',
