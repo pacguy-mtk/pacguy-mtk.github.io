@@ -33,6 +33,9 @@
   let el = {};
   let activeVoiceSource = null;
   const activeVoiceSources = new Set();
+  let activeFinalVoiceAudio = null;
+  let activeFinalVoiceUrl = '';
+  let finalVoiceBlob = null;
   let finalVoiceBuffer = null;
   let finalVoiceText = '';
   let finalVoiceRequest = null;
@@ -107,6 +110,16 @@
     activeVoiceSource = null;
     activeVoiceSources.forEach(source => { try { source.stop(); } catch (e) { /* already stopped */ } });
     activeVoiceSources.clear();
+    if (activeFinalVoiceAudio) {
+      activeFinalVoiceAudio.pause();
+      activeFinalVoiceAudio.removeAttribute('src');
+      activeFinalVoiceAudio.load();
+      activeFinalVoiceAudio = null;
+    }
+    if (activeFinalVoiceUrl) {
+      URL.revokeObjectURL(activeFinalVoiceUrl);
+      activeFinalVoiceUrl = '';
+    }
   }
 
   async function playVoiceBuffer(buffer) {
@@ -235,7 +248,10 @@
     if (B.getLanguage() !== 'en' || !text) return null;
     const endpoint = window.TAROT_CONFIG.TTS_PROXY_URL;
     if (!endpoint) return null;
-    if (finalVoiceBuffer && finalVoiceText === text) return finalVoiceBuffer;
+    if (finalVoiceText === text) {
+      if (finalVoiceBuffer) return { format: 'pcm', buffer: finalVoiceBuffer };
+      if (finalVoiceBlob) return { format: 'wav', blob: finalVoiceBlob };
+    }
 
     if (finalVoiceRequest) finalVoiceRequest.abort();
     const controller = new AbortController();
@@ -261,16 +277,21 @@
       }
       const audioData = await response.arrayBuffer();
       if (controller.signal.aborted || B.getLanguage() !== 'en') return null;
+      const contentType = response.headers.get('Content-Type') || '';
+      if (/audio\/wav/i.test(contentType)) {
+        finalVoiceBlob = new Blob([audioData], { type: 'audio/wav' });
+        finalVoiceBuffer = null;
+        finalVoiceText = text;
+        return { format: 'wav', blob: finalVoiceBlob };
+      }
       const ctx = getAudioContext();
       if (!ctx) throw new Error('Web Audio is unavailable');
-      const contentType = response.headers.get('Content-Type') || '';
-      const buffer = /audio\/wav/i.test(contentType)
-        ? await ctx.decodeAudioData(audioData.slice(0))
-        : decodePcmAudio(ctx, audioData);
+      const buffer = decodePcmAudio(ctx, audioData);
       if (controller.signal.aborted || B.getLanguage() !== 'en') return null;
+      finalVoiceBlob = null;
       finalVoiceBuffer = buffer;
       finalVoiceText = text;
-      return buffer;
+      return { format: 'pcm', buffer };
     } catch (error) {
       if (error.name !== 'AbortError' && finalVoiceRequest === controller) {
         console.warn('[Tarot voice] Final reading audio unavailable:', error);
@@ -286,9 +307,30 @@
   async function playFinalReadingVoice(text) {
     if (B.getLanguage() !== 'en' || !text) return false;
     stopVoicePlayback();
-    const buffer = await getFinalReadingVoice(text);
-    if (!buffer || B.getLanguage() !== 'en') return false;
-    const played = await playVoiceBuffer(buffer);
+    const voice = await getFinalReadingVoice(text);
+    if (!voice || B.getLanguage() !== 'en') return false;
+    if (voice.format === 'wav') {
+      try {
+        const url = URL.createObjectURL(voice.blob);
+        const audio = new Audio(url);
+        activeFinalVoiceAudio = audio;
+        activeFinalVoiceUrl = url;
+        const cleanup = () => {
+          if (activeFinalVoiceAudio === audio) activeFinalVoiceAudio = null;
+          if (activeFinalVoiceUrl === url) activeFinalVoiceUrl = '';
+          URL.revokeObjectURL(url);
+        };
+        audio.addEventListener('ended', cleanup, { once: true });
+        audio.addEventListener('error', cleanup, { once: true });
+        await audio.play();
+        return true;
+      } catch (error) {
+        console.warn('[Tarot voice] WAV playback unavailable:', error);
+        el.revNote.textContent = [lastNote, 'English voice is unavailable right now. The audio could not be played.'].filter(Boolean).join(' ');
+        return false;
+      }
+    }
+    const played = await playVoiceBuffer(voice.buffer);
     if (!played) {
       el.revNote.textContent = [lastNote, 'Voice playback is unavailable in this browser.'].filter(Boolean).join(' ');
     }
@@ -298,6 +340,7 @@
   function clearFinalReadingVoice() {
     if (finalVoiceRequest) finalVoiceRequest.abort();
     finalVoiceRequest = null;
+    finalVoiceBlob = null;
     finalVoiceBuffer = null;
     finalVoiceText = '';
     stopVoicePlayback();
