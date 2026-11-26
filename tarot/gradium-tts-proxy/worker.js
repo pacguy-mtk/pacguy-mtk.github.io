@@ -57,87 +57,6 @@ function isRateLimited(ip) {
   return false;
 }
 
-function isWebSocketRequest(request) {
-  return request.headers.get('Upgrade')?.toLowerCase() === 'websocket';
-}
-
-async function streamTts(request, env, cors) {
-  const apiKey = env.TAROT_VAPI_KEY || env.GRADIUM_API_KEY;
-  if (!apiKey) return json(503, { error: 'tts_not_configured' }, cors);
-
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-  if (isRateLimited(ip)) return json(429, { error: 'rate_limited' }, { ...cors, 'Retry-After': '60' });
-
-  const pair = new WebSocketPair();
-  const [client, server] = Object.values(pair);
-  server.accept();
-
-  let upstream;
-  let receivedText = false;
-  let queuedText = '';
-  let upstreamReady = false;
-  const sendError = (message) => {
-    try { server.send(JSON.stringify({ type: 'error', message })); } catch { /* socket already closed */ }
-    try { server.close(1011, 'TTS unavailable'); } catch { /* socket already closed */ }
-  };
-
-  server.addEventListener('message', event => {
-    if (receivedText) return sendError('Only one reading can be sent per connection.');
-    let payload;
-    try { payload = JSON.parse(event.data); } catch { return sendError('Invalid request.'); }
-    const text = typeof payload?.text === 'string' ? payload.text.trim() : '';
-    if (!text || text.length > MAX_TEXT_CHARS) return sendError('Reading text is missing or too long.');
-    receivedText = true;
-    queuedText = text;
-    if (upstreamReady) {
-      upstream.send(JSON.stringify({ type: 'text', text }));
-      upstream.send(JSON.stringify({ type: 'end_of_stream' }));
-    }
-  });
-
-  server.addEventListener('close', () => {
-    try { upstream?.close(1000, 'Client closed'); } catch { /* already closed */ }
-  });
-
-  try {
-    const response = await fetch('https://api.gradium.ai/api/speech/tts', {
-      headers: { Upgrade: 'websocket', 'x-api-key': apiKey }
-    });
-    upstream = response.webSocket;
-    if (!upstream) throw new Error(`Gradium WebSocket handshake failed (${response.status}).`);
-    upstream.accept();
-    upstream.addEventListener('message', event => {
-      let message;
-      try { message = JSON.parse(event.data); } catch { return sendError('Gradium sent an unreadable audio frame.'); }
-      if (message.type === 'ready') {
-        upstreamReady = true;
-        if (receivedText) {
-          upstream.send(JSON.stringify({ type: 'text', text: queuedText }));
-          upstream.send(JSON.stringify({ type: 'end_of_stream' }));
-        }
-      } else if (message.type === 'audio') {
-        try { server.send(JSON.stringify({ type: 'audio', audio: message.audio, start_s: message.start_s })); }
-        catch { try { upstream.close(); } catch { /* already closed */ } }
-      } else if (message.type === 'end_of_stream') {
-        try { server.send(JSON.stringify({ type: 'end_of_stream' })); server.close(1000, 'Complete'); } catch { /* already closed */ }
-      } else if (message.type === 'error') {
-        console.error('[Tarot TTS] Gradium stream error:', message.code || 'unknown');
-        sendError('Gradium could not synthesize this reading.');
-      }
-    });
-    upstream.addEventListener('error', () => sendError('Gradium voice stream disconnected.'));
-    upstream.addEventListener('close', event => {
-      if (event.code !== 1000) sendError('Gradium voice stream closed unexpectedly.');
-    });
-    upstream.send(JSON.stringify({ type: 'setup', voice_id: VOICE_ID, model_name: 'default', output_format: 'pcm' }));
-  } catch (error) {
-    console.error('[Tarot TTS] Stream setup failed:', error?.message || 'unknown');
-    sendError('Could not connect to the Gradium voice stream.');
-  }
-
-  return new Response(null, { status: 101, webSocket: client });
-}
-
 export default {
   async fetch(request, env) {
     const origin = request.headers.get('Origin') || '';
@@ -145,12 +64,6 @@ export default {
     const url = new URL(request.url);
 
     if (!allowedOrigin(origin)) return json(403, { error: 'origin_not_allowed' }, cors);
-    if (url.pathname === '/tts-stream') {
-      if (request.method !== 'GET' || !isWebSocketRequest(request)) {
-        return json(426, { error: 'websocket_upgrade_required' }, cors);
-      }
-      return streamTts(request, env, cors);
-    }
     if (url.pathname !== '/tts') return json(404, { error: 'not_found' }, cors);
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
     if (request.method !== 'POST') return json(405, { error: 'method_not_allowed' }, cors);
