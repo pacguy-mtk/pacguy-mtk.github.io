@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """Make small gallery thumbnails for room.html. Run after adding gallery media (needs ffmpeg).
 
-Writes post/thumbs/<file name>.webp for every DATA.items entry and refreshes the
-`var THUMBS = {...};` line in room.html (source path -> [width, height] of the thumbnail).
+Writes post/thumbs/<file name>.webp for every item in data/gallery.js and rewrites
+data/thumbs.js (source path -> [width, height] of the thumbnail).
 Existing thumbnails are kept; delete one to rebuild it.
 """
-import json, os, re, subprocess
+import json, os, subprocess
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
-html = open('room.html', encoding='utf-8', newline='').read()
-data = json.loads(re.search(r'^var DATA = (\{.*\});', html, re.M).group(1))
+js = open('data/gallery.js', encoding='utf-8').read()
+data = json.loads(js[js.index('window.GALLERY = {') + len('window.GALLERY = '):].strip().rstrip(';'))
 os.makedirs('post/thumbs', exist_ok=True)
 
 
@@ -52,8 +52,7 @@ for item in data['items']:
                'stream=width,height', '-of', 'csv=p=0', out).split(',')[:2]
     sizes[src] = [int(w), int(h)]
 
-line = 'var THUMBS = ' + json.dumps(sizes, separators=(',', ':')) + ';'
-html, n = re.subn(r'^var THUMBS = .*;', lambda m: line, html, flags=re.M)
-assert n == 1, 'THUMBS line not found in room.html'
-open('room.html', 'w', encoding='utf-8', newline='').write(html)
+with open('data/thumbs.js', 'w', encoding='utf-8', newline='\n') as f:
+    f.write('/* written by tools/make-thumbs.py, do not edit by hand */\nwindow.THUMBS = '
+            + json.dumps(sizes, separators=(',', ':')) + ';\n')
 print(len(sizes), 'thumbnails ready')
