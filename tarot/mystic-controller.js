@@ -770,9 +770,21 @@
     lastNote = result.note || '';
     isSpreadComplete = true;
     if (B.getLanguage() === 'en' && result.source === 'ai') {
-      // Keep the generated LLM text private while the voice request gets a head start.
-      void playFinalReadingVoice(lastNarrativeReading);
-      await sleep(3000);
+      // Keep the finished LLM text private until speech is actually playing.
+      // Then let the voice lead the typewriter by three seconds. A failed or
+      // stalled voice request must never hold the reading hostage.
+      const voiceRequestedAt = performance.now();
+      const voiceStarted = await Promise.race([
+        playFinalReadingVoice(lastNarrativeReading),
+        sleep(20_000).then(() => null)
+      ]);
+      if (voiceStarted === true) {
+        await sleep(3000);
+      } else {
+        if (voiceStarted === null && finalVoiceRequest) finalVoiceRequest.abort();
+        const remainingDelay = 3000 - (performance.now() - voiceRequestedAt);
+        if (remainingDelay > 0) await sleep(remainingDelay);
+      }
     }
 
     await showRevelationText(formatNarrative(result.text), lastNote);   // resolves when the Seeker clicks back

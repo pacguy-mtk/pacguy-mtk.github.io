@@ -30,7 +30,7 @@ See `LUMIE_PUSH_TO_TALK_SPEC.md` supplied with the implementation request for th
 Tarot voice is separate from Lumie's push-to-talk and uses two playback sources:
 
 - `tarot/assets/voices/welcome.ogg` is the Oracle's opening greeting and is attempted as soon as the Tarot game opens. Since browsers may block autoplay, the controller also retries on the first pointer or keyboard interaction.
-- When **English - voice (beta)** is selected, the final Tarot reading is sent to the Tarot TTS Worker as soon as the Oracle returns its finished reading, including a basic-reading fallback. The overlay keeps the reading hidden while the WAV is generated, starts playback, then reveals the text 450 ms later so the first spoken words lead the visual reading. Non-English selections do not request English speech. The **Read the Revelation Again** action reuses the decoded audio cached in memory.
+- When **English - voice (beta)** is selected, only a successful AI reading (`source === 'ai'`) is sent to the Tarot TTS Worker. The overlay keeps the finished reading hidden until audio playback starts, then begins revealing the text three seconds later. If speech fails or takes more than 20 seconds to start, the text still appears. Non-English selections and basic/local fallbacks do not request speech. The **Read the Revelation Again** action reuses the audio cached in memory.
 - Major Arcana cards (IDs 0–21) play their bundled name clip after the card flips, independent of the reading-language selection. This lets the first card speak before the question prompt opens. Minor Arcana have no voice clip.
 - No separate "Listen to voice" button is used. The English selector controls only API-generated final-reading speech; the opening greeting and Major Arcana name clips are bundled audio and play independently.
 
@@ -63,7 +63,7 @@ The clips from `lumie_eon_ogg.zip` are stored as `tarot/assets/voices/major/<car
 | 20 | Judgement | `20.ogg` |
 | 21 | The World | `21.ogg` |
 
-To reduce clipped or delayed audio starts, the controller begins fetching and decoding a major-card clip before the flip, then plays its `AudioBuffer` through Web Audio with a short scheduled start. Final-reading WAV audio is decoded before playback and stays cached only in the current page session; it is discarded on reset.
+To reduce clipped or delayed audio starts, the controller begins fetching and decoding a major-card clip before the flip, then plays its `AudioBuffer` through Web Audio with a short scheduled start. Final-reading WAV audio is cached as a Blob and played through an `HTMLAudioElement`, following the working Lumie playback path; it stays cached only in the current page session and is discarded on reset. See [the voice playback study case](voice.md) for the implementation comparison and audio audit.
 
 ### Tarot TTS Worker and Gradium API
 

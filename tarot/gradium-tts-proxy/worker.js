@@ -57,6 +57,24 @@ function isRateLimited(ip) {
   return false;
 }
 
+function isValidWav(audioBytes) {
+  if (!audioBytes || audioBytes.byteLength < 45) return false;
+  const bytes = new Uint8Array(audioBytes);
+  const tag = (start, end) => String.fromCharCode(...bytes.subarray(start, end));
+  if (tag(0, 4) !== 'RIFF' || tag(8, 12) !== 'WAVE') return false;
+
+  const view = new DataView(audioBytes);
+  const riffEnd = Math.min(audioBytes.byteLength, view.getUint32(4, true) + 8);
+  for (let offset = 12; offset + 8 <= riffEnd;) {
+    const chunkSize = view.getUint32(offset + 4, true);
+    const chunkEnd = offset + 8 + chunkSize;
+    if (chunkEnd > riffEnd) return false;
+    if (tag(offset, offset + 4) === 'data') return chunkSize > 0;
+    offset = chunkEnd + (chunkSize & 1);
+  }
+  return false;
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get('Origin') || '';
@@ -109,7 +127,9 @@ export default {
         body: JSON.stringify({
           text,
           voice_id: VOICE_ID,
-          output_format: 'pcm',
+          // Match Lumie's known-good request format. The browser plays this WAV
+          // with an HTMLAudioElement instead of interpreting raw PCM itself.
+          output_format: 'wav',
           only_audio: true
         }),
         signal: controller.signal
@@ -128,8 +148,8 @@ export default {
       clearTimeout(timeout);
     }
 
-    if (!audioBytes || audioBytes.byteLength < 2 || audioBytes.byteLength % 2 !== 0) {
-      console.error('[Tarot TTS] Upstream returned empty or malformed PCM audio', {
+    if (!isValidWav(audioBytes)) {
+      console.error('[Tarot TTS] Upstream returned empty or malformed WAV audio', {
         contentType: upstream.headers.get('Content-Type') || 'unknown',
         contentLength: upstream.headers.get('Content-Length') || 'unknown',
         requestId: upstream.headers.get('x-request-id') || upstream.headers.get('x-gradium-request-id') || 'unknown'
@@ -141,10 +161,7 @@ export default {
       status: 200,
       headers: {
         ...cors,
-        'Content-Type': 'application/octet-stream',
-        'X-Audio-Format': 'pcm_s16le',
-        'X-Sample-Rate': '48000',
-        'X-Audio-Channels': '1',
+        'Content-Type': 'audio/wav',
         'Cache-Control': 'no-store',
         'X-Content-Type-Options': 'nosniff'
       }

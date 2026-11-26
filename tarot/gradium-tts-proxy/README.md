@@ -11,7 +11,7 @@ This Worker converts the Tarot Oracle's finished reading text to WAV audio with 
 - The voice ID is fixed to `Wouc5gcfN4vTyYo2` in `worker.js`.
 - Endpoint: `https://tarotgemini-tts-proxy.backbackbacktrowtow.workers.dev/tts`
 
-The Tarot game also plays a bundled opening greeting (`assets/voices/welcome.ogg`), with a first-interaction retry for browsers that block autoplay. When **English - voice (beta)** is selected, the Tarot overlay starts generating speech as soon as the finished LLM reading is returned, alongside the on-screen text reveal. Non-English readings do not request speech. The decoded audio is cached for the in-page "Read the Revelation Again" action. Major Arcana name clips are bundled locally as OGG assets and do not use this Worker. The Worker allows browser requests from `https://pacguy-mtk.github.io` and local HTTP development origins, caps input at 4,000 characters, applies a best-effort isolate-local limit of five requests per minute per IP, waits up to 120 seconds for Gradium, and forwards the Gradium API key only from the Worker secret.
+The Tarot game also plays a bundled opening greeting (`assets/voices/welcome.ogg`), with a first-interaction retry for browsers that block autoplay. When **English - voice (beta)** is selected, only a successful AI reading is sent to this Worker. The text remains hidden until the WAV begins playing, then starts its typewriter reveal three seconds later. If speech fails or takes more than 20 seconds to start, the text still appears. Non-English and basic/local readings do not request speech. The WAV is cached for the in-page "Read the Revelation Again" action. Major Arcana name clips are bundled locally as OGG assets and do not use this Worker. The Worker allows browser requests from `https://pacguy-mtk.github.io` and local HTTP development origins, caps input at 4,000 characters, applies a best-effort isolate-local limit of five requests per minute per IP, waits up to 120 seconds for Gradium, and forwards the Gradium API key only from the Worker secret.
 
 ## Request
 
@@ -22,6 +22,6 @@ Content-Type: application/json
 {"text":"The Oracle's completed reading..."}
 ```
 
-Success returns `audio/wav`; the Tarot frontend decodes and plays the response through Web Audio.
+Success returns a non-empty RIFF/WAVE response with `Content-Type: audio/wav`; the Tarot frontend plays its Blob through an `HTMLAudioElement`, matching Lumie's working path. Raw PCM is no longer the expected Worker response.
 
 The CORS origin check and in-memory rate limit are abuse-reduction measures, not strong authentication. For stricter production limits, add a Cloudflare rate-limiting rule for this Worker route.
