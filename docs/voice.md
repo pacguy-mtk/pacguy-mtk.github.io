@@ -180,3 +180,51 @@ Without anchoring to a working reference implementation, AI agents independently
 5. **Live Verification:**
    `https://tarotgemini-tts-proxy.backbackbacktrowtow.workers.dev/tts` tested live, returning `HTTP 200` with 460KB+ of valid RIFF/WAV audio. Fixes committed and deployed to `main`.
 
+
+---
+
+## TTS API Key — Expiry, Test Record & Future Reference (Nov 28, 2026)
+
+> **If you are an AI agent reading this for a future session:** this section is the canonical record for the
+> current Gradium TTS service window. Read it before touching any voice-related code or secrets.
+
+### Service window
+
+| Feature | Detail |
+|---------|--------|
+| **Provider** | Gradium speech TTS (`https://api.gradium.ai/api/speech/tts`) |
+| **Service window start** | 2026-11-28 |
+| **Service window end (expires)** | **2026-12-28** (30 days) |
+| **Lumie secret binding** | `GRADIUM_API_KEY` on Worker `lumie-tts-proxy` (account: `zijun-hub`) |
+| **Tarot secret binding** | `TAROT_VAPI_KEY` → fallback `GRADIUM_API_KEY` on Worker `tarotgemini-tts-proxy` (account: `backbackbacktrowtow`) |
+| **Lumie voice ID** | `nplGtNEYtTnNcqR9` |
+| **Tarot voice ID** | `RrBVfXatVwccQ1SY` |
+
+Both Workers share the same underlying Gradium account key; they differ only in Cloudflare account, Worker name, and voice ID.
+
+### End-to-end test result (2026-11-28)
+
+Both Workers were tested live immediately after deployment:
+
+| Worker | Test command | Result |
+|--------|-------------|--------|
+| **Tarot** (`tarotgemini-tts-proxy`) | `POST /tts` with `{"text":"The oracle speaks to you now."}` | ✅ HTTP 200 · ~246 KB WAV |
+| **Lumie** (`lumie-tts-proxy`) | Same pattern against Lumie endpoint | ✅ HTTP 200 · valid WAV |
+
+No TTS errors, no autoplay blocks, no race aborts observed after the Nov 28 fix session.
+
+### What to do when the key expires (~2026-12-28)
+
+1. Obtain a new Gradium API key from the Gradium dashboard.
+2. Update the Cloudflare secret on **both** Workers:
+   - `lumie-tts-proxy` → set `GRADIUM_API_KEY`
+   - `tarotgemini-tts-proxy` → set `TAROT_VAPI_KEY` (and optionally `GRADIUM_API_KEY` for legacy fallback)
+3. Never put the key value in any source file or this document — secrets live only in Cloudflare's encrypted environment.
+4. Run the same `POST /tts` smoke test above to confirm the new key works before closing the task.
+
+### Study case note
+
+The fix for Tarot TTS was achieved by using **Lumie's already-working Worker as a reference model** ("study model"),
+rather than debugging Tarot in isolation. This proved faster and more reliable than independent theory generation.
+For any future voice/TTS debugging, start by verifying which Worker is confirmed working and replicate its logic and
+secrets setup into the broken one. Full case write-up is in the **Resolution & Study Case** section above.

@@ -9,7 +9,7 @@ Static site on GitHub Pages. **Pushing to `main` publishes it.**
 | Page layout, secrets, modes | `docs/site.md` |
 | 3D room | `docs/room.md` |
 | Tarot | `docs/tarot.md` |
-| Lumie voice | `docs/voice.md` |
+| Lumie & Tarot voice / TTS API expiry | `docs/voice.md` |
 | **Open security warning** | `docs/SECURITY-keys.md` |
 | Ideas, history | `docs/ideas.md`, `docs/history.md` |
 
