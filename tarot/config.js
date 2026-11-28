@@ -14,7 +14,7 @@ window.TAROT_CONFIG = Object.freeze({
   MAX_OUTPUT_TOKENS: 700,          // thinking + answer budget for one reading
 
   // Optional speech version of the finished reading (Gradium TTS Worker).
-  TTS_PROXY_URL: 'https://tarotgemini-tts-proxy.zijun-hub.workers.dev/tts',
+  TTS_PROXY_URL: 'https://tarotgemini-tts-proxy.backbackbacktrowtow.workers.dev/tts',
 
   // --- Daily tokens (house Oracle only) ----------------------------------
   // One reading (3 cards + the Oracle's narration) costs 1 token.
