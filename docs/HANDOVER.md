@@ -4,7 +4,7 @@ Updated 2026-11-28. The owner is not an engineer: explain changes in plain words
 
 ## Status (v2.2.1 & Tarot v0.9.4)
 - **What's new:** `whats-new.patch` has been applied and merged. A `v2.2 What's new` button sits beside the ZJ logo in `room.html`, showing updates from v2.2.1 down to v1.0.
-- **Tarot TTS Voice (v0.9.4):** Voice synthesis is fully working and verified. The Cloudflare Worker `tarotgemini-tts-proxy` (`backbackbacktrowtow`) mirrors Lumie's logic, uses voice `nplGtNEYtTnNcqR9`, and has an active Gradium service key (30-day window starting 28/11/2026). Client-side race timeouts, markdown syntax cleaning, and autoplay unlock fallbacks were resolved.
+- **Tarot TTS Voice (v0.9.4):** Voice synthesis is fully working and verified. The Cloudflare Worker `tarotgemini-tts-proxy` (`backbackbacktrowtow`) mirrors Lumie's logic, uses voice `RrBVfXatVwccQ1SY`, and has an active Gradium service key `TAROT_VAPI_KEY` (30-day window starting 28/11/2026). Client-side race timeouts, markdown syntax cleaning, and autoplay unlock fallbacks were resolved.
 - **Human vibe coding & multi-agent learning:** Fixes were guided by human direction to use Lumie as the study model, working collaboratively across AI agent sessions.
 
 ## What changed in this update

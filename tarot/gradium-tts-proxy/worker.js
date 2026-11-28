@@ -35,7 +35,7 @@ export default {
       const text = typeof body?.text === 'string' ? body.text.trim().slice(0, 2000) : '';
       const voiceId = typeof body?.voice_id === 'string' && body.voice_id.trim()
         ? body.voice_id.trim()
-        : 'nplGtNEYtTnNcqR9';
+        : 'RrBVfXatVwccQ1SY';
 
       if (!text) {
         return new Response(JSON.stringify({ error: 'Missing text' }), {

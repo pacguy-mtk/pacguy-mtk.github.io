@@ -70,7 +70,7 @@ To reduce clipped or delayed audio starts, the controller begins fetching and de
 - Cloudflare Worker: `tarotgemini-tts-proxy`
 - Production endpoint: `https://tarotgemini-tts-proxy.backbackbacktrowtow.workers.dev/tts`
 - Local source: `tarot/gradium-tts-proxy/worker.js`; Wrangler config: `tarot/gradium-tts-proxy/wrangler.toml`
-- The Worker accepts `POST /tts` JSON `{"text":"..."}`, sends the text to Gradium's speech TTS endpoint, defaults the voice to `nplGtNEYtTnNcqR9` (Lumie, or accepts custom `voice_id`), and returns WAV audio. It allows the published site origin and local HTTP origins, limits text to 2,000 characters, and applies a best-effort isolate-local per-IP request limit.
+- The Worker accepts `POST /tts` JSON `{"text":"..."}`, sends the text to Gradium's speech TTS endpoint, defaults the voice to `RrBVfXatVwccQ1SY` (or accepts custom `voice_id`), and returns WAV audio. It allows the published site origin and local HTTP origins, limits text to 2,000 characters, and applies a best-effort isolate-local per-IP request limit.
 - Worker runtime secret: `TAROT_VAPI_KEY`. The deploy workflow supplies it from the GitHub Actions repository secret with the same name. Existing manual Worker setups using `GRADIUM_API_KEY` remain supported as a fallback. Never put either key in source files.
 - The CORS check and in-memory limit reduce accidental/external use but are not strong authentication. Add a Cloudflare rate-limiting rule if stronger edge-enforced limits are needed.
 

@@ -24,7 +24,7 @@
           '<strong>Timing & reliability:</strong> Text is cleaned and capped for fast 8–12 second synthesis; the race window is expanded to 35s with persistent audio unlocking and Web Audio decode fallback so speech never fails to play.'
         ]},
         { type: 'fixes', items: [
-          'Aligned proxy Worker to Lumie logic, resolved default voice ID to <code>nplGtNEYtTnNcqR9</code>, and fixed browser autoplay blocks.',
+          'Aligned proxy Worker to Lumie logic, set Tarot voice ID to <code>RrBVfXatVwccQ1SY</code>, and fixed browser autoplay blocks.',
           'Developed through collaborative human vibe coding and multi-agent learning methods, tested live and pushed.'
         ]}
       ]
