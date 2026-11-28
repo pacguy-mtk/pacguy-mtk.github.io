@@ -36,8 +36,11 @@
   let activeFinalVoiceAudio = null;
   let activeFinalVoiceUrl = '';
   let finalVoiceBlob = null;
+  let finalVoiceArrayBuffer = null;
   let finalVoiceText = '';
   let finalVoiceRequest = null;
+  let voiceAudio = null;
+  let voiceUnlocked = false;
   let welcomeVoiceBufferPromise = null;
   let welcomeVoiceAttempt = null;
   let welcomeVoicePlayed = false;
@@ -109,6 +112,10 @@
     activeVoiceSource = null;
     activeVoiceSources.forEach(source => { try { source.stop(); } catch (e) { /* already stopped */ } });
     activeVoiceSources.clear();
+    if (voiceAudio) {
+      voiceAudio.pause();
+      voiceAudio.currentTime = 0;
+    }
     if (activeFinalVoiceAudio) {
       activeFinalVoiceAudio.pause();
       activeFinalVoiceAudio.removeAttribute('src');
@@ -211,10 +218,28 @@
     finally { welcomeVoiceAttempt = null; }
   }
 
+  function unlockAudio() {
+    try { getAudioContext(); } catch (error) { }
+    if (!voiceAudio) {
+      voiceAudio = new Audio();
+      voiceAudio.preload = 'auto';
+    }
+    if (!voiceUnlocked) {
+      voiceUnlocked = true;
+      try {
+        voiceAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+        const p = voiceAudio.play();
+        if (p && typeof p.then === 'function') {
+          p.then(() => { voiceAudio.pause(); voiceAudio.currentTime = 0; }).catch(() => { voiceUnlocked = false; });
+        }
+      } catch (e) { }
+    }
+  }
+
   function unlockWelcomeVoice() {
     document.removeEventListener('pointerdown', unlockWelcomeVoice, true);
     document.removeEventListener('keydown', unlockWelcomeVoice, true);
-    try { getAudioContext(); } catch (error) { /* Keep the game usable without Web Audio. */ }
+    unlockAudio();
     void startWelcomeVoice();
   }
 
@@ -235,8 +260,19 @@
     if (B.getLanguage() !== 'en' || !text) return null;
     const endpoint = window.TAROT_CONFIG.TTS_PROXY_URL;
     if (!endpoint) return null;
-    if (finalVoiceText === text) {
-      if (finalVoiceBlob) return { format: 'wav', blob: finalVoiceBlob };
+
+    // Clean markdown syntax (*, #, **, URLs) so Gradium reads clean, natural speech
+    const clean = String(text)
+      .replace(/\*\([^*]*\)\*/g, '')
+      .replace(/[*_#`~>]/g, '')
+      .replace(/https?:\/\/\S+/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!clean) return null;
+    const ttsText = clean.slice(0, 1000);
+
+    if (finalVoiceText === ttsText && finalVoiceBlob) {
+      return { format: 'wav', blob: finalVoiceBlob, arrayBuffer: finalVoiceArrayBuffer };
     }
 
     if (finalVoiceRequest) finalVoiceRequest.abort();
@@ -246,7 +282,7 @@
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text: ttsText }),
         signal: controller.signal
       });
       if (!response.ok) {
@@ -264,11 +300,10 @@
       const audioData = await response.arrayBuffer();
       if (controller.signal.aborted || B.getLanguage() !== 'en') return null;
       if (!audioData.byteLength) throw new Error('The voice service returned no audio data');
-      // Match Lumie's proven playback path: Gradium is asked for WAV, so always
-      // label the complete response as WAV even if the proxy MIME is generic.
       finalVoiceBlob = new Blob([audioData], { type: 'audio/wav' });
-      finalVoiceText = text;
-      return { format: 'wav', blob: finalVoiceBlob };
+      finalVoiceArrayBuffer = audioData;
+      finalVoiceText = ttsText;
+      return { format: 'wav', blob: finalVoiceBlob, arrayBuffer: audioData };
     } catch (error) {
       if (error.name !== 'AbortError' && finalVoiceRequest === controller) {
         console.warn('[Tarot voice] Final reading audio unavailable:', error);
@@ -286,38 +321,50 @@
     stopVoicePlayback();
     const voice = await getFinalReadingVoice(text);
     if (!voice || B.getLanguage() !== 'en') return false;
-    if (voice.format === 'wav') {
+
+    // 1. Try unlocked HTMLAudioElement (matching Lumie)
+    if (voice.blob) {
       try {
+        if (!voiceAudio) {
+          voiceAudio = new Audio();
+          voiceAudio.preload = 'auto';
+        }
         const url = URL.createObjectURL(voice.blob);
-        const audio = new Audio(url);
-        activeFinalVoiceAudio = audio;
         activeFinalVoiceUrl = url;
-        const cleanup = () => {
-          if (activeFinalVoiceAudio === audio) activeFinalVoiceAudio = null;
-          if (activeFinalVoiceUrl === url) activeFinalVoiceUrl = '';
-          URL.revokeObjectURL(url);
-        };
-        audio.addEventListener('ended', cleanup, { once: true });
-        audio.addEventListener('error', cleanup, { once: true });
-        await audio.play();
+        voiceAudio.pause();
+        voiceAudio.src = url;
+        voiceAudio.currentTime = 0;
+        await voiceAudio.play();
         return true;
-      } catch (error) {
-        console.warn('[Tarot voice] WAV playback unavailable:', error);
-        el.revNote.textContent = [lastNote, 'English voice is unavailable right now. The audio could not be played.'].filter(Boolean).join(' ');
-        return false;
+      } catch (audioErr) {
+        console.warn('[Tarot voice] HTMLAudioElement blocked or failed, attempting Web Audio fallback:', audioErr);
       }
     }
-    const played = await playVoiceBuffer(voice.buffer);
-    if (!played) {
-      el.revNote.textContent = [lastNote, 'Voice playback is unavailable in this browser.'].filter(Boolean).join(' ');
+
+    // 2. Resilient fallback: decode WAV into Web Audio buffer (already unlocked by card taps)
+    if (voice.arrayBuffer) {
+      try {
+        const ctx = getAudioContext();
+        if (ctx) {
+          if (ctx.state === 'suspended') await ctx.resume();
+          const buffer = await ctx.decodeAudioData(voice.arrayBuffer.slice(0));
+          const played = await playVoiceBuffer(buffer);
+          if (played) return true;
+        }
+      } catch (webAudioErr) {
+        console.warn('[Tarot voice] Web Audio fallback decode failed:', webAudioErr);
+      }
     }
-    return played;
+
+    el.revNote.textContent = [lastNote, 'English voice is unavailable right now. The audio could not be played.'].filter(Boolean).join(' ');
+    return false;
   }
 
   function clearFinalReadingVoice() {
     if (finalVoiceRequest) finalVoiceRequest.abort();
     finalVoiceRequest = null;
     finalVoiceBlob = null;
+    finalVoiceArrayBuffer = null;
     finalVoiceText = '';
     stopVoicePlayback();
   }
@@ -459,11 +506,13 @@
   function bindEvents() {
     // One delegated listener for the whole deck (was 22).
     el.deckContainer.addEventListener('click', e => {
+      unlockAudio();
       const w = e.target.closest('.deck-card-wrapper');
       if (w && !w.classList.contains('used')) handleCardDraw(w);
     });
     el.deckContainer.addEventListener('keydown', e => {
       if (e.key !== 'Enter' && e.key !== ' ') return;
+      unlockAudio();
       const w = e.target.closest('.deck-card-wrapper');
       if (w && !w.classList.contains('used')) { e.preventDefault(); handleCardDraw(w); }
     });
@@ -475,7 +524,10 @@
         if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') { e.preventDefault(); onRevelationClick(); }
       });
     }
-    if (el.rereadBtn) el.rereadBtn.addEventListener('click', rereadRevelation);
+    if (el.rereadBtn) el.rereadBtn.addEventListener('click', () => {
+      unlockAudio();
+      rereadRevelation();
+    });
     if (el.dialogueBox) el.dialogueBox.addEventListener('click', () => { if (twState) twState.finish(); });
   }
 
@@ -755,13 +807,12 @@
       const voiceRequestedAt = performance.now();
       const voiceStarted = await Promise.race([
         playFinalReadingVoice(lastNarrativeReading),
-        sleep(20_000).then(() => null)
+        sleep(35_000).then(() => null)
       ]);
       if (voiceStarted === true) {
-        await sleep(3000);
+        await sleep(2500);
       } else {
-        if (voiceStarted === null && finalVoiceRequest) finalVoiceRequest.abort();
-        const remainingDelay = 3000 - (performance.now() - voiceRequestedAt);
+        const remainingDelay = 2500 - (performance.now() - voiceRequestedAt);
         if (remainingDelay > 0) await sleep(remainingDelay);
       }
     }
