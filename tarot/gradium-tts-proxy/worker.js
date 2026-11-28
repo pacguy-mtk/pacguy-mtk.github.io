@@ -1,106 +1,58 @@
-const ALLOWED_ORIGINS = new Set([
+const ALLOWED_ORIGINS = [
   'https://pacguy-mtk.github.io',
   'http://localhost',
   'http://127.0.0.1'
-]);
-
-const VOICE_ID = 'Wouc5gcfN4vTyYo2';
-const MAX_TEXT_CHARS = 4000;
-const MAX_REQUESTS_PER_MINUTE = 5;
-const RATE_WINDOW_MS = 60_000;
-const recentRequests = new Map();
-
-function allowedOrigin(origin) {
-  if (ALLOWED_ORIGINS.has(origin)) return true;
-  try {
-    const url = new URL(origin);
-    return url.protocol === 'http:' &&
-      (url.hostname === 'localhost' || url.hostname === '127.0.0.1');
-  } catch {
-    return false;
-  }
-}
+];
 
 function corsHeaders(origin) {
+  const allow = origin && ALLOWED_ORIGINS.some(o => origin === o || origin.startsWith(o + ':'))
+    ? origin
+    : 'https://pacguy-mtk.github.io';
   return {
-    ...(allowedOrigin(origin) ? { 'Access-Control-Allow-Origin': origin } : {}),
+    'Access-Control-Allow-Origin': allow,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, x-api-key',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin'
   };
-}
-
-function json(status, body, cors) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
-  });
-}
-
-function isRateLimited(ip) {
-  const now = Date.now();
-  const previous = recentRequests.get(ip) || [];
-  const recent = previous.filter(time => now - time < RATE_WINDOW_MS);
-  if (recent.length >= MAX_REQUESTS_PER_MINUTE) {
-    recentRequests.set(ip, recent);
-    return true;
-  }
-  recent.push(now);
-  recentRequests.set(ip, recent);
-  // Prevent this isolate-local map from growing indefinitely.
-  if (recentRequests.size > 1000) {
-    for (const [key, times] of recentRequests) {
-      if (!times.some(time => now - time < RATE_WINDOW_MS)) recentRequests.delete(key);
-    }
-  }
-  return false;
 }
 
 export default {
   async fetch(request, env) {
     const origin = request.headers.get('Origin') || '';
     const cors = corsHeaders(origin);
-    const url = new URL(request.url);
 
-    if (!allowedOrigin(origin)) return json(403, { error: 'origin_not_allowed' }, cors);
-    if (url.pathname !== '/tts') return json(404, { error: 'not_found' }, cors);
-    if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-    if (request.method !== 'POST') return json(405, { error: 'method_not_allowed' }, cors);
-    if (!request.headers.get('Content-Type')?.toLowerCase().startsWith('application/json')) {
-      return json(415, { error: 'content_type_must_be_json' }, cors);
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: cors });
     }
-    if (Number(request.headers.get('Content-Length') || 0) > 16_384) {
-      return json(413, { error: 'request_too_large' }, cors);
-    }
-    const apiKey = env.TAROT_VAPI_KEY || env.GRADIUM_API_KEY;
-    if (!apiKey) return json(503, { error: 'tts_not_configured' }, cors);
 
-    let body;
+    if (request.method !== 'POST') {
+      return new Response('Method Not Allowed', { status: 405, headers: cors });
+    }
+
     try {
-      body = await request.json();
-    } catch {
-      return json(400, { error: 'invalid_json' }, cors);
-    }
+      const body = await request.json();
+      const text = typeof body?.text === 'string' ? body.text.trim().slice(0, 2000) : '';
+      const voiceId = typeof body?.voice_id === 'string' && body.voice_id.trim()
+        ? body.voice_id.trim()
+        : 'nplGtNEYtTnNcqR9';
 
-    const text = typeof body?.text === 'string' ? body.text.trim() : '';
-    if (!text) return json(400, { error: 'missing_text' }, cors);
-    if (text.length > MAX_TEXT_CHARS) return json(413, { error: 'text_too_long' }, cors);
+      if (!text) {
+        return new Response(JSON.stringify({ error: 'Missing text' }), {
+          status: 400,
+          headers: { ...cors, 'Content-Type': 'application/json' }
+        });
+      }
 
-    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    if (isRateLimited(ip)) {
-      return json(429, { error: 'rate_limited' }, {
-        ...cors,
-        'Retry-After': '60'
-      });
-    }
+      const apiKey = env.TAROT_VAPI_KEY || env.GRADIUM_API_KEY || request.headers.get('x-api-key') || '';
+      if (!apiKey) {
+        return new Response(JSON.stringify({ error: 'Missing API key' }), {
+          status: 401,
+          headers: { ...cors, 'Content-Type': 'application/json' }
+        });
+      }
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 120_000);
-    let upstream;
-    let audioBytes;
-    try {
-      upstream = await fetch('https://api.gradium.ai/api/speech/tts', {
+      const upstream = await fetch('https://api.gradium.ai/api/speech/tts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -108,47 +60,34 @@ export default {
         },
         body: JSON.stringify({
           text,
-          voice_id: VOICE_ID,
-          // Match Lumie's known-good request format. The browser plays this WAV
-          // with an HTMLAudioElement instead of interpreting raw PCM itself.
+          voice_id: voiceId,
           output_format: 'wav',
           only_audio: true
-        }),
-        signal: controller.signal
+        })
       });
+
       if (!upstream.ok) {
-        console.error('[Tarot TTS] Gradium returned HTTP', upstream.status);
-        return json(502, { error: 'tts_upstream_error', upstream_status: upstream.status }, cors);
+        const errText = await upstream.text().catch(() => '');
+        return new Response(errText || 'Upstream error', {
+          status: upstream.status,
+          headers: { ...cors, 'Content-Type': 'text/plain' }
+        });
       }
-      audioBytes = await upstream.arrayBuffer();
-    } catch (error) {
-      const timedOut = error?.name === 'AbortError';
-      return json(timedOut ? 504 : 502, {
-        error: timedOut ? 'tts_timeout' : 'tts_unavailable'
-      }, cors);
-    } finally {
-      clearTimeout(timeout);
-    }
 
-    if (!audioBytes || audioBytes.byteLength === 0) {
-      console.error('[Tarot TTS] Upstream returned an empty audio body', {
-        contentType: upstream.headers.get('Content-Type') || 'unknown',
-        contentLength: upstream.headers.get('Content-Length') || 'unknown',
-        requestId: upstream.headers.get('x-request-id') || upstream.headers.get('x-gradium-request-id') || 'unknown'
+      const audioBuf = await upstream.arrayBuffer();
+      return new Response(audioBuf, {
+        status: 200,
+        headers: {
+          ...cors,
+          'Content-Type': upstream.headers.get('Content-Type') || 'audio/wav',
+          'Cache-Control': 'no-store'
+        }
       });
-      return json(502, { error: 'empty_audio' }, cors);
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err?.message || 'Proxy error' }), {
+        status: 500,
+        headers: { ...cors, 'Content-Type': 'application/json' }
+      });
     }
-
-    // Match Lumie's known-good path: preserve the complete bytes and label them
-    // as WAV. Do not reject alternate RIFF/WAVE layouts with a hand-written parser.
-    return new Response(audioBytes, {
-      status: 200,
-      headers: {
-        ...cors,
-        'Content-Type': 'audio/wav',
-        'Cache-Control': 'no-store',
-        'X-Content-Type-Options': 'nosniff'
-      }
-    });
   }
 };
