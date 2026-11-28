@@ -7,7 +7,7 @@ window.WHATS_NEW = [
     summary: 'Voice synthesis optimization, tarot audio fixes, and What\'s new window.',
     items: [
       ['upgrade', 'Optimized voice pipeline & audio playback reliability'],
-      ['fix', 'Tarot voice reading fully working (v0.9.4 with 30-day voice service)'],
+      ['fix', 'Tarot voice reading now works'],
       ['new', 'This What\'s new list added beside the logo']
     ]
   },
