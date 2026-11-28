@@ -1,27 +1,28 @@
 # Handover for the next AI agent
 
-Written 2026-11-27. The owner is not an engineer: explain changes in plain words and say how to check them.
+Updated 2026-11-28. The owner is not an engineer: explain changes in plain words and say how to check them.
 
-## Apply this update
-The patch was made against `main` at commit `076ca57` ("gallery: fix room bento gallery").
-1. `git checkout main && git pull`
-2. `git checkout -b tidy-up`
-3. `git apply --index --3way tidy-up.patch`
-4. Gallery items added after `076ca57` conflict or end up in the old places. Move them into `data/gallery.js`
-   (see `docs/gallery.md`), then run `python tools/make-thumbs.py`.
-5. Test (below), commit. Ask the owner before merging into `main`, because that publishes the site.
+## Status (v2.2.1 & Tarot v0.9.4)
+- **What's new:** `whats-new.patch` has been applied and merged. A `v2.2 What's new` button sits beside the ZJ logo in `room.html`, showing updates from v2.2.1 down to v1.0.
+- **Tarot TTS Voice (v0.9.4):** Voice synthesis is fully working and verified. The Cloudflare Worker `tarotgemini-tts-proxy` (`backbackbacktrowtow`) mirrors Lumie's logic, uses voice `nplGtNEYtTnNcqR9`, and has an active Gradium service key (30-day window starting 28/11/2026). Client-side race timeouts, markdown syntax cleaning, and autoplay unlock fallbacks were resolved.
+- **Human vibe coding & multi-agent learning:** Fixes were guided by human direction to use Lumie as the study model, working collaboratively across AI agent sessions.
 
-## What the patch changes
-- One gallery list: `data/gallery.js` feeds `index.html`, `script.js` and `room.html`.
-- Room styles moved from `room.html` to `css/room.css`.
-- Notes gathered in `docs/`; `AGENTS.md` is now a short index.
-- Key warning: `docs/SECURITY-keys.md`.
+## What changed in this update
+- `room.html`: a `v2.2 What's new` button beside the ZJ logo (only `v2.2` on very narrow screens).
+- `data/whats-new.js` (the text), `js/room/whats-new.js` (the window), styles at the end of `css/room.css`.
+- `tarot/whats-new.js`: v0.9.4 live voice synthesis release note.
+- `docs/voice.md`: comprehensive resolution and study case.
+- `AGENTS.md`: big updates must be added to What's new.
 
 ## Test
-Serve locally (`python -m http.server`) and check:
-- `index.html?mode=classic`: gallery shows, filters and lightbox work.
-- `room.html?mode=room`: room looks the same, gallery panel and thumbnails work, radio plays and lists all OSTs.
-- No errors in the browser console. After publishing, hard-refresh once.
+Serve locally (`python -m http.server`), open `room.html?mode=room`:
+- The button sits beside ZJ, with a dot until opened once.
+- The window lists v2.2 down to v1.0; each older entry shows its screenshot.
+- Close button, Escape and clicking outside all close it. Check desktop and a landscape phone.
+- Gallery, radio and Lumie still work; no new console errors.
+
+## For the owner to check
+Dates and wording for v1.0 to v1.4 were estimated from the activity log and the screenshots in `version/`.
 
 ## Not done yet, in order
 1. API keys (`docs/SECURITY-keys.md`). Owner has postponed it.

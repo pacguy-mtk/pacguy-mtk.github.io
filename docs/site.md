@@ -13,7 +13,8 @@ Order in `index.html`: `#hub` (ask bar) -> `#tarot` -> `#gallery` -> `#contact` 
 - **Secrets** (GitHub repo > Settings > Secrets and variables > Actions): `GROQ_API_KEY`, `OPENROUTER_API_KEY` (Lumie, injected into `script.js`) and `TAROT_API_KEY_1`, `TAROT_API_KEY_2` (tarot house Oracle, injected into `tarot/config.js`, tried in order). Placeholders in the files: `__GROQ_API_KEY__`, `__OPENROUTER_API_KEY__`, `__TAROT_API_KEY_1__`, `__TAROT_API_KEY_2__`. Never commit a real key. Pages must be deployed with **Source: GitHub Actions**.
 - **Credits:** the hero chips and short keyword questions never call the AI. Only longer free-text questions, the welcome popup "Ask AI" row and the chat panel do.
 - **Tarot debug menu** is hidden for visitors (kept in `tarot/debug-menu.js`). Show it on your own browser with `localStorage.tarot_debug='1'` in the tarot page console, or on localhost.
-- **Version history:** v2.2 online (text card), v2.1 screenshot at `version/v2.1.webp`, v2.0 at `version/v2.0.webp`. For the next version add `version/vX.Y.webp` and a clickable `.ver-card`.
+- **What's new (room):** `data/whats-new.js`; rules in `AGENTS.md`.
+- **Version history (classic footer):** v2.2 online (text card), v2.1 screenshot at `version/v2.1.webp`, v2.0 at `version/v2.0.webp`. For the next version add `version/vX.Y.webp` and a clickable `.ver-card`.
 
 ## 3D Room & Mode Switch (v3.0)
 - **3D Room mode (`room.html`)**: Cozy interactive desk scene built with three.js. Default view for visitors with WebGL support.

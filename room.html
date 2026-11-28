@@ -61,7 +61,10 @@
 </div></div>
 
 <header id="hud">
-  <a class="brand" href="room.html" aria-label="ZiJun Room"><div class="brand-mark">ZJ</div></a>
+  <div class="hud-left">
+    <a class="brand" href="room.html" aria-label="ZiJun Room"><div class="brand-mark">ZJ</div></a>
+    <button class="pill" id="wnTag" type="button" title="What's new" hidden><b></b> <span>What's new</span></button>
+  </div>
   <div class="hud-right">
     <button class="pill" id="qBtn" type="button" title="Graphics quality (click to change)">Graphics: <b id="qLbl">Auto</b></button>
     <button class="pill" id="npPill" type="button" hidden aria-label="Toggle music"><span class="eq"><i></i><i></i><i></i></span><span class="np-title" id="npTitle">OST</span></button>
@@ -224,6 +227,8 @@
 <script src="data/gallery.js"></script>
 <script src="data/thumbs.js"></script>
 <script src="lumie-ptt.js"></script>
+<script src="data/whats-new.js"></script>
+<script src="js/room/whats-new.js"></script>
 <script>
 /* ===================== UI layer (no 3D needed) ===================== */
 (function(){

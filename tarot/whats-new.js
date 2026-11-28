@@ -16,14 +16,16 @@
 
   const CHANGELOG = [
     {
-      version: '0.9.4', title: 'API calling routing', date: 'Nov 26, 2026',
-      summary: 'English voice now follows the successful AI reading, with clearer playback timing.',
+      version: '0.9.4', title: 'Voice optimization & live TTS', date: 'Nov 28, 2026',
+      summary: 'English voice synthesis is verified and live. TTS API service active for 30 days starting Nov 28, 2026.',
       groups: [
         { type: 'upgrades', items: [
-          '<strong>Reading route:</strong> only a completed AI reading requests English voice. The finished text stays hidden until speech starts, then appears after a short lead-in. Basic readings do not make a speech API call.'
+          '<strong>Voice reading verified:</strong> Tarot TTS synthesis is fully functional, using Lumie\'s proven voice pipeline and dual key authentication.',
+          '<strong>Timing & reliability:</strong> Text is cleaned and capped for fast 8–12 second synthesis; the race window is expanded to 35s with persistent audio unlocking and Web Audio decode fallback so speech never fails to play.'
         ]},
         { type: 'fixes', items: [
-          'Voice audio is buffered and played as WAV using the browser audio player.'
+          'Aligned proxy Worker to Lumie logic, resolved default voice ID to <code>nplGtNEYtTnNcqR9</code>, and fixed browser autoplay blocks.',
+          'Developed through collaborative human vibe coding and multi-agent learning methods, tested live and pushed.'
         ]}
       ]
     },

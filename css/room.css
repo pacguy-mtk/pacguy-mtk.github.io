@@ -297,3 +297,30 @@ body[data-panel="gallery"] #drawer{backdrop-filter:none;background:rgba(10,14,26
   .g-grid,.g-col{gap:8px}
 }
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* version tag beside the logo, and the What's new window */
+.hud-left{display:flex;align-items:center;gap:8px}
+#wnTag{cursor:pointer;position:relative}
+#wnTag[hidden]{display:none}
+#wnTag.is-new::after{content:"";position:absolute;top:-1px;right:-1px;width:9px;height:9px;border-radius:50%;background:var(--cyan)}
+#wn{padding:0;border:1px solid var(--line);border-radius:22px;background:#0b101d;color:#eef2ff;width:min(480px,calc(100vw - 24px));max-height:min(640px,calc(100dvh - 24px));overflow:hidden}
+#wn::backdrop{background:rgba(3,5,10,.7)}
+#wn .wn-panel{display:flex;flex-direction:column;max-height:min(638px,calc(100dvh - 26px))}
+#wn header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+#wn h2{margin:0;font-size:18px}
+#wn .wn-close{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:transparent;color:inherit;cursor:pointer}
+#wn .wn-body{overflow-y:auto;min-height:0;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+#wn details{flex:none;border:1px solid var(--line);border-radius:14px;padding:0 12px}
+#wn details[open]{padding-bottom:12px;border-color:rgba(66,232,212,.45)}
+#wn summary{display:flex;align-items:center;gap:10px;padding:11px 0;cursor:pointer;font-size:13.5px}
+#wn summary b{color:var(--cyan)}
+#wn summary span{font-weight:700}
+#wn summary small{margin-left:auto;color:var(--faint);font-size:11px;text-align:right}
+#wn p{margin:0 0 10px;font-size:13px;color:var(--muted)}
+#wn ul{list-style:none;margin:0;padding:0;display:grid;gap:7px;font-size:13px}
+#wn li{display:flex;gap:8px;align-items:baseline}
+#wn em{flex:none;width:62px;text-align:center;font-style:normal;font-size:10px;font-weight:800;text-transform:uppercase;border:1px solid currentColor;border-radius:999px;padding:1px 0}
+#wn .t-new{color:#3ddc84}#wn .t-visual{color:#a78bfa}#wn .t-upgrade{color:#38bdf8}#wn .t-fix{color:#f87171}
+#wn img{display:block;width:100%;height:auto;margin-top:12px;border-radius:10px}
+#wnTag{white-space:nowrap}
+@media (max-width:560px){#wnTag span{display:none}}

@@ -70,7 +70,7 @@ To reduce clipped or delayed audio starts, the controller begins fetching and de
 - Cloudflare Worker: `tarotgemini-tts-proxy`
 - Production endpoint: `https://tarotgemini-tts-proxy.backbackbacktrowtow.workers.dev/tts`
 - Local source: `tarot/gradium-tts-proxy/worker.js`; Wrangler config: `tarot/gradium-tts-proxy/wrangler.toml`
-- The Worker accepts `POST /tts` JSON `{"text":"..."}`, sends the text to Gradium's speech TTS endpoint, fixes the voice to `Wouc5gcfN4vTyYo2`, and returns WAV audio. It allows the published site origin and local HTTP origins, limits text to 4,000 characters, and applies a best-effort isolate-local per-IP request limit.
+- The Worker accepts `POST /tts` JSON `{"text":"..."}`, sends the text to Gradium's speech TTS endpoint, defaults the voice to `nplGtNEYtTnNcqR9` (Lumie, or accepts custom `voice_id`), and returns WAV audio. It allows the published site origin and local HTTP origins, limits text to 2,000 characters, and applies a best-effort isolate-local per-IP request limit.
 - Worker runtime secret: `TAROT_VAPI_KEY`. The deploy workflow supplies it from the GitHub Actions repository secret with the same name. Existing manual Worker setups using `GRADIUM_API_KEY` remain supported as a fallback. Never put either key in source files.
 - The CORS check and in-memory limit reduce accidental/external use but are not strong authentication. Add a Cloudflare rate-limiting rule if stronger edge-enforced limits are needed.
 
@@ -155,3 +155,28 @@ During the Nov 26, 2026 troubleshooting session, the live Tarot page showed **Ba
 The Cloudflare dashboard's Quick Edit HTTP panel was also tested with POST, but its request log showed the request arriving at `/` and the Worker returned `not_found`. Earlier preview requests were GETs without the allowed site Origin and returned `origin_not_allowed`. Neither response indicates a Gradium/API-key failure: both were rejected before the upstream call. To exercise the speech path, use the published app with an actual successful AI reading, or send `POST https://tarotgemini-tts-proxy.backbackbacktrowtow.workers.dev/tts` with `Origin: https://pacguy-mtk.github.io`, `Content-Type: application/json`, and a JSON body such as `{"text":"A short voice test."}`. Do not use the dashboard's root Preview URL as an API health check.
 
 The Cloudflare Worker settings showed an encrypted `GRADIUM_API_KEY` secret. This matches the checked-in Worker because it reads `TAROT_VAPI_KEY || GRADIUM_API_KEY`; no plaintext key or Cloudflare deployment token is needed in the website source. The Tarot Worker GitHub Actions workflow is separate from the Pages build and will skip deployment if the repository lacks its Cloudflare deployment secrets. Lumie's Worker and its configuration were left untouched.
+
+---
+
+## Resolution & Study Case: Learning from Lumie's Working Model (Nov 28, 2026)
+
+### The Human Insight: "Copy Lumie Logic"
+When Tarot's speech synthesis continued to fail across debugging iterations, the user provided the decisive breakthrough: **directing the AI to inspect and replicate Lumie's already-working Cloudflare Worker logic directly**.
+
+As the user aptly observed:
+> *"Is it me to tell you to learn from Lumie logic right? That is the study case: AI requires a study model for a better study, or it's just randomly drawing a card like how I as a human being birth."*
+
+Without anchoring to a working reference implementation, AI agents independently generated speculative theories, adjusted parsers, or tested in isolation. Establishing Lumie's deployed, verified Worker as the ground truth "study model" immediately exposed the real discrepancies.
+
+### Root Causes Discovered and Fixed
+1. **Invalid Voice ID (`Wouc5gcfN4vTyYo2` → `nplGtNEYtTnNcqR9`):**
+   Tarot was hardcoded to `Wouc5gcfN4vTyYo2`. Calling Gradium directly revealed `HTTP 400 {"detail":"Embeddings not found for Wouc5gcfN4vTyYo2"}` because that voice ID did not exist on the user's Gradium account. Lumie's verified voice `nplGtNEYtTnNcqR9` was substituted as the default, with support for custom `body.voice_id`.
+2. **Cloudflare Worker Alignment & Secret Sync:**
+   The active Gradium key (valid for a 30-day service window starting Nov 28, 2026) was synchronized into Cloudflare secrets `GRADIUM_API_KEY` and `TAROT_VAPI_KEY` on `tarotgemini-tts-proxy` (`backbackbacktrowtow`). The Worker also copied Lumie's resilient dual fallback: `env.TAROT_VAPI_KEY || env.GRADIUM_API_KEY || request.headers.get('x-api-key')`.
+3. **Premature 20-Second Race Abort on Long Texts:**
+   Full 3-card readings (700–1,000 characters) take ~15–22 seconds on Gradium. The client's `Promise.race` had a 20-second cutoff that aborted the in-flight fetch right before Gradium finished responding. The client now cleans raw markdown formatting, caps prompt length for quick ~8–12 second synthesis, extends the wait window to 35 seconds, and never aborts background downloads.
+4. **Browser Autoplay Protection & Pre-Unlocking:**
+   Because TTS requests resolve 15+ seconds after user clicks have stopped, browsers frequently blocked `new Audio().play()`. The frontend now pre-unlocks a shared `HTMLAudioElement` on card selection and interaction taps (Lumie's pattern) and adds a Web Audio `decodeAudioData` buffer fallback.
+5. **Live Verification:**
+   `https://tarotgemini-tts-proxy.backbackbacktrowtow.workers.dev/tts` tested live, returning `HTTP 200` with 460KB+ of valid RIFF/WAV audio. Fixes committed and deployed to `main`.
+
